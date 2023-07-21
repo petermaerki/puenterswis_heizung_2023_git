@@ -1,0 +1,81 @@
+{
+	"folders": [
+		{
+			"name": "pc",
+			"path": "."
+		}
+	],
+	"extensions": {
+		"recommendations": [
+			"kelvin.vscode-sshfs",
+			"charliermarsh.ruff",
+			"ms-python.black-formatter",
+			"ms-python.isort",
+			"ms-python.python"
+		],
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Python: Current File",
+				"type": "python",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:pc}"
+				},
+				"justMyCode": true
+			},
+			{
+				"name": "Python: Remote Attach",
+				"type": "python",
+				"request": "attach",
+				"connect": {
+					"host": "puentpi",
+					"port": 5678
+				},
+				"pathMappings": [
+					{
+						"localRoot": "${workspaceFolder}/program",
+						"remoteRoot": "."
+					}
+				],
+				"justMyCode": true
+			}
+		],
+		"compounds": []
+	},
+	"settings": {
+		"git.openRepositoryInParentFolders": "always",
+		"ruff.enable": true,
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		},
+		"isort.args": [
+			"--profile",
+			"black"
+		],
+		"python.formatting.provider": "none",
+		"python.envFile": "${workspaceFolder}/.env",
+		"sshfs.configs": [
+			{
+				"name": "zero-puent",
+				"host": "zero-puent",
+				"username": "zero",
+				"privateKeyPath": "$HOME/.ssh/id_rsa"
+			},
+			{
+				"name": "zero-bochs",
+				"host": "zero-bochs",
+				"username": "zero",
+				"privateKeyPath": "$HOME/.ssh/id_rsa"
+			}
+		]
+	}
+}
