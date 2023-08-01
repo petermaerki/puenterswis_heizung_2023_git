@@ -21,7 +21,7 @@ LC_ALL=en_GB.UTF-8 sudo apt update; sudo apt upgrade -y; sudo apt install -y pyt
 ```
 
 
-## TASK: Create Image
+## TASK: Git Clone
 
 PC:
 ```
