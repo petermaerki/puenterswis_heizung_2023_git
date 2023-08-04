@@ -11,7 +11,8 @@
 			"charliermarsh.ruff",
 			"ms-python.black-formatter",
 			"ms-python.isort",
-			"ms-python.python"
+			"ms-python.python",
+			"ms-python.pylint"
 		],
 	},
 	"launch": {
@@ -70,7 +71,6 @@
 				"source.organizeImports": true
 			}
 		},
-
 		"isort.args": [
 			"--profile",
 			"black"

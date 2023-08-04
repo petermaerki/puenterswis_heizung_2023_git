@@ -26,6 +26,7 @@
 				"ms-python.python",
 				"ms-python.black-formatter",
 				"ms-python.isort",
+				"ms-python.pylint",
 				"bierner.markdown-mermaid",
 				"joffreykern.markdown-toc",
 				"charliermarsh.ruff"
