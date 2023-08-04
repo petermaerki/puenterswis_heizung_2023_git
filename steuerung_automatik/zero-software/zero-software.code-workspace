@@ -29,6 +29,18 @@
 				"justMyCode": true
 			},
 			{
+				"name": "Python: test_main.py",
+				"type": "python",
+				"request": "launch",
+				"program": "program/test_main.py",
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:pc}"
+				},
+				"justMyCode": true
+			},
+			{
 				"name": "Python: Remote Attach",
 				"type": "python",
 				"request": "attach",
@@ -54,14 +66,16 @@
 			"editor.defaultFormatter": "ms-python.black-formatter",
 			"editor.formatOnSave": true,
 			"editor.codeActionsOnSave": {
+				"source.fixAll": true,
 				"source.organizeImports": true
 			}
 		},
+
 		"isort.args": [
 			"--profile",
 			"black"
 		],
-		"python.formatting.provider": "none",
+		"python.formatting.provider": "black",
 		"python.envFile": "${workspaceFolder}/.env",
 		"sshfs.configs": [
 			{
