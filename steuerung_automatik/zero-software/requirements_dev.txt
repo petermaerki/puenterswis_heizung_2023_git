@@ -1,0 +1,7 @@
+### Formatting, static code analysis, unit tests
+black
+mypy
+ruff
+pylint
+isort
+pytest

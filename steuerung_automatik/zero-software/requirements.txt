@@ -1,0 +1,5 @@
+uvicorn[standard]
+fastapi
+Jinja2
+
+# hsm @ git+https://github.com/hmaerki/HierarchicalStateMachine.git
