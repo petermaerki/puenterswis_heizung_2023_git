@@ -23,20 +23,26 @@ class HsmPumpe(hsm.HsmMixin):
         self.set_logger(ZeroLogger(self))
 
     @hsm.init_state
-    def state_NichtLaden(self, signal: SignalType):
+    def state_aus(self, signal: SignalType):
         if self.ctx.hsm_ladung.is_state(
-            self.ctx.hsm_ladung.state_Bedarf,
-            self.ctx.hsm_ladung.state_Zwang,
+            self.ctx.hsm_ladung.state_bedarf,
+            self.ctx.hsm_ladung.state_zwang,
         ):
             if self.ctx.sensoren.zentralspeicher_C > 70.0:
-                raise hsm.StateChangeException(self.state_Laden)
+                raise hsm.StateChangeException(self.state_ein)
         raise hsm.DontChangeStateException()
 
-    def state_Laden(self, signal: SignalType):
+    def entry_aus(self, signal: HsmTimeSignal):
+        logger.info("PUMPE AUS")
+
+    def state_ein(self, signal: SignalType):
         if self.ctx.hsm_ladung.is_state(
-            self.ctx.hsm_ladung.state_Bedarf,
-            self.ctx.hsm_ladung.state_Zwang,
+            self.ctx.hsm_ladung.state_bedarf,
+            self.ctx.hsm_ladung.state_zwang,
         ):
             if self.ctx.sensoren.zentralspeicher_C < 40.0:
-                raise hsm.StateChangeException(self.state_NichtLaden)
+                raise hsm.StateChangeException(self.state_aus)
         raise hsm.DontChangeStateException()
+
+    def entry_ein(self, signal: HsmTimeSignal):
+        logger.info("PUMPE EIN")

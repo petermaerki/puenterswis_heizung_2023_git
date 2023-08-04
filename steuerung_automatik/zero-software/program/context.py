@@ -12,7 +12,7 @@ from program.hsm_pumpe import HsmPumpe
 class Sensoren:
     brenner_a_on: bool = False
     brenner_b_on: bool = False
-    anforderungen: bool = False
+    anforderung: bool = False
     zentralspeicher_C: float = 20.0
     fernleitung_kalt_C: float = 20.0
     fernleitung_warm_C: float = 30.0

@@ -24,11 +24,14 @@ class HsmLadung(hsm.HsmMixin):
         self.set_logger(ZeroLogger(self))
 
     @hsm.init_state
-    def state_Aus(self, signal: SignalType):
+    def state_aus(self, signal: SignalType):
+        if self.ctx.sensoren.anforderung:
+            logger.info("wegen Anforderung wechsel in ladung bedarf")
+            raise hsm.StateChangeException(self.state_bedarf)
         raise hsm.DontChangeStateException()
 
-    def state_Bedarf(self, signal: SignalType):
+    def state_bedarf(self, signal: SignalType):
         raise hsm.DontChangeStateException()
 
-    def state_Zwang(self, signal: SignalType):
+    def state_zwang(self, signal: SignalType):
         raise hsm.DontChangeStateException()

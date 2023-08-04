@@ -1,12 +1,12 @@
 ```mermaid
 stateDiagram-v2
-    Laden: Laden
-    state Laden
-    Laden --> Laden: Dummy
+    aus: aus
+    state aus
 
-    NichtLaden: NichtLaden
-    state NichtLaden
-    [*] --> NichtLaden
+    ein: ein
+    state ein
+    ein --> ein: Dummy
+    [*] --> aus
 
     %% Transitions
 ```

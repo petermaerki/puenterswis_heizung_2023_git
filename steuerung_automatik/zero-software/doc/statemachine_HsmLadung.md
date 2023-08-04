@@ -1,16 +1,16 @@
 ```mermaid
 stateDiagram-v2
-    Aus: Aus
-    state Aus
+    aus: aus
+    state aus
 
-    Bedarf: Bedarf
-    state Bedarf
-    Bedarf --> Bedarf: Dummy
+    bedarf: bedarf
+    state bedarf
+    bedarf --> bedarf: Dummy
 
-    Zwang: Zwang
-    state Zwang
-    Zwang --> Zwang: Dummy
-    [*] --> Aus
+    zwang: zwang
+    state zwang
+    zwang --> zwang: Dummy
+    [*] --> aus
 
     %% Transitions
 ```
