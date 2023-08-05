@@ -36,23 +36,25 @@
 				"python.linting.enabled": true,
 				"python.linting.pylintEnabled": false,
 				"python.linting.pylintArgs": [
-					"--rcfile=${workspaceFolder}/.pylintrc"
+					"--rcfile=${workspaceFolder}/steuerung_automatik/zero-software/.pylintrc"
 				],
-				"python.linting.cwd": "${workspaceFolder}",
+				"python.linting.cwd": "${workspaceFolder}/steuerung_automatik/zero-software",
 				"python.linting.mypyEnabled": true,
 				// "python.testing.pytestArgs": [],
-				"python.testing.cwd": "${workspaceFolder}",
+				"python.testing.cwd": "${workspaceFolder}/steuerung_automatik/zero-software",
 				"python.testing.unittestEnabled": false,
 				"python.testing.pytestEnabled": true,
 				"python.linting.mypyArgs": [
-					"--config-file=${workspaceFolder}/.mypy.ini"
+					"--config-file=${workspaceFolder}/steuerung_automatik/zero-software/.mypy.ini"
 				],
+				"python.linting.cwd": "${workspacFolder}/steuerung_automatik/zero-software",
 				"ruff.organizeImports": true,
 				"ruff.fixAll": true,
 				"ruff.importStrategy": "fromEnvironment",
 				"ruff.args": [
-					"--config=${workspaceFolder}/.ruff.toml"
+					"--config=${workspaceFolder}/steuerung_automatik/zero-software/.ruff.toml"
 				],
+				"ruff.cwd": "{$workspaceFolder}/steuerung_automatik/zero-software",
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter",
 					"editor.formatOnSave": true,
