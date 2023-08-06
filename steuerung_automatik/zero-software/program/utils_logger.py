@@ -67,7 +67,8 @@ def initialize_logger() -> None:
     )
 
     ch = logging.StreamHandler()
-    ch.setLevel(level=logging.DEBUG)
+    # ch.setLevel(level=logging.DEBUG)
+    ch.setLevel(level=logging.INFO)
 
     # create formatter
     formatter = ColorFormatter(

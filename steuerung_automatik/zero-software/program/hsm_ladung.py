@@ -4,7 +4,7 @@ import typing
 from hsm import hsm
 from utils_logger import ZeroLogger
 
-from program.hsm_signal import HsmTimeSignal
+from program.hsm_signal import HsmSignalType, HsmTimeSignal
 
 if typing.TYPE_CHECKING:
     from program.context import Context
@@ -66,9 +66,10 @@ class HsmLadung(hsm.HsmMixin):
     def state_leeren(self, signal: SignalType):
         """Passt für Sommer und Winter"""
         leeren_duration_s = 7 * 60.0
-        if signal.time_s > self._leeren_start_s + leeren_duration_s:
-            logger.info("Ladung fertig daher wechsel in ladung aus")
-            raise hsm.StateChangeException(self.state_aus)
+        if signal.hsm_signal_type == HsmSignalType.Time:
+            if signal.time_s > self._leeren_start_s + leeren_duration_s:
+                logger.info("Ladung fertig daher wechsel in ladung aus")
+                raise hsm.StateChangeException(self.state_aus)
 
         raise hsm.DontChangeStateException()
 
@@ -80,8 +81,9 @@ class HsmLadung(hsm.HsmMixin):
 
     def entry_zwang(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True
-        if self.ctx.hsm_legionellen.is_state(self.ctx.hsm_legionellen.state_ausstehend):
-            raise hsm.StateChangeException(self.ctx.hsm_legionellen.state_aktiv)
+        self.ctx.hsm_legionellen.dispatch(
+            HsmTimeSignal(0.0, HsmSignalType.LegionellenLadung)
+        )
 
     def entry_leeren(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True
