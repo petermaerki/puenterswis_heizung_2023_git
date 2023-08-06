@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 
-from hsm_signal import HsmTimeSignal
-
 from program.constants import DIRECTORY_DOC
 from program.hsm_jahreszeit import HsmJahreszeit
 from program.hsm_ladung import HsmLadung
 from program.hsm_legionellen import HsmLegionellen
 from program.hsm_pumpe import HsmPumpe
+from program.hsm_signal import SignalBase
 
 
 @dataclass(repr=True)
@@ -27,9 +26,12 @@ class Sensoren:
 class Konstanten:
     def __init__(self):
         """
-        Fernleitungstemperatur fuer eine Warmwasserladung damit die Anforderung vom Elferoregler erfuellt wird.
+        Fernleitungstemperatur fuer eine Warmwasserladung damit die
+        Anforderung vom Elferoregler erfuellt wird.
         Elfero Heizregler dezentral "Elesta RDO244A200 Art 163286
-        Einstellen Warmwasser Solltemperatur: Pfeil nach unten druecken bis Thermometer und Wasserhahn: Warmwasser Solltemperatur. Diese ist normalerweise auf 45C.
+        Einstellen Warmwasser Solltemperatur: Pfeil nach unten druecken bis
+        Thermometer und Wasserhahn: Warmwasser Solltemperatur.
+        Diese ist normalerweise auf 45C.
         Einstellen Hysterese: Fachmannebene Parameter 191.
         """
         elfero_dezentral_solltemperatur_warmwasser_C = 45.0
@@ -43,10 +45,13 @@ class Konstanten:
         )
 
         """
-        Fernleitungstemperatur damit die Legionellen in den dezentralen Speichern absterben
+        Fernleitungstemperatur damit die Legionellen in den
+        dezentralen Speichern absterben
         """
-        legionellen_normtemperatur_C: float = 55.0  # https://suissetec.ch/files/PDFs/Merkblaetter/Sanitaer/Deutsch/2021_10_MB_SIA_385_1_DE_Editierbar.pdf
-        legionellen_temperaturueberhoehung_C: float = 5.0  # Reserve, Fernleitung
+        # https://suissetec.ch/files/PDFs/Merkblaetter/Sanitaer/Deutsch/2021_10_MB_SIA_385_1_DE_Editierbar.pdf
+        legionellen_normtemperatur_C: float = 55.0
+        # Reserve, Fernleitung
+        legionellen_temperaturueberhoehung_C: float = 5.0
 
         self.legionellen_fernleitungstemperatur_C = (
             legionellen_normtemperatur_C + legionellen_temperaturueberhoehung_C
@@ -60,9 +65,8 @@ class Konstanten:
             5 * 3600.0
         )  # Zeit welche mindestens geladen werden muss
 
-        #bochs = 0
-        #puent = 1
-
+        # bochs = 0
+        # puent = 1
 
 
 class Aktoren:
@@ -85,6 +89,7 @@ class Context:
         self.sensoren = Sensoren()
         self.aktoren = Aktoren()
         self.konstanten = Konstanten()
+        self.time_s: float = 0.0
 
         for hsm in self.hsms:
             hsm.init()
@@ -95,7 +100,7 @@ class Context:
         for hsm in self.hsms:
             hsm.start()
 
-    def dispatch(self, signal: HsmTimeSignal) -> None:
+    def dispatch(self, signal: SignalBase) -> None:
         for hsm in self.hsms:
             hsm.dispatch(signal)
 

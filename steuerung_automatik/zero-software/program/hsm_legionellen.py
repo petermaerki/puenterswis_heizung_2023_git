@@ -2,16 +2,14 @@ import logging
 import typing
 
 from hsm import hsm
-from utils_logger import ZeroLogger
 
-from program.hsm_signal import HsmSignalType, HsmTimeSignal
+from program.hsm_signal import LegionellenLadungSignal, SignalBase
+from program.utils_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
 
 logger = logging.getLogger(__name__)
-
-SignalType = HsmTimeSignal
 
 
 class HsmLegionellen(hsm.HsmMixin):
@@ -26,31 +24,31 @@ class HsmLegionellen(hsm.HsmMixin):
         self._legionellen_pumpenzeit_summe_s = None
 
     @hsm.init_state
-    def state_ok(self, signal: SignalType):
+    def state_ok(self, signal: SignalBase):
         """
         TRANSITION state_ausstehend timeout von 7 min
         """
         if self._legionellen_last_killed_s is None:
-            self._legionellen_last_killed_s = (
-                signal.time_s
-            )  # Bei einem Software Neustart geht momentan die letzte Zeit vergessen. Einfache Loesung.
+            # Bei einem Software Neustart geht momentan die letzte Zeit vergessen.
+            # Einfache Loesung.
+            self._legionellen_last_killed_s = self.ctx.time_s
         if (
-            signal.time_s
+            self.ctx.time_s
             > self._legionellen_last_killed_s
             + self.ctx.konstanten.legionellen_intervall_s
         ):
             raise hsm.StateChangeException(self.state_ausstehend)
         raise hsm.DontChangeStateException()
 
-    def state_ausstehend(self, signal: SignalType):
+    def state_ausstehend(self, signal: SignalBase):
         """
         TRANSITION state_aktiv Signal LegionellenLadung
         """
-        if signal.hsm_signal_type == HsmSignalType.LegionellenLadung:
+        if isinstance(signal, LegionellenLadungSignal):
             raise hsm.StateChangeException(self.state_aktiv)
         raise hsm.DontChangeStateException()
 
-    def state_aktiv(self, signal: SignalType):
+    def state_aktiv(self, signal: SignalBase):
         """
         TRANSITION state_ok Legionellen sind gekillt
         """
@@ -68,6 +66,6 @@ class HsmLegionellen(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    def entry_aktiv(self, signal: HsmTimeSignal):
+    def entry_aktiv(self, signal: SignalBase):
         self._last_time_s = signal.time_s
         self._legionellen_pumpenzeit_summe_s = 0.0

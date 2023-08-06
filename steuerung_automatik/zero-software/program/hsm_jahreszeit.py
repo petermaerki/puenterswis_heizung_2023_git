@@ -2,16 +2,13 @@ import logging
 import typing
 
 from hsm import hsm
-from utils_logger import ZeroLogger
-
-from program.hsm_signal import HsmTimeSignal
+from program.hsm_signal import SignalBase
+from program.utils_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
 
 logger = logging.getLogger(__name__)
-
-SignalType = HsmTimeSignal
 
 
 class HsmJahreszeit(hsm.HsmMixin):
@@ -23,20 +20,29 @@ class HsmJahreszeit(hsm.HsmMixin):
         self.set_logger(ZeroLogger(self))
 
     @hsm.init_state
-    def state_winter(self, signal: SignalType):
-        #Todo if gestern weniger als 70 kWh und brenner sind aus: wechsel auf sommer
-        if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
-            logger.info("Gestern wenig Energie verbraucht daher Wechsel zu status Sommer")
+    def state_winter(self, signal: SignalBase):
+        # Todo if gestern weniger als 70 kWh und brenner sind aus: wechsel auf sommer
+        if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (
+            self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
+        ):
+            logger.info(
+                "Gestern wenig Energie verbraucht daher Wechsel zu status Sommer"
+            )
             raise hsm.StateChangeException(self.state_sommer)
         raise hsm.DontChangeStateException()
 
-    def state_sommer(self, signal: SignalType):
-        # Todo if gestern mehr als 80 kWh und mindestens ein Kessel brennt:  wechsel auf winter
-        if self.ctx.sensoren.energie_gestern_kWh > 80.0 and (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
-            logger.info("Gestern viel Energie verbraucht daher Wechsel zu status Winter")
+    def state_sommer(self, signal: SignalBase):
+        # Todo if gestern mehr als 80 kWh und mindestens ein
+        # Kesselbrennt:  wechsel auf winter
+        if self.ctx.sensoren.energie_gestern_kWh > 80.0 and (
+            self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
+        ):
+            logger.info(
+                "Gestern viel Energie verbraucht daher Wechsel zu status Winter"
+            )
             raise hsm.StateChangeException(self.state_winter)
         raise hsm.DontChangeStateException()
-    
-    def entry_sommer(self, signal: SignalType):
+
+    def entry_sommer(self, signal: SignalBase):
         # Todo einen Kessel sperren
         pass

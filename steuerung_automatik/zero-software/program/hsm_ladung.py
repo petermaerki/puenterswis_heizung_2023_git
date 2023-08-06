@@ -2,17 +2,15 @@ import logging
 import typing
 
 from hsm import hsm
-from utils_logger import ZeroLogger
 
-from program.hsm_signal import HsmSignalType, HsmTimeSignal
+from program.hsm_signal import LegionellenLadungSignal, SignalBase, TimeSignal
+from program.utils_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
 
 
 logger = logging.getLogger(__name__)
-
-SignalType = HsmTimeSignal
 
 
 class HsmLadung(hsm.HsmMixin):
@@ -22,10 +20,10 @@ class HsmLadung(hsm.HsmMixin):
         hsm.HsmMixin.__init__(self, mermaid_detailed=False, mermaid_entryexit=False)
         self.ctx = ctx
         self.set_logger(ZeroLogger(self))
-        self._leeren_start_s = None
+        self._leeren_start_s: float = None
 
     @hsm.init_state
-    def state_aus(self, signal: SignalType):
+    def state_aus(self, signal: SignalBase):
         """Passt fuer Sommer und Winter"""
         if self.ctx.sensoren.anforderung:
             logger.info("wegen Anforderung wechsel in ladung bedarf")
@@ -33,7 +31,7 @@ class HsmLadung(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    def state_bedarf(self, signal: SignalType):
+    def state_bedarf(self, signal: SignalBase):
         if self.ctx.hsm_jahreszeit.is_state(
             self.ctx.hsm_jahreszeit.state_sommer,
         ):
@@ -53,7 +51,7 @@ class HsmLadung(hsm.HsmMixin):
             raise hsm.StateChangeException(self.state_zwang)
         raise hsm.DontChangeStateException()
 
-    def state_zwang(self, signal: SignalType):
+    def state_zwang(self, signal: SignalBase):
         if self.ctx.hsm_jahreszeit.is_state(
             self.ctx.hsm_jahreszeit.state_sommer,
         ):
@@ -63,28 +61,26 @@ class HsmLadung(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    def state_leeren(self, signal: SignalType):
+    def state_leeren(self, signal: SignalBase):
         """Passt für Sommer und Winter"""
         leeren_duration_s = 7 * 60.0
-        if signal.hsm_signal_type == HsmSignalType.Time:
-            if signal.time_s > self._leeren_start_s + leeren_duration_s:
+        if isinstance(signal, TimeSignal):
+            if self.ctx.time_s > self._leeren_start_s + leeren_duration_s:
                 logger.info("Ladung fertig daher wechsel in ladung aus")
                 raise hsm.StateChangeException(self.state_aus)
 
         raise hsm.DontChangeStateException()
 
-    def entry_aus(self, signal: HsmTimeSignal):
+    def entry_aus(self, signal: SignalBase):
         self.ctx.aktoren.ventile_zwangsladung_on = False
 
-    def entry_bedarf(self, signal: HsmTimeSignal):
+    def entry_bedarf(self, signal: SignalBase):
         self.ctx.aktoren.ventile_zwangsladung_on = False
 
-    def entry_zwang(self, signal: HsmTimeSignal):
+    def entry_zwang(self, signal: SignalBase):
         self.ctx.aktoren.ventile_zwangsladung_on = True
-        self.ctx.hsm_legionellen.dispatch(
-            HsmTimeSignal(0.0, HsmSignalType.LegionellenLadung)
-        )
+        self.ctx.hsm_legionellen.dispatch(LegionellenLadungSignal())
 
-    def entry_leeren(self, signal: HsmTimeSignal):
+    def entry_leeren(self, signal: SignalBase):
         self.ctx.aktoren.ventile_zwangsladung_on = True
         self._leeren_start_s = signal.time_s

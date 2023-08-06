@@ -61,8 +61,21 @@
 		"compounds": []
 	},
 	"settings": {
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": false,
+		"python.linting.pylintArgs": [
+			"--rcfile=${workspaceFolder}/.pylintrc"
+		],
+		"python.linting.cwd": "${workspaceFolder}",
+		"python.linting.mypyEnabled": false,
 		"git.openRepositoryInParentFolders": "always",
 		"ruff.enable": true,
+		"ruff.organizeImports": true,
+		"ruff.fixAll": false,
+		"ruff.importStrategy": "fromEnvironment",
+		"ruff.args": [
+			"--config=${workspaceFolder}/.ruff.toml"
+		],
 		"[python]": {
 			"editor.defaultFormatter": "ms-python.black-formatter",
 			"editor.formatOnSave": true,

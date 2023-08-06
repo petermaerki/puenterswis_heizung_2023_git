@@ -2,16 +2,14 @@ import logging
 import typing
 
 from hsm import hsm
-from utils_logger import ZeroLogger
 
-from program.hsm_signal import HsmTimeSignal
+from program.hsm_signal import SignalBase
+from program.utils_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
 
 logger = logging.getLogger(__name__)
-
-SignalType = HsmTimeSignal
 
 
 class HsmPumpe(hsm.HsmMixin):
@@ -23,7 +21,7 @@ class HsmPumpe(hsm.HsmMixin):
         self.set_logger(ZeroLogger(self))
 
     @hsm.init_state
-    def state_aus(self, signal: SignalType):
+    def state_aus(self, signal: SignalBase):
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
@@ -41,11 +39,11 @@ class HsmPumpe(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    def entry_aus(self, signal: HsmTimeSignal):
+    def entry_aus(self, signal: SignalBase):
         logger.info("PUMPE AUSSCHALTEN")
         self.ctx.aktoren.pumpe_on = False
 
-    def state_ein(self, signal: SignalType):
+    def state_ein(self, signal: SignalBase):
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
@@ -68,8 +66,10 @@ class HsmPumpe(hsm.HsmMixin):
             raise hsm.StateChangeException(self.state_aus)
 
         if (
-            not self.ctx.sensoren.anforderung  # bei einer Anforderung ist mindestens ein dezentrales Ventil offen
-            and not self.ctx.aktoren.ventile_zwangsladung_on  # alle Ventile sind offen
+            # bei einer Anforderung ist mindestens ein dezentrales Ventil offen
+            not self.ctx.sensoren.anforderung
+            # alle Ventile sind offen
+            and not self.ctx.aktoren.ventile_zwangsladung_on
         ):
             logger.fatal(
                 "Pumpe laeuft aber kein einziges Ventil ist offen. Das darf nicht dauerhaft sein."
@@ -79,6 +79,6 @@ class HsmPumpe(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    def entry_ein(self, signal: HsmTimeSignal):
+    def entry_ein(self, signal: SignalBase):
         logger.info("PUMPE EINSCHALTEN")
         self.ctx.aktoren.pumpe_on = True
