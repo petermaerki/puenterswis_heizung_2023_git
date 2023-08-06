@@ -23,13 +23,20 @@ class HsmJahreszeit(hsm.HsmMixin):
         self.set_logger(ZeroLogger(self))
 
     @hsm.init_state
-    def state_Winter(self, signal: SignalType):
+    def state_winter(self, signal: SignalType):
         #Todo if gestern weniger als 70 kWh und brenner sind aus: wechsel auf sommer
+        if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
+            logger.info("Gestern wenig Energie verbraucht daher Wechsel zu status Sommer")
+            raise hsm.StateChangeException(self.state_sommer)
         raise hsm.DontChangeStateException()
 
-    def state_Sommer(self, signal: SignalType):
+    def state_sommer(self, signal: SignalType):
         # Todo if gestern mehr als 80 kWh und mindestens ein Kessel brennt:  wechsel auf winter
+        if self.ctx.sensoren.energie_gestern_kWh > 80.0 and (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
+            logger.info("Gestern viel Energie verbraucht daher Wechsel zu status Winter")
+            raise hsm.StateChangeException(self.state_winter)
         raise hsm.DontChangeStateException()
     
-    def entry_Sommer(self, signal: SignalType):
+    def entry_sommer(self, signal: SignalType):
         # Todo einen Kessel sperren
+        pass

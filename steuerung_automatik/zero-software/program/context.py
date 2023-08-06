@@ -20,6 +20,8 @@ class Sensoren:
     fernleitung_warm_Tfv_C: float = 30.0
     fernleitung_kalt_Tfr_C: float = 20.0
     aussentemperatur_Taussen_C = 15.0
+    energie_heute_kWh = 0.0
+    energie_gestern_kWh = 0.0
 
 
 class Konstanten:
@@ -58,6 +60,10 @@ class Konstanten:
             5 * 3600.0
         )  # Zeit welche mindestens geladen werden muss
 
+        #bochs = 0
+        #puent = 1
+
+
 
 class Aktoren:
     pumpe_on: bool = False
@@ -71,8 +77,8 @@ class Context:
         self.hsm_pumpe = HsmPumpe(self)
         self.hsm_legionellen = HsmLegionellen(self)
         self.hsms = (
-            self.hsm_ladung,
             self.hsm_jahreszeit,
+            self.hsm_ladung,
             self.hsm_pumpe,
             self.hsm_legionellen,
         )

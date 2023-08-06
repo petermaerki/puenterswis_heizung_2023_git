@@ -1,5 +1,4 @@
 import logging
-import time
 import typing
 
 from hsm import hsm
@@ -36,7 +35,7 @@ class HsmLadung(hsm.HsmMixin):
 
     def state_bedarf(self, signal: SignalType):
         if self.ctx.hsm_jahreszeit.is_state(
-            self.ctx.hsm_jahreszeit.state_Sommer,
+            self.ctx.hsm_jahreszeit.state_sommer,
         ):
             if not self.ctx.sensoren.anforderung:
                 logger.info("Anforderung weg daher wechsel in ladung aus")
@@ -45,14 +44,18 @@ class HsmLadung(hsm.HsmMixin):
                 logger.info("Brenner an daher wechsel in ladung zwang")
                 raise hsm.StateChangeException(self.state_zwang)
         # State Winter
-        if (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on) and self.ctx.hsm_legionellen.is_state(self.ctx.hsm_legionellen.state_ausstehend):
+        if (
+            self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
+        ) and self.ctx.hsm_legionellen.is_state(
+            self.ctx.hsm_legionellen.state_ausstehend
+        ):
             logger.info("Legionellen anstehend und daher wechsel zu zwang")
             raise hsm.StateChangeException(self.state_zwang)
         raise hsm.DontChangeStateException()
 
     def state_zwang(self, signal: SignalType):
         if self.ctx.hsm_jahreszeit.is_state(
-            self.ctx.hsm_jahreszeit.state_Sommer,
+            self.ctx.hsm_jahreszeit.state_sommer,
         ):
             if True:  # Todo falls die Speicher genuegend voll sind
                 logger.info("Ladung fertig daher wechsel in ladung leeren")

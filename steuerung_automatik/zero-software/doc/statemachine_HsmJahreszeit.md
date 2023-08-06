@@ -1,12 +1,12 @@
 ```mermaid
 stateDiagram-v2
-    Sommer: Sommer
-    state Sommer
-    Sommer --> Sommer: Dummy
+    sommer: sommer
+    state sommer
+    sommer --> sommer: Dummy
 
-    Winter: Winter
-    state Winter
-    [*] --> Winter
+    winter: winter
+    state winter
+    [*] --> winter
 
     %% Transitions
 ```
