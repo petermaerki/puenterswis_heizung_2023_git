@@ -44,7 +44,10 @@ class HsmLadung(hsm.HsmMixin):
             if self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on:
                 logger.info("Brenner an daher wechsel in ladung zwang")
                 raise hsm.StateChangeException(self.state_zwang)
-
+        # State Winter
+        if (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on) and self.ctx.hsm_legionellen.is_state(self.ctx.hsm_legionellen.state_ausstehend):
+            logger.info("Legionellen anstehend und daher wechsel zu zwang")
+            raise hsm.StateChangeException(self.state_zwang)
         raise hsm.DontChangeStateException()
 
     def state_zwang(self, signal: SignalType):
@@ -74,7 +77,8 @@ class HsmLadung(hsm.HsmMixin):
 
     def entry_zwang(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True
-        self._zwangsladungsdauer_messung_s
+        if self.ctx.hsm_legionellen.is_state(self.ctx.hsm_legionellen.state_ausstehend):
+            raise hsm.StateChangeException(self.ctx.hsm_legionellen.state_aktiv)
 
     def entry_leeren(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True

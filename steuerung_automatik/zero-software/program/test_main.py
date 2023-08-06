@@ -11,18 +11,30 @@ def main():
     initialize_logger()
     ctx = Context()
     ctx.sensoren.zentralspeicher_oben_Tszo_C = 80.0
+    ctx.sensoren.anforderung = False
+    time_s = 0.0
+    ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    print("Neu eine Anforderung")
     ctx.sensoren.anforderung = True
+    time_s += 5.0
+    ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    print("Anforderung wieder weg")
+    ctx.sensoren.anforderung = False
+    time_s += 5.0
+    ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    # time_s += 5.0
+    # ctx.dispatch(HsmTimeSignal(time_s=time_s))
     # ctx.hsm_ladung.force_state(ctx.hsm_ladung.state_bedarf)
-    time_s = 5.0
-    ctx.dispatch(HsmTimeSignal(time_s=time_s))
-    time_s += 6*60.0
-    ctx.dispatch(HsmTimeSignal(time_s=time_s))
-    ctx.sensoren.zentralspeicher_oben_Tszo_C = 30.0
-    time_s += 2*60.0
-    ctx.dispatch(HsmTimeSignal(time_s=time_s))
-    for temp in range(-20, 30, 5):
-        ctx.sensoren.aussentemperatur_Taussen_C = temp
-        print (temp, ctx.fernleitungs_solltemperatur_C)
+    # time_s = 5.0
+    # ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    # time_s += 6*60.0
+    # ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    # ctx.sensoren.zentralspeicher_oben_Tszo_C = 30.0
+    # time_s += 2*60.0
+    # ctx.dispatch(HsmTimeSignal(time_s=time_s))
+    # for temp in range(-20, 30, 5):
+    #     ctx.sensoren.aussentemperatur_Taussen_C = temp
+    #     print (temp, ctx.fernleitungs_solltemperatur_C)
 
 
 if __name__ == "__main__":

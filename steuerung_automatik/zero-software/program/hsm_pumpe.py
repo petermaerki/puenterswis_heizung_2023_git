@@ -29,7 +29,8 @@ class HsmPumpe(hsm.HsmMixin):
             self.ctx.hsm_ladung.state_zwang,
         ):
             if (
-                self.ctx.sensoren.zentralspeicher_oben_Tszo_C > 70.0
+                self.ctx.sensoren.zentralspeicher_oben_Tszo_C
+                > self.ctx.konstanten.legionellen_fernleitungstemperatur_C + 5.0
             ):  # Todo korrekte temperatur
                 raise hsm.StateChangeException(self.state_ein)
         if self.ctx.hsm_ladung.is_state(
@@ -50,8 +51,9 @@ class HsmPumpe(hsm.HsmMixin):
             self.ctx.hsm_ladung.state_zwang,
         ):
             if (
-                self.ctx.sensoren.zentralspeicher_oben_Tszo_C < 40.0
-            ):  # Todo korrekte temperatur
+                self.ctx.sensoren.zentralspeicher_oben_Tszo_C
+                < self.ctx.konstanten.legionellen_fernleitungstemperatur_C
+            ):
                 logger.info("Zentralspeicher zu kalt daher Pumpe aus und warten")
                 raise hsm.StateChangeException(self.state_aus)
 
@@ -61,6 +63,10 @@ class HsmPumpe(hsm.HsmMixin):
             logger.info("Ladung aus daher Pumpe aus")
             raise hsm.StateChangeException(self.state_aus)
 
+        if not self.ctx.sensoren.anforderung:  # falls die Anforderung weg gefallen ist
+            logger.info("Anforderung ist weg gefallen daher wechsel auf pumpe aus")
+            raise hsm.StateChangeException(self.state_aus)
+
         if (
             not self.ctx.sensoren.anforderung  # bei einer Anforderung ist mindestens ein dezentrales Ventil offen
             and not self.ctx.aktoren.ventile_zwangsladung_on  # alle Ventile sind offen
@@ -68,6 +74,8 @@ class HsmPumpe(hsm.HsmMixin):
             logger.fatal(
                 "Pumpe laeuft aber kein einziges Ventil ist offen. Das darf nicht dauerhaft sein."
             )
+
+        # Todo Mischventil hier regeln
 
         raise hsm.DontChangeStateException()
 

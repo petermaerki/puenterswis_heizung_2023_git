@@ -29,7 +29,7 @@ class HsmLegionellen(hsm.HsmMixin):
     def state_ok(self, signal: SignalType):
         if self._legionellen_last_killed_s == None:
             self._legionellen_last_killed_s = signal.time_s # Bei einem Software Neustart geht momentan die letzte Zeit vergessen. Einfache Loesung.
-        if signal.time_s > self._legionellen_last_killed_s + self.ctx.konstanten.legionellen_intervall_s
+        if signal.time_s > self._legionellen_last_killed_s + self.ctx.konstanten.legionellen_intervall_s:
             raise hsm.StateChangeException(self.state_ausstehend)
         raise hsm.DontChangeStateException()
 
@@ -38,19 +38,15 @@ class HsmLegionellen(hsm.HsmMixin):
     
     def state_aktiv(self, signal: SignalType):
         if self.ctx.hsm_pumpe.is_state(self.ctx.hsm_pumpe.state_ein):
-            if self._last_time_s == None:
-                self._last_time_s = signal.time_s
-                self._legionellen_pumpenzeit_summe_s = 0.0
-                raise hsm.DontChangeStateException()
             self._legionellen_pumpenzeit_summe_s += signal.time_s - self._last_time_s
             self._last_time_s = signal.time_s
             if self._legionellen_pumpenzeit_summe_s > self.ctx.kontstanten.legionellen_zwangsladezeit_s:
-                blabla
+                logger.info("Die Legionellen sind gekillt daher wechsel in legionellen ok")
+                raise hsm.StateChangeException(self.state_ok)
             
-
-        if self._legionellen_last_killed_s == None:
         raise hsm.DontChangeStateException()
 
 
-    # def entry_ok(self, signal: HsmTimeSignal):
-    #    self.legionellen_last_killed_s = signal.time_s
+    def entry_aktiv(self, signal: HsmTimeSignal):
+        self._last_time_s = signal.time_s
+        self._legionellen_pumpenzeit_summe_s = 0.0

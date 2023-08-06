@@ -1,12 +1,16 @@
 ```mermaid
 stateDiagram-v2
-    kill: kill
-    state kill
-    kill --> kill: Dummy
+    aktiv: aktiv
+    state aktiv
+    aktiv --> aktiv: Dummy
 
-    off: off
-    state off
-    [*] --> off
+    ausstehend: ausstehend
+    state ausstehend
+    ausstehend --> ausstehend: Dummy
+
+    ok: ok
+    state ok
+    [*] --> ok
 
     %% Transitions
 ```

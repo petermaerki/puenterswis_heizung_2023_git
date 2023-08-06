@@ -54,7 +54,9 @@ class Konstanten:
             7 * 24 * 3600.0
         )  # eine Legionellenladung macht man typischweise jede Woche
 
-        self.legionellen_zwangsladezeit_s = 5 * 3600.0 # Zeit welche mindestens geladen werden muss
+        self.legionellen_zwangsladezeit_s = (
+            5 * 3600.0
+        )  # Zeit welche mindestens geladen werden muss
 
 
 class Aktoren:
@@ -125,7 +127,7 @@ class Context:
             ruecklauf_bodenheizung_C + spreizung_C + reserve_C
         )
         if self.hsm_legionellen.is_state(
-            self.hsm_legionellen.state_ausstehend
+            self.hsm_legionellen.state_aktiv
         ) and self.hsm_ladung.is_state(self.hsm_ladung.entry_zwang):
             # print(f'Um die Legionellen zu killen wird eine Fernleitungstemperatur von {self.konstanten.legionellen_fernleitungstemperatur_C:0.2f} gewaehlt')
             return self.konstanten.legionellen_fernleitungstemperatur_C
