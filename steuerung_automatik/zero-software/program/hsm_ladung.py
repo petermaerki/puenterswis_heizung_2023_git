@@ -1,4 +1,5 @@
 import logging
+import time
 import typing
 
 from hsm import hsm
@@ -22,6 +23,7 @@ class HsmLadung(hsm.HsmMixin):
         hsm.HsmMixin.__init__(self, mermaid_detailed=False, mermaid_entryexit=False)
         self.ctx = ctx
         self.set_logger(ZeroLogger(self))
+        self._leeren_start_s = None
 
     @hsm.init_state
     def state_aus(self, signal: SignalType):
@@ -57,7 +59,8 @@ class HsmLadung(hsm.HsmMixin):
 
     def state_leeren(self, signal: SignalType):
         """Passt für Sommer und Winter"""
-        if True:  # Todo falls Fernleitung leer nach 7 Minuten
+        leeren_duration_s = 7 * 60.0
+        if signal.time_s > self._leeren_start_s + leeren_duration_s:
             logger.info("Ladung fertig daher wechsel in ladung aus")
             raise hsm.StateChangeException(self.state_aus)
 
@@ -71,6 +74,8 @@ class HsmLadung(hsm.HsmMixin):
 
     def entry_zwang(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True
+        self._zwangsladungsdauer_messung_s
 
     def entry_leeren(self, signal: HsmTimeSignal):
         self.ctx.aktoren.ventile_zwangsladung_on = True
+        self._leeren_start_s = signal.time_s

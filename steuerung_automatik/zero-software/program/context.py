@@ -5,6 +5,7 @@ from hsm_signal import HsmTimeSignal
 from program.constants import DIRECTORY_DOC
 from program.hsm_jahreszeit import HsmJahreszeit
 from program.hsm_ladung import HsmLadung
+from program.hsm_legionellen import HsmLegionellen
 from program.hsm_pumpe import HsmPumpe
 
 
@@ -22,43 +23,38 @@ class Sensoren:
 
 
 class Konstanten:
-    """Elfero Heizregler dezentral "Elesta RDO244A200 Art 163286
-    Einstellen Warmwasser Solltemperatur: Pfeil nach unten druecken bis Thermometer und Wasserhahn: Warmwasser Solltemperatur. Diese ist normalerweise auf 45C.
-    Einstellen Hysterese: Fachmannebene Parameter 191.
-    """
+    def __init__(self):
+        """
+        Fernleitungstemperatur fuer eine Warmwasserladung damit die Anforderung vom Elferoregler erfuellt wird.
+        Elfero Heizregler dezentral "Elesta RDO244A200 Art 163286
+        Einstellen Warmwasser Solltemperatur: Pfeil nach unten druecken bis Thermometer und Wasserhahn: Warmwasser Solltemperatur. Diese ist normalerweise auf 45C.
+        Einstellen Hysterese: Fachmannebene Parameter 191.
+        """
+        elfero_dezentral_solltemperatur_warmwasser_C = 45.0
+        elfero_dezentral_hysterese_warmwasser_C = 10.0
+        reserve_solltemperatur_warmwasser_C = 5.0
 
-    elfero_dezentral_solltemperatur_warmwasser_C = 45.0
-    elfero_dezentral_hysterese_warmwasser_C = 10.0
-    temperaturueberhoehung_solltemperatur_warmwasser_C = 5.0
-    sommer_fernleitung_solltemperatur_C = (
-        elfero_dezentral_solltemperatur_warmwasser_C
-        + (elfero_dezentral_hysterese_warmwasser_C * 0.5)
-        + temperaturueberhoehung_solltemperatur_warmwasser_C
-    )
-
-    _legionellen_normtemperatur_C = 55.0  # https://suissetec.ch/files/PDFs/Merkblaetter/Sanitaer/Deutsch/2021_10_MB_SIA_385_1_DE_Editierbar.pdf
-    _legionellen_temperaturueberhoehung_C = 5.0  # Reserve, Fernleitung
-    legionellen_fernleitungstemperatur_C = (
-        _legionellen_normtemperatur_C + _legionellen_temperaturueberhoehung_C
-    )
-
-    @property
-    def fernleitungs_solltemperatur_heizen_min_C(self):
-        """Ferneitungstemperatur damit die Leistung uebertragen werden kann"""
-        _waermekapazitaet_wasser_JkgK = 4190.0
-        _nominalfluss_puent_kg_s = (
-            2300.0 / 3600.0
-        )  # Nominalfluss bei Zentrale gemaess Auslegung Gadola
-        _maximalleistung_puent_W = 70000.0  # Maximalleistung Oekofen Puenterswis
-        _temperaturspreizung_maximalleistung_K = _maximalleistung_puent_W / (
-            _nominalfluss_puent_kg_s * _waermekapazitaet_wasser_JkgK
+        self.sommer_fernleitung_solltemperatur_warmwasserladung_C = (
+            elfero_dezentral_solltemperatur_warmwasser_C
+            + (elfero_dezentral_hysterese_warmwasser_C * 0.5)
+            + reserve_solltemperatur_warmwasser_C
         )
-        _aussentemperatur_grenze_heizbetrieb_C = 20.0
-        _aussentemperatur_maximalleistung_C = -14.0
-        _ruecklauf_bodenheizung_C = 24.0
-        _umgebungstemperatur_todo_richtig_machen_C = 10.0
-        # todo korrekte formel
-        return 45.0  # todo
+
+        """
+        Fernleitungstemperatur damit die Legionellen in den dezentralen Speichern absterben
+        """
+        legionellen_normtemperatur_C: float = 55.0  # https://suissetec.ch/files/PDFs/Merkblaetter/Sanitaer/Deutsch/2021_10_MB_SIA_385_1_DE_Editierbar.pdf
+        legionellen_temperaturueberhoehung_C: float = 5.0  # Reserve, Fernleitung
+
+        self.legionellen_fernleitungstemperatur_C = (
+            legionellen_normtemperatur_C + legionellen_temperaturueberhoehung_C
+        )
+
+        self.legionellen_intervall_s = (
+            7 * 24 * 3600.0
+        )  # eine Legionellenladung macht man typischweise jede Woche
+
+        self.legionellen_zwangsladezeit_s = 5 * 3600.0 # Zeit welche mindestens geladen werden muss
 
 
 class Aktoren:
@@ -71,9 +67,16 @@ class Context:
         self.hsm_ladung = HsmLadung(self)
         self.hsm_jahreszeit = HsmJahreszeit(self)
         self.hsm_pumpe = HsmPumpe(self)
-        self.hsms = (self.hsm_ladung, self.hsm_jahreszeit, self.hsm_pumpe)
+        self.hsm_legionellen = HsmLegionellen(self)
+        self.hsms = (
+            self.hsm_ladung,
+            self.hsm_jahreszeit,
+            self.hsm_pumpe,
+            self.hsm_legionellen,
+        )
         self.sensoren = Sensoren()
         self.aktoren = Aktoren()
+        self.konstanten = Konstanten()
 
         for hsm in self.hsms:
             hsm.init()
@@ -87,3 +90,48 @@ class Context:
     def dispatch(self, signal: HsmTimeSignal) -> None:
         for hsm in self.hsms:
             hsm.dispatch(signal)
+
+    @property
+    def fernleitungs_solltemperatur_C(self) -> float:
+        """Fernleitungstemperatur damit die Heizleistung uebertragen werden kann"""
+        waermekapazitaet_wasser_JkgK = 4190.0
+        nominalfluss_puent_kg_s = (
+            2300.0 / 3600.0
+        )  # Nominalfluss bei Zentrale gemaess Auslegung Gadola
+        maximalleistung_puent_W = 70000.0  # Maximalleistung Oekofen Puenterswis
+        temperaturspreizung_maximalleistung_K = maximalleistung_puent_W / (
+            nominalfluss_puent_kg_s * waermekapazitaet_wasser_JkgK
+        )
+        aussentemperatur_grenze_heizbetrieb_C = 20.0
+        aussentemperatur_maximalleistung_C = -14.0
+        ruecklauf_bodenheizung_C = 24.0
+        reserve_C = 5.0
+        temperatur_C = min(
+            max(
+                self.sensoren.aussentemperatur_Taussen_C,
+                aussentemperatur_maximalleistung_C,
+            ),
+            aussentemperatur_grenze_heizbetrieb_C,
+        )
+        spreizung_C = (
+            (aussentemperatur_grenze_heizbetrieb_C - temperatur_C)
+            / (
+                aussentemperatur_grenze_heizbetrieb_C
+                - aussentemperatur_maximalleistung_C
+            )
+            * temperaturspreizung_maximalleistung_K
+        )
+        minimale_temperatur_leistungsueberagung_C = (
+            ruecklauf_bodenheizung_C + spreizung_C + reserve_C
+        )
+        if self.hsm_legionellen.is_state(
+            self.hsm_legionellen.state_ausstehend
+        ) and self.hsm_ladung.is_state(self.hsm_ladung.entry_zwang):
+            # print(f'Um die Legionellen zu killen wird eine Fernleitungstemperatur von {self.konstanten.legionellen_fernleitungstemperatur_C:0.2f} gewaehlt')
+            return self.konstanten.legionellen_fernleitungstemperatur_C
+        fernleitungs_solltemperatur_C = max(
+            minimale_temperatur_leistungsueberagung_C,
+            self.konstanten.sommer_fernleitung_solltemperatur_warmwasserladung_C,
+        )
+        # print(f'Um die Anforderung zu erfuellen und die Leistung uebertragen zu koennen wurde eine Fernleitungstemperatur von  {fernleitungs_solltemperatur_C:0.2f} gewaehlt')
+        return fernleitungs_solltemperatur_C
