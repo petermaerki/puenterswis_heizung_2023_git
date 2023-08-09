@@ -1,3 +1,4 @@
+import enum
 from dataclasses import dataclass
 
 from program.constants import DIRECTORY_DOC
@@ -6,6 +7,11 @@ from program.hsm_ladung import HsmLadung
 from program.hsm_legionellen import HsmLegionellen
 from program.hsm_pumpe import HsmPumpe
 from program.hsm_signal import SignalBase
+
+
+class Ort(enum.Enum):
+    Bochs = "Bochslen"
+    Puent = "Puenterswis"
 
 
 @dataclass(repr=True)
@@ -24,7 +30,7 @@ class Sensoren:
 
 
 class Konstanten:
-    def __init__(self):
+    def __init__(self, ort: Ort):
         """
         Fernleitungstemperatur fuer eine Warmwasserladung damit die
         Anforderung vom Elferoregler erfuellt wird.
@@ -67,6 +73,7 @@ class Konstanten:
 
         # bochs = 0
         # puent = 1
+        self.spezial = 55 if ort is Ort.Bochs else 57
 
 
 class Aktoren:
@@ -88,7 +95,8 @@ class Context:
         )
         self.sensoren = Sensoren()
         self.aktoren = Aktoren()
-        self.konstanten = Konstanten()
+        self.ort = Ort.Bochs
+        self.konstanten = Konstanten(self.ort)
         self.time_s: float = 0.0
 
         for hsm in self.hsms:
