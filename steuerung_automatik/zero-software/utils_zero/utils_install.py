@@ -69,7 +69,7 @@ def install_hostname() -> None:
 
     filename_hosts = pathlib.Path("/etc/hosts")
     hosts = filename_hosts.read_text()
-    hosts = re.sub("(zero-\w+)", raspi_os_config.hostname)
+    hosts = re.sub("(zero-\w+)", hosts, raspi_os_config.hostname)
     filename_hosts.write_text(hosts)
 
 
