@@ -4,6 +4,7 @@ import pathlib
 import re
 import stat
 import sys
+import textwrap
 
 from config import raspi_os_config
 from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
@@ -39,7 +40,7 @@ def ask():
 
     if FILENAME_CONFIG.exists():
         print("Existing configuration: ")
-        print(FILENAME_CONFIG.read_text())
+        print(textwrap.indent(FILENAME_CONFIG.read_text()), "    > ")
         print("")
 
     hostname = input("Hostname (zero-puent, zero-bochs): ")

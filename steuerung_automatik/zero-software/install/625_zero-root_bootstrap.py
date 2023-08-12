@@ -4,6 +4,10 @@
 #
 # This is the only script which has to set the path!!
 #
+# How to run the script:
+#    cd /home/zero/puenterswis_heizung_2023_git/steuerung_automatik/zero-software/install
+#    sudo python 625_zero-root_bootstrap.py
+#
 import os
 import pathlib
 import sys
