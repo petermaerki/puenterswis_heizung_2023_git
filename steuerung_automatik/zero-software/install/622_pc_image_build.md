@@ -27,4 +27,4 @@ Select: Pi OS Lite 32bit
 * `uncheck` Configure wireless LAN
 * `check` Set locale settings
   * Time Zone: `Europe/Zurich`
-  * Keyboard layout: `us`
+  * Keyboard layout: `gb`

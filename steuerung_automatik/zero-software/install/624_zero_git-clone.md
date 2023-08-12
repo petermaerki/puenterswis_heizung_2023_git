@@ -17,7 +17,7 @@ Use password authentication!
 
 zero:
 ```
-LC_ALL=en_US.UTF-8 sudo apt update && sudo apt upgrade -y && sudo apt install -y python3-pip git
+LC_ALL=en_GB.UTF-8 sudo apt update && sudo apt upgrade -y && sudo apt install -y python3-pip git
 ```
 
 
