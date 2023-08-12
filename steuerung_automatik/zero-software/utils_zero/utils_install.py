@@ -8,6 +8,7 @@ import textwrap
 
 from config import raspi_os_config
 from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
+from utils_common.utils_install import run
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
     DIRECTORY_SSH,
@@ -74,18 +75,44 @@ def install_hostname() -> None:
 
 
 def install_wlan() -> None:
-    filename_wpa_supplicant = pathlib.Path("/etc/wpa_supplicant/wpa_supplicant.conf")
-    wpa_supplicant = f"""
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-country=CH
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "do_wifi_country",
+            "CH",
+        ]
+    )
 
-network={{
-        ssid="{raspi_os_config.wlan_ssid}"
-        psk="{raspi_os_config.wlan_pw}"
-}}
-"""
-    filename_wpa_supplicant.write_text(wpa_supplicant)
+    hidden = "0"
+    plain = "1"
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "do_wifi_ssid_passphrase",
+            raspi_os_config.wlan_ssid,
+            raspi_os_config.wlan_pw,
+            hidden,
+            plain,
+        ]
+    )
+
+    if False:
+        filename_wpa_supplicant = pathlib.Path(
+            "/etc/wpa_supplicant/wpa_supplicant.conf"
+        )
+        wpa_supplicant = f"""
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=CH
+
+    network={{
+            ssid="{raspi_os_config.wlan_ssid}"
+            psk="{raspi_os_config.wlan_pw}"
+    }}
+    """
+        filename_wpa_supplicant.write_text(wpa_supplicant)
 
 
 def install_file(
