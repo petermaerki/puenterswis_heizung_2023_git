@@ -72,7 +72,7 @@ def install_hostname() -> None:
         [
             "raspi-config",
             "nonint",
-            "set_hostname",
+            "do_hostname",
             raspi_os_config.hostname,
         ]
     )
