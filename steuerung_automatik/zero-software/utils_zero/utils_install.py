@@ -40,7 +40,7 @@ def ask():
 
     if FILENAME_CONFIG.exists():
         print("Existing configuration: ")
-        print(textwrap.indent(FILENAME_CONFIG.read_text()), "    > ")
+        print(textwrap.indent(text=FILENAME_CONFIG.read_text(), prefix="    > "))
         print("")
 
     hostname = input("Hostname (zero-puent, zero-bochs): ")
