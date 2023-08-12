@@ -4,6 +4,7 @@
 #
 # This is the only script which has to set the path!!
 #
+import os
 import pathlib
 import sys
 
@@ -20,12 +21,17 @@ from utils_zero import utils_install, utils_install_webtunnel  # noqa: E402
 def main():
     utils_install.assert_su()
 
+    utils_install.ask()
+
     utils_install.create_softlink_zerosoftware()
 
     utils_install.copy_bashrc()
     utils_install.copy_ssh()
 
     utils_install_webtunnel.install_web_tunnel()
+
+    input("Reboot now? <ENTER>: reboot, <ctrl-C>: abort")
+    os.system("reboot --reboot")
 
 
 if __name__ == "__main__":

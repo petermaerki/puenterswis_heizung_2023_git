@@ -1,9 +1,11 @@
 import getpass
 import os
 import pathlib
+import re
 import stat
 import sys
 
+from config import raspi_os_config
 from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
@@ -12,6 +14,7 @@ from utils_zero.utils_constants import (
     DIRECTORY_ZEROSOFTWARE_LINK,
     FILENAME_BASHRC_ROOT,
     FILENAME_BASHRC_ZERO,
+    FILENAME_CONFIG,
     ZERO_NAME,
 )
 
@@ -29,6 +32,52 @@ def assert_su():
     user = getpass.getuser()
     expected_user = "root"
     assert user == expected_user, f"Expected to be '{expected_user}' and not '{user}'!"
+
+
+def ask():
+    print(f"Ask for configuration and store in: {FILENAME_CONFIG}")
+
+    if FILENAME_CONFIG.exists():
+        print("Existing configuration: ")
+        print(FILENAME_CONFIG.read_text())
+        print("")
+
+    hostname = input("Hostname (zero-puent, zero-bochs): ")
+    wlan_ssid = input("WLAN ssid: ")
+    wlan_pw = input("WLAN pw: ")
+
+    FILENAME_CONFIG.write_text(
+        f"""
+hostname = "{hostname}"
+wlan_ssid = "{wlan_ssid}"
+wlan_pw = "{wlan_pw}"
+"""
+    )
+
+
+def install_hostname() -> None:
+    filename_hostname = pathlib.Path("/etc/hostname")
+    filename_hostname.write_text(raspi_os_config.hostname)
+
+    filename_hosts = pathlib.Path("/etc/hosts")
+    hosts = filename_hosts.read_text()
+    hosts = re.sub("(zero-\w+)", raspi_os_config.hostname)
+    filename_hosts.write_text(hosts)
+
+
+def install_wlan() -> None:
+    filename_wpa_supplicant = pathlib.Path("/etc/wpa_supplicant/wpa_supplicant.conf")
+    wpa_supplicant = f"""
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CH
+
+network={{
+        ssid="{raspi_os_config.wlan_ssid}"
+        psk="{raspi_os_config.wlan_pw}"
+}}
+"""
+    filename_wpa_supplicant.write_text(wpa_supplicant)
 
 
 def install_file(

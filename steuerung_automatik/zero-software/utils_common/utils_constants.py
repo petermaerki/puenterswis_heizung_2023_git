@@ -14,5 +14,5 @@ ID_RSA_ASC = "id_rsa.asc"
 ID_RSA_PUB = "id_rsa.pub"
 
 # Zeroes
-ZEROES = ("zero-puent", "zero-bochs")
+ZEROES = ("zero-puent", "zero-bochs", "zero-virgin")
 ZEROES_DIR = (pathlib.Path(DIRECTORY_KEYS / zero_name) for zero_name in ZEROES)
