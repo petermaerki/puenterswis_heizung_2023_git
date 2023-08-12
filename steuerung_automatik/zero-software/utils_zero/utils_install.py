@@ -1,4 +1,5 @@
 import getpass
+import importlib
 import os
 import pathlib
 import re
@@ -63,15 +64,26 @@ wlan_pw = "{wlan_pw}"
 """
     )
 
+    importlib.reload(raspi_os_config)
+
 
 def install_hostname() -> None:
-    filename_hostname = pathlib.Path("/etc/hostname")
-    filename_hostname.write_text(raspi_os_config.hostname)
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "set_hostname",
+            raspi_os_config.hostname,
+        ]
+    )
+    if False:
+        filename_hostname = pathlib.Path("/etc/hostname")
+        filename_hostname.write_text(raspi_os_config.hostname + "\n")
 
-    filename_hosts = pathlib.Path("/etc/hosts")
-    hosts = filename_hosts.read_text()
-    hosts = re.sub("(zero-\w+)", hosts, raspi_os_config.hostname)
-    filename_hosts.write_text(hosts)
+        filename_hosts = pathlib.Path("/etc/hosts")
+        hosts = filename_hosts.read_text()
+        hosts = re.sub("(zero-\w+)", hosts, raspi_os_config.hostname)
+        filename_hosts.write_text(hosts)
 
 
 def install_wlan() -> None:
