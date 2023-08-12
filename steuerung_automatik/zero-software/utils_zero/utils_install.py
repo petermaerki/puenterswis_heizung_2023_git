@@ -43,7 +43,7 @@ def ask():
         print("")
 
     def input_default(prompt: str, default: str) -> str:
-        user_input = input(f"{prompt} - <ENTER>: '{default}': ")
+        user_input = input(f"{prompt} <ENTER> for '{default}': ")
         if len(user_input) == 0:
             return default
         return user_input
@@ -122,7 +122,7 @@ def copy_ssh() -> None:
             print(f"{filename_new}: exists: Skip asking for content!")
             return
         print(
-            f"Please paste 'keys/zero_{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!"
+            f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!"
         )
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))

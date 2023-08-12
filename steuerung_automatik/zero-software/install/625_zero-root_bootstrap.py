@@ -27,6 +27,9 @@ def main():
 
     utils_install.ask()
 
+    utils_install.install_hostname()
+    utils_install.install_wlan()
+
     utils_install.create_softlink_zerosoftware()
 
     utils_install.copy_bashrc()
@@ -34,7 +37,7 @@ def main():
 
     utils_install_webtunnel.install_web_tunnel()
 
-    input("Reboot now? <ENTER>: reboot, <ctrl-C>: abort")
+    input("Reboot now? <ctrl-C>: abort, <ENTER>: reboot")
     os.system("reboot --reboot")
 
 
