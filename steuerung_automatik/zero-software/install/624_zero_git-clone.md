@@ -8,7 +8,7 @@ Goal:
 
 PC:
 ```
-ssh zero@zero-puent
+ssh zero@zero-virgin
 ```
 
 Use password authentication!
@@ -17,7 +17,7 @@ Use password authentication!
 
 zero:
 ```
-LC_ALL=en_GB.UTF-8 sudo apt update; sudo apt upgrade -y; sudo apt install -y python3-pip git
+LC_ALL=en_US.UTF-8 sudo apt update && sudo apt upgrade -y && sudo apt install -y python3-pip git
 ```
 
 
@@ -25,5 +25,6 @@ LC_ALL=en_GB.UTF-8 sudo apt update; sudo apt upgrade -y; sudo apt install -y pyt
 
 PC:
 ```
+cd /home/zero
 git clone https://github.com/petermaerki/puenterswis_heizung_2023_git.git
 ```

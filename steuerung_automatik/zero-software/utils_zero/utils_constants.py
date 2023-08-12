@@ -25,3 +25,7 @@ DIRECTORY_ZEROSOFTWARE_LINK = DIRECTORY_HOME_ZERO / "zero-software"
 
 ZERO_NAME = socket.gethostname()
 assert ZERO_NAME in ZEROES
+
+DIRECTORY_CONFIG = DIRECTORY_ZEROSOFTWARE / "config"
+FILENAME_CONFIG = DIRECTORY_CONFIG / "raspi_os_config.py"
+assert FILENAME_CONFIG.exists()

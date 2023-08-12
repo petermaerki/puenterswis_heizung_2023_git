@@ -1,10 +1,15 @@
 import getpass
+import importlib
 import os
 import pathlib
+import re
 import stat
 import sys
+import textwrap
 
+from config import raspi_os_config
 from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
+from utils_common.utils_install import run
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
     DIRECTORY_SSH,
@@ -12,7 +17,7 @@ from utils_zero.utils_constants import (
     DIRECTORY_ZEROSOFTWARE_LINK,
     FILENAME_BASHRC_ROOT,
     FILENAME_BASHRC_ZERO,
-    ZERO_NAME,
+    FILENAME_CONFIG,
 )
 
 UID_ROOT = 0
@@ -29,6 +34,97 @@ def assert_su():
     user = getpass.getuser()
     expected_user = "root"
     assert user == expected_user, f"Expected to be '{expected_user}' and not '{user}'!"
+
+
+def ask():
+    print(f"Ask for configuration and store in: {FILENAME_CONFIG}")
+
+    if FILENAME_CONFIG.exists():
+        print("Existing configuration: ")
+        print(textwrap.indent(text=FILENAME_CONFIG.read_text().strip(), prefix="    "))
+        print("")
+
+    def input_default(prompt: str, default: str) -> str:
+        user_input = input(f"{prompt} <ENTER> for '{default}': ")
+        if len(user_input) == 0:
+            return default
+        return user_input
+
+    hostname = input_default(
+        "Hostname (zero-puent, zero-bochs): ", raspi_os_config.hostname
+    )
+    wlan_ssid = input_default("WLAN ssid: ", raspi_os_config.wlan_ssid)
+    wlan_pw = input_default("WLAN pw: ", raspi_os_config.wlan_pw)
+
+    FILENAME_CONFIG.write_text(
+        f"""
+hostname = "{hostname}"
+wlan_ssid = "{wlan_ssid}"
+wlan_pw = "{wlan_pw}"
+"""
+    )
+
+    importlib.reload(raspi_os_config)
+
+
+def install_hostname() -> None:
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "do_hostname",
+            raspi_os_config.hostname,
+        ]
+    )
+    if False:
+        filename_hostname = pathlib.Path("/etc/hostname")
+        filename_hostname.write_text(raspi_os_config.hostname + "\n")
+
+        filename_hosts = pathlib.Path("/etc/hosts")
+        hosts = filename_hosts.read_text()
+        hosts = re.sub("(zero-\w+)", hosts, raspi_os_config.hostname)
+        filename_hosts.write_text(hosts)
+
+
+def install_wlan() -> None:
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "do_wifi_country",
+            "CH",
+        ]
+    )
+
+    hidden = "0"
+    plain = "1"
+    run(
+        [
+            "raspi-config",
+            "nonint",
+            "do_wifi_ssid_passphrase",
+            raspi_os_config.wlan_ssid,
+            raspi_os_config.wlan_pw,
+            hidden,
+            plain,
+        ]
+    )
+
+    if False:
+        filename_wpa_supplicant = pathlib.Path(
+            "/etc/wpa_supplicant/wpa_supplicant.conf"
+        )
+        wpa_supplicant = f"""
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=CH
+
+    network={{
+            ssid="{raspi_os_config.wlan_ssid}"
+            psk="{raspi_os_config.wlan_pw}"
+    }}
+    """
+        filename_wpa_supplicant.write_text(wpa_supplicant)
 
 
 def install_file(
@@ -65,7 +161,7 @@ def copy_ssh() -> None:
             print(f"{filename_new}: exists: Skip asking for content!")
             return
         print(
-            f"Please paste 'keys/zero_{ZERO_NAME}/{ID_RSA}' and terminate with <ctrl-d>!"
+            f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!"
         )
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))
@@ -74,7 +170,7 @@ def copy_ssh() -> None:
 
     DIRECTORY_KEYS = DIRECTORY_ZEROSOFTWARE / "keys"
     copyssh_file(DIRECTORY_KEYS / "authorized_keys")
-    copyssh_file(DIRECTORY_KEYS / ZERO_NAME / ID_RSA_PUB)
+    copyssh_file(DIRECTORY_KEYS / raspi_os_config.hostname / ID_RSA_PUB)
     copyssh_ask_user()
 
 
