@@ -40,12 +40,20 @@ def ask():
 
     if FILENAME_CONFIG.exists():
         print("Existing configuration: ")
-        print(textwrap.indent(text=FILENAME_CONFIG.read_text(), prefix="    > "))
+        print(textwrap.indent(text=FILENAME_CONFIG.read_text(), prefix="    "))
         print("")
 
-    hostname = input("Hostname (zero-puent, zero-bochs): ")
-    wlan_ssid = input("WLAN ssid: ")
-    wlan_pw = input("WLAN pw: ")
+    def input_default(prompt: str, default: str) -> str:
+        user_input = input(f"{prompt} - <ENTER>: '{default}': ")
+        if len(user_input) == 0:
+            return default
+        return user_input
+
+    hostname = input_default(
+        "Hostname (zero-puent, zero-bochs): ", raspi_os_config.hostname
+    )
+    wlan_ssid = input_default("WLAN ssid: ", raspi_os_config.wlan_ssid)
+    wlan_pw = input_default("WLAN pw: ", raspi_os_config.wlan_pw)
 
     FILENAME_CONFIG.write_text(
         f"""

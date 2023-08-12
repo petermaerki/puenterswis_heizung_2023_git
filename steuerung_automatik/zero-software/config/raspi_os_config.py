@@ -1,3 +1,3 @@
 hostname = "zero-virigin"
-wlan_ssid = "NONE"
-wlan_pw = "NONE"
+wlan_ssid = "ENTER-SSD-HERE"
+wlan_pw = "ENTER-PW-HERE"
