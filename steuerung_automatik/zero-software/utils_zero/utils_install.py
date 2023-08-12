@@ -16,7 +16,6 @@ from utils_zero.utils_constants import (
     FILENAME_BASHRC_ROOT,
     FILENAME_BASHRC_ZERO,
     FILENAME_CONFIG,
-    ZERO_NAME,
 )
 
 UID_ROOT = 0
@@ -40,7 +39,7 @@ def ask():
 
     if FILENAME_CONFIG.exists():
         print("Existing configuration: ")
-        print(textwrap.indent(text=FILENAME_CONFIG.read_text(), prefix="    "))
+        print(textwrap.indent(text=FILENAME_CONFIG.read_text().strip(), prefix="    "))
         print("")
 
     def input_default(prompt: str, default: str) -> str:
@@ -123,7 +122,7 @@ def copy_ssh() -> None:
             print(f"{filename_new}: exists: Skip asking for content!")
             return
         print(
-            f"Please paste 'keys/zero_{ZERO_NAME}/{ID_RSA}' and terminate with <ctrl-d>!"
+            f"Please paste 'keys/zero_{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!"
         )
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))
@@ -132,7 +131,7 @@ def copy_ssh() -> None:
 
     DIRECTORY_KEYS = DIRECTORY_ZEROSOFTWARE / "keys"
     copyssh_file(DIRECTORY_KEYS / "authorized_keys")
-    copyssh_file(DIRECTORY_KEYS / ZERO_NAME / ID_RSA_PUB)
+    copyssh_file(DIRECTORY_KEYS / raspi_os_config.hostname / ID_RSA_PUB)
     copyssh_ask_user()
 
 
