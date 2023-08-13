@@ -11,7 +11,7 @@ stateDiagram-v2
     [*] --> ok
 
     %% Transitions
-    aktiv --> ok: Legionellen sind gekillt
+    aktiv --> ok: Legionellen gekillt
     ausstehend --> aktiv: Signal LegionellenLadung
-    ok --> ausstehend: timeout von 7 min
+    ok --> ausstehend: Zeit abgelaufen
 ```

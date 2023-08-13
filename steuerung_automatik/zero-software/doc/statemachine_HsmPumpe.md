@@ -5,8 +5,9 @@ stateDiagram-v2
 
     ein: ein
     state ein
-    ein --> ein: Dummy
     [*] --> aus
 
     %% Transitions
+    aus --> ein: Bedarf oder Zwang, und Zentralspeicher warm. Oder Leeren.
+    ein --> aus: Ladung fertig oder Zentralspeicher zu kalt oder keine Anforderung.
 ```

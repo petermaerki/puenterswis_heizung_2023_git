@@ -5,16 +5,18 @@ stateDiagram-v2
 
     bedarf: bedarf
     state bedarf
-    bedarf --> bedarf: Dummy
 
     leeren: leeren
     state leeren
-    leeren --> leeren: Dummy
 
     zwang: zwang
     state zwang
-    zwang --> zwang: Dummy
     [*] --> aus
 
     %% Transitions
+    aus --> bedarf: Anforderung
+    bedarf --> aus: Anforderung weg
+    bedarf --> zwang: Sommer, ein Brenner brennt oder Winter Legionellen anstehend
+    leeren --> aus: Fernleitung leer
+    zwang --> leeren: Ladung fertig
 ```

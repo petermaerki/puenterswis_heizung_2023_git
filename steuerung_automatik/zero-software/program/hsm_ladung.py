@@ -24,50 +24,88 @@ class HsmLadung(hsm.HsmMixin):
 
     @hsm.init_state
     def state_aus(self, signal: SignalBase):
+        """
+        TRANSITION state_bedarf Anforderung
+        """
         """Passt fuer Sommer und Winter"""
         if self.ctx.sensoren.anforderung:
-            logger.info("wegen Anforderung wechsel in ladung bedarf")
-            raise hsm.StateChangeException(self.state_bedarf)
+            raise hsm.StateChangeException(
+                self.state_bedarf, why="wegen Anforderung wechsel in ladung bedarf"
+            )
 
         raise hsm.DontChangeStateException()
 
     def state_bedarf(self, signal: SignalBase):
+        """
+        TRANSITION state_aus Anforderung weg
+        TRANSITION state_zwang Sommer, ein Brenner brennt oder Winter Legionellen anstehend
+        #TRANSITION state_zwangBrandErhalten Winter, Brand erhalten bei Zentralspeicher zu warm
+        """
+        if not self.ctx.sensoren.anforderung:
+            raise hsm.StateChangeException(
+                self.state_aus, why="Anforderung weg daher wechsel in ladung aus"
+            )
+        # State Sommer
         if self.ctx.hsm_jahreszeit.is_state(
             self.ctx.hsm_jahreszeit.state_sommer,
         ):
-            if not self.ctx.sensoren.anforderung:
-                logger.info("Anforderung weg daher wechsel in ladung aus")
-                raise hsm.StateChangeException(self.state_aus)
             if self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on:
-                logger.info("Brenner an daher wechsel in ladung zwang")
-                raise hsm.StateChangeException(self.state_zwang)
+                raise hsm.StateChangeException(
+                    self.state_zwang, why="Brenner an daher wechsel in ladung zwang"
+                )
         # State Winter
         if (
             self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
         ) and self.ctx.hsm_legionellen.is_state(
             self.ctx.hsm_legionellen.state_ausstehend
         ):
-            logger.info("Legionellen anstehend und daher wechsel zu zwang")
-            raise hsm.StateChangeException(self.state_zwang)
+            raise hsm.StateChangeException(
+                self.state_zwang,
+                why="Legionellen anstehend und daher wechsel zu zwang",
+            )
+
+        # if (
+        #     self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
+        # ):  # und brenner knapp am verloeschen
+        #     raise hsm.StateChangeException(
+        #         self.state_zwangBrandErhalten,
+        #         why="Brenner loescht fast aus daher state zwang brand erhalten",
+        #     )
         raise hsm.DontChangeStateException()
 
     def state_zwang(self, signal: SignalBase):
-        if self.ctx.hsm_jahreszeit.is_state(
-            self.ctx.hsm_jahreszeit.state_sommer,
-        ):
-            if True:  # Todo falls die Speicher genuegend voll sind
-                logger.info("Ladung fertig daher wechsel in ladung leeren")
-                raise hsm.StateChangeException(self.state_leeren)
+        """
+        TRANSITION state_leeren Ladung fertig
+        """
+        if True:  # Todo falls die Speicher genuegend voll sind
+            raise hsm.StateChangeException(
+                self.state_leeren,
+                why="Ladung fertig daher wechsel in ladung leeren",
+            )
 
         raise hsm.DontChangeStateException()
 
+    # def state_zwangBrandErhalten(self, signal: SignalBase):
+    #     """
+    #     TRANSITION state_bedarf Zentralspeicher genug gekuehlt
+    #     """
+    #     if True:  # Todo falls die Speicher genuegend voll sind
+    #         raise hsm.StateChangeException(
+    #             self.state_bedarf,
+    #             why="Zentralspeicher genuegend kalt daher wechsel auf aus",
+    #         )
+
+    #     raise hsm.DontChangeStateException()
+
     def state_leeren(self, signal: SignalBase):
+        """
+        TRANSITION state_aus Fernleitung leer
+        """
         """Passt für Sommer und Winter"""
         leeren_duration_s = 7 * 60.0
         if isinstance(signal, TimeSignal):
             if self.ctx.time_s > self._leeren_start_s + leeren_duration_s:
-                logger.info("Ladung fertig daher wechsel in ladung aus")
-                raise hsm.StateChangeException(self.state_aus)
+                raise hsm.StateChangeException(self.state_aus, why="Fernleitung leer")
 
         raise hsm.DontChangeStateException()
 

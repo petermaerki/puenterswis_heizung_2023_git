@@ -18,29 +18,29 @@ def main():
     ctx.sensoren.anforderung = False
     ctx.time_s = 0.0
     ctx.dispatch(TimeSignal())
-    logger.error("Neu eine Anforderung")
+    logger.info("Neu eine Anforderung")
     ctx.sensoren.anforderung = True
     ctx. time_s += 5.0
     ctx.dispatch(TimeSignal())
-    logger.error("Anforderung wieder weg")
+    logger.info("Anforderung wieder weg")
     ctx.sensoren.anforderung = False
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
-    logger.error("Neu eine Anforderung")
+    logger.info("Neu eine Anforderung")
     ctx.sensoren.anforderung = True
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
     ctx.sensoren.zentralspeicher_oben_Tszo_C = 50.0
-    logger.error("Zentralspeicher zu kalt")
+    logger.info("Zentralspeicher zu kalt")
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
     ctx.sensoren.zentralspeicher_oben_Tszo_C = 70.0
-    logger.error("Zentralspeicher wieder warm")
+    logger.info("Zentralspeicher wieder warm")
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
     # ctx.sensoren.brenner_1_on = True
     ctx.sensoren.energie_gestern_kWh = 10.0
-    logger.error("Weil gestern kleiner Energieverbrauch wechsel zu status sommer")
+    logger.info("Weil gestern kleiner Energieverbrauch wechsel zu status sommer")
     ctx.dispatch(TimeSignal())
     # time_s += 5.0
     # ctx.dispatch(TimeSignal())

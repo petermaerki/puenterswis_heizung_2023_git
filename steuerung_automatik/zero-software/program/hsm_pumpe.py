@@ -22,6 +22,9 @@ class HsmPumpe(hsm.HsmMixin):
 
     @hsm.init_state
     def state_aus(self, signal: SignalBase):
+        """
+        TRANSITION state_ein Bedarf oder Zwang, und Zentralspeicher warm. Oder Leeren.
+        """
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
@@ -34,8 +37,7 @@ class HsmPumpe(hsm.HsmMixin):
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_leeren,
         ) and self.ctx.hsm_pumpe.is_state(self.ctx.hsm_pumpe.state_aus):
-            logger.info("Pumpe ein zum leeren")
-            raise hsm.StateChangeException(self.state_ein)
+            raise hsm.StateChangeException(self.state_ein, why="Pumpe ein zum leeren")
 
         raise hsm.DontChangeStateException()
 
@@ -44,6 +46,9 @@ class HsmPumpe(hsm.HsmMixin):
         self.ctx.aktoren.pumpe_on = False
 
     def state_ein(self, signal: SignalBase):
+        """
+        TRANSITION state_aus Ladung fertig oder Zentralspeicher zu kalt oder keine Anforderung.
+        """
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
@@ -52,18 +57,23 @@ class HsmPumpe(hsm.HsmMixin):
                 self.ctx.sensoren.zentralspeicher_oben_Tszo_C
                 < self.ctx.konstanten.legionellen_fernleitungstemperatur_C
             ):
-                logger.info("Zentralspeicher zu kalt daher Pumpe aus und warten")
-                raise hsm.StateChangeException(self.state_aus)
+                raise hsm.StateChangeException(
+                    self.state_aus,
+                    why="Zentralspeicher zu kalt daher Pumpe aus und warten",
+                )
 
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_aus,
         ):
-            logger.info("Ladung aus daher Pumpe aus")
-            raise hsm.StateChangeException(self.state_aus)
+            raise hsm.StateChangeException(
+                self.state_aus, why="Ladung aus daher Pumpe aus"
+            )
 
         if not self.ctx.sensoren.anforderung:  # falls die Anforderung weg gefallen ist
-            logger.info("Anforderung ist weg gefallen daher wechsel auf pumpe aus")
-            raise hsm.StateChangeException(self.state_aus)
+            raise hsm.StateChangeException(
+                self.state_aus,
+                why="Anforderung ist weg gefallen daher wechsel auf pumpe aus",
+            )
 
         if (
             # bei einer Anforderung ist mindestens ein dezentrales Ventil offen

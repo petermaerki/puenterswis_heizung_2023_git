@@ -26,7 +26,7 @@ class HsmLegionellen(hsm.HsmMixin):
     @hsm.init_state
     def state_ok(self, signal: SignalBase):
         """
-        TRANSITION state_ausstehend timeout von 7 min
+        TRANSITION state_ausstehend Zeit abgelaufen
         """
         if self._legionellen_last_killed_s is None:
             # Bei einem Software Neustart geht momentan die letzte Zeit vergessen.
@@ -37,7 +37,10 @@ class HsmLegionellen(hsm.HsmMixin):
             > self._legionellen_last_killed_s
             + self.ctx.konstanten.legionellen_intervall_s
         ):
-            raise hsm.StateChangeException(self.state_ausstehend)
+            raise hsm.StateChangeException(
+                self.state_ausstehend,
+                why="Zeit ist abgelaufen daher wechsel in state ausstehend",
+            )
         raise hsm.DontChangeStateException()
 
     def state_ausstehend(self, signal: SignalBase):
@@ -50,7 +53,7 @@ class HsmLegionellen(hsm.HsmMixin):
 
     def state_aktiv(self, signal: SignalBase):
         """
-        TRANSITION state_ok Legionellen sind gekillt
+        TRANSITION state_ok Legionellen gekillt
         """
         if self.ctx.hsm_pumpe.is_state(self.ctx.hsm_pumpe.state_ein):
             self._legionellen_pumpenzeit_summe_s += signal.time_s - self._last_time_s
@@ -59,10 +62,10 @@ class HsmLegionellen(hsm.HsmMixin):
                 self._legionellen_pumpenzeit_summe_s
                 > self.ctx.kontstanten.legionellen_zwangsladezeit_s
             ):
-                logger.info(
-                    "Die Legionellen sind gekillt daher wechsel in legionellen ok"
+                raise hsm.StateChangeException(
+                    self.state_ok,
+                    why="Legionellen sind gekillt daher wechsel in state ok",
                 )
-                raise hsm.StateChangeException(self.state_ok)
 
         raise hsm.DontChangeStateException()
 

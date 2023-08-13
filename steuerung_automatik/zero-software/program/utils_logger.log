@@ -1,0 +1,21 @@
+PUMPE AUSSCHALTEN
+Neu eine Anforderung
+wegen Anforderung wechsel in ladung bedarf
+HsmLadung: : aus ==>entry_bedarf==> bedarf (wegen Anforderung wechsel in ladung bedarf)
+PUMPE EINSCHALTEN
+HsmPumpe: : aus ==>entry_ein==> ein
+Anforderung wieder weg
+PUMPE AUSSCHALTEN
+HsmPumpe: : ein ==>entry_aus==> aus (Anforderung ist weg gefallen daher wechsel auf pumpe aus)
+Neu eine Anforderung
+PUMPE EINSCHALTEN
+HsmPumpe: : aus ==>entry_ein==> ein
+Zentralspeicher zu kalt
+PUMPE AUSSCHALTEN
+HsmPumpe: : ein ==>entry_aus==> aus (Zentralspeicher zu kalt daher Pumpe aus und warten)
+Zentralspeicher wieder warm
+PUMPE EINSCHALTEN
+HsmPumpe: : aus ==>entry_ein==> ein
+Weil gestern kleiner Energieverbrauch wechsel zu status sommer
+Gestern wenig Energie verbraucht daher Wechsel zu status Sommer
+HsmJahreszeit: : winter ==>entry_sommer==> sommer

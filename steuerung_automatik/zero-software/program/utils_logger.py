@@ -1,6 +1,7 @@
 # https://realpython.com/python-logging/
 
 import logging
+from typing import List
 
 from hsm.hsm import HsmLogger, HsmMixin, HsmState
 
@@ -20,11 +21,27 @@ class ZeroLogger(HsmLogger):
         logger.debug(self._prefix + msg)
 
     def fn_log_info(self, msg: str) -> None:
-        logger.info(self._prefix + msg)
+        logger.debug(self._prefix + msg)
 
-    def fn_state_change(self, _before: HsmState, _after: HsmState) -> None:
-        logger.warning(
-            f"{self._prefix}: fn_state_change -> {_before.full_name} --> {_after.full_name}"
+    # def fn_state_change(self, _before: HsmState, _after: HsmState) -> None:
+    #     logger.warning(
+    #         f"{self._prefix}: fn_state_change -> {_before.full_name} --> {_after.full_name}"
+    #     )
+    def fn_state_change(
+        self,
+        before: HsmState,
+        after: HsmState,
+        why: str,
+        list_entry_exit: List[str],
+    ) -> None:
+        why_text = ""
+        if why is not None:
+            why_text = f" ({why})"
+        text_entry_exit = "==>"
+        if len(list_entry_exit) > 0:
+            text_entry_exit = f"==>{'==>'.join(list_entry_exit)}==>"
+        logger.info(
+            f"{self._prefix}: {before.full_name} {text_entry_exit} {after.full_name}{why_text}"
         )
 
 
@@ -63,7 +80,8 @@ def initialize_logger() -> None:
         filename=DIRECTORY_LOG / "logger.txt",
         filemode="w",
         format="%(asctime)s %(filename)s:%(lineno)s - %(levelname)s - %(message)s",
-        level=logging.DEBUG,
+        # level=logging.DEBUG,
+        level=logging.INFO,
     )
 
     ch = logging.StreamHandler()
