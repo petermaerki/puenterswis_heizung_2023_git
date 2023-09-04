@@ -39,7 +39,7 @@ class HsmLegionellen(hsm.HsmMixin):
         ):
             raise hsm.StateChangeException(
                 self.state_ausstehend,
-                why="Zeit ist abgelaufen daher wechsel in state ausstehend",
+                why="Zeit ist abgelaufen",
             )
         raise hsm.DontChangeStateException()
 
@@ -64,7 +64,7 @@ class HsmLegionellen(hsm.HsmMixin):
             ):
                 raise hsm.StateChangeException(
                     self.state_ok,
-                    why="Legionellen sind gekillt daher wechsel in state ok",
+                    why="Legionellen sind gekillt",
                 )
 
         raise hsm.DontChangeStateException()

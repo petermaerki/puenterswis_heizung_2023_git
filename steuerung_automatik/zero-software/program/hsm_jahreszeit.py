@@ -23,7 +23,7 @@ class HsmJahreszeit(hsm.HsmMixin):
     @hsm.init_state
     def state_winter(self, signal: SignalBase):
         """
-        TRANSITION state_sommer gestern viel energie verbraucht
+        TRANSITION state_sommer gestern wenig energie verbraucht
         """
         # Todo if gestern weniger als 70 kWh und brenner sind aus: wechsel auf sommer
         if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (
@@ -31,13 +31,13 @@ class HsmJahreszeit(hsm.HsmMixin):
         ):
             raise hsm.StateChangeException(
                 self.state_sommer,
-                why="Gestern wenig Energie verbraucht daher Wechsel zu status Sommer",
+                why="Gestern wenig Energie verbraucht",
             )
         raise hsm.DontChangeStateException()
 
     def state_sommer(self, signal: SignalBase):
         """
-        TRANSITION state_winter gestern wenig energie verbraucht
+        TRANSITION state_winter gestern viel energie verbraucht
         """
         # Todo if gestern mehr als 80 kWh und mindestens ein
         # Kesselbrennt:  wechsel auf winter
@@ -46,7 +46,7 @@ class HsmJahreszeit(hsm.HsmMixin):
         ):
             raise hsm.StateChangeException(
                 self.state_winter,
-                why="Gestern viel Energie verbraucht daher Wechsel zu status Winter",
+                why="Gestern viel Energie verbraucht",
             )
         raise hsm.DontChangeStateException()
 

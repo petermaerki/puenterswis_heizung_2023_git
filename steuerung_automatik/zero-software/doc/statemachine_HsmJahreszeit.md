@@ -8,6 +8,6 @@ stateDiagram-v2
     [*] --> winter
 
     %% Transitions
-    sommer --> winter: gestern wenig energie verbraucht
-    winter --> sommer: gestern viel energie verbraucht
+    sommer --> winter: gestern viel energie verbraucht
+    winter --> sommer: gestern wenig energie verbraucht
 ```

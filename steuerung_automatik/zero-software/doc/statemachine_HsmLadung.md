@@ -16,7 +16,7 @@ stateDiagram-v2
     %% Transitions
     aus --> bedarf: Anforderung
     bedarf --> aus: Anforderung weg
-    bedarf --> zwang: Sommer, ein Brenner brennt oder Winter Legionellen anstehend
+    bedarf --> zwang: (Sommer und ein Brenner brennt) oder (Winter und Legionellen anstehend)
     leeren --> aus: Fernleitung leer
     zwang --> leeren: Ladung fertig
 ```

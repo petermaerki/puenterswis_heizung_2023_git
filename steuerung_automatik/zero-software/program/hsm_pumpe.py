@@ -23,7 +23,7 @@ class HsmPumpe(hsm.HsmMixin):
     @hsm.init_state
     def state_aus(self, signal: SignalBase):
         """
-        TRANSITION state_ein Bedarf oder Zwang, und Zentralspeicher warm. Oder Leeren.
+        TRANSITION state_ein (Zentralspeicher warm und (Bedarf oder Zwang)) oder Leeren.
         """
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
@@ -47,7 +47,8 @@ class HsmPumpe(hsm.HsmMixin):
 
     def state_ein(self, signal: SignalBase):
         """
-        TRANSITION state_aus Ladung fertig oder Zentralspeicher zu kalt oder keine Anforderung.
+        #TRANSITION state_aus Ladung fertig oder Zentralspeicher zu kalt oder keine Anforderung.
+        TRANSITION state_aus sonst
         """
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_bedarf,
@@ -59,20 +60,20 @@ class HsmPumpe(hsm.HsmMixin):
             ):
                 raise hsm.StateChangeException(
                     self.state_aus,
-                    why="Zentralspeicher zu kalt daher Pumpe aus und warten",
+                    why="Zentralspeicher zu kalt",
                 )
 
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_aus,
         ):
             raise hsm.StateChangeException(
-                self.state_aus, why="Ladung aus daher Pumpe aus"
+                self.state_aus, why="Ladung aus"
             )
 
         if not self.ctx.sensoren.anforderung:  # falls die Anforderung weg gefallen ist
             raise hsm.StateChangeException(
                 self.state_aus,
-                why="Anforderung ist weg gefallen daher wechsel auf pumpe aus",
+                why="Anforderung ist weg gefallen",
             )
 
         if (

@@ -8,6 +8,6 @@ stateDiagram-v2
     [*] --> aus
 
     %% Transitions
-    aus --> ein: Bedarf oder Zwang, und Zentralspeicher warm. Oder Leeren.
-    ein --> aus: Ladung fertig oder Zentralspeicher zu kalt oder keine Anforderung.
+    aus --> ein: (Zentralspeicher warm und (Bedarf oder Zwang)) oder Leeren.
+    ein --> aus: sonst
 ```

@@ -38,12 +38,12 @@ class HsmLadung(hsm.HsmMixin):
     def state_bedarf(self, signal: SignalBase):
         """
         TRANSITION state_aus Anforderung weg
-        TRANSITION state_zwang Sommer, ein Brenner brennt oder Winter Legionellen anstehend
+        TRANSITION state_zwang (Sommer und ein Brenner brennt) oder (Winter und Legionellen anstehend)
         #TRANSITION state_zwangBrandErhalten Winter, Brand erhalten bei Zentralspeicher zu warm
         """
         if not self.ctx.sensoren.anforderung:
             raise hsm.StateChangeException(
-                self.state_aus, why="Anforderung weg daher wechsel in ladung aus"
+                self.state_aus, why="Anforderung weg"
             )
         # State Sommer
         if self.ctx.hsm_jahreszeit.is_state(
@@ -51,7 +51,7 @@ class HsmLadung(hsm.HsmMixin):
         ):
             if self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on:
                 raise hsm.StateChangeException(
-                    self.state_zwang, why="Brenner an daher wechsel in ladung zwang"
+                    self.state_zwang, why="Brenner an"
                 )
         # State Winter
         if (
@@ -80,7 +80,7 @@ class HsmLadung(hsm.HsmMixin):
         if True:  # Todo falls die Speicher genuegend voll sind
             raise hsm.StateChangeException(
                 self.state_leeren,
-                why="Ladung fertig daher wechsel in ladung leeren",
+                why="Ladung fertig",
             )
 
         raise hsm.DontChangeStateException()
