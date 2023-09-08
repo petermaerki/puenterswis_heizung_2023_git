@@ -42,6 +42,18 @@
 				"justMyCode": false
 			},
 			{
+				"name": "Python: 442_pc-linux_decrypt.py",
+				"type": "python",
+				"request": "launch",
+				"program": "install/442_pc-linux_decrypt.py",
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder}",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:pc}"
+				},
+				"justMyCode": false
+			},
+			{
 				"name": "Python: Remote Attach",
 				"type": "python",
 				"request": "attach",

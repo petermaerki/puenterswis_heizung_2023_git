@@ -1,8 +1,6 @@
 # Installation SDCARD
 
-Goal: Create a SD card which
-* automatically connects to the WLAN
-* allows access using user/password
+Goal: Create a SD card, connect via usb-ethernet and configure
 
 ## Background: Image
 
@@ -20,9 +18,13 @@ Size: 364MB
 Start: "Raspberry Pi Imager"
 
 Select: Pi OS Lite 32bit
-* Hostname: zero-puent / zero-bochs
-* Enable SSH
-  * Use password authentication
-* User: <622_pc_image_build-password.txt>
-* WLAN: <622_pc_image_build-password.txt>
-* Set locale settings: Europe/Zurich - us
+* `check` Set Hostname: `zero-virgin`
+* `check` Enable SSH
+  * `check` Use password authentication
+* `check` Set username and password
+  * Username `<622_pc_image_build-password.txt>`
+  * Password `<622_pc_image_build-password.txt>`
+* `uncheck` Configure wireless LAN
+* `check` Set locale settings
+  * Time Zone: `Europe/Zurich`
+  * Keyboard layout: `gb`
