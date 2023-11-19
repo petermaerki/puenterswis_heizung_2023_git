@@ -4,8 +4,6 @@
   (tags "USB C Type-C Receptacle USB2.0")
   (property "DigiKey" "https://www.digikey.com/en/products/detail/gct/USB4105-GF-A/11198441")
   (property "JLC" "C165948")
-  (property "Sheetfile" "filament_dryer.kicad_sch")
-  (property "Sheetname" "")
   (property "ki_description" "USB 2.0-only Type-C Receptacle connector")
   (property "ki_keywords" "usb universal serial bus type-C USB2.0")
   (attr smd)
