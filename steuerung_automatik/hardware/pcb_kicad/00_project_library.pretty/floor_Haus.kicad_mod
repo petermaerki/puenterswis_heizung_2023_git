@@ -20,4 +20,6 @@
   (pad "4" connect rect (at 3.386666 28.7528) (size 1.524 1.524) (layers "F.Cu" "F.Mask") (tstamp d3f617e8-4761-4196-9804-ffb5de964e44))
   (pad "5" connect rect (at 5.503332 28.7528) (size 1.524 1.524) (layers "B.Cu" "B.Mask") (tstamp 0a52b842-9d5d-4a3f-ba1b-b090534397e1))
   (pad "6" connect rect (at 7.62 28.7528) (size 1.524 1.524) (layers "B.Cu" "B.Mask") (tstamp 94f3fea1-a73b-4075-ae7b-12b3ddefa945))
+  (pad "7" connect rect (at 6.35 24.765) (size 1.524 1.524) (layers "B.Cu" "B.Mask") (tstamp d7bcee8e-f523-4c06-a468-f65b522c269b))
+  (pad "8" connect rect (at 7.62 22.225) (size 1.524 1.524) (layers "B.Cu" "B.Mask") (tstamp ecea0353-24fc-4c73-8207-7610d9b7498f))
 )
