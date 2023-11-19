@@ -15,7 +15,7 @@
       (effects (font (size 1 1) (thickness 0.15)) (justify left bottom))
     (tstamp 447792e9-74cf-414e-8b60-e7f4cdf2a90d)
   )
-  (fp_text user "${REFERENCE}" (at 7.62 4) (layer "F.Fab")
+  (fp_text user "${REFERENCE}" (at 7.62 4) (layer "F.Fab") hide
       (effects (font (size 1.27 1.27) (thickness 0.254)))
     (tstamp 6bcad85f-b3fe-4999-a55d-76cdec05a5ba)
   )
