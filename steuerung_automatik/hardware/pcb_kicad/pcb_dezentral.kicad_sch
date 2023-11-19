@@ -5,10 +5,10 @@
   (paper "A3")
 
   (title_block
-    (title "2023_filament_dryer")
+    (title "Heizung Pünterswis - pcb_zentral")
     (date "2023-11-19")
     (rev "0.1")
-    (company "Salami Brother")
+    (company "www.positron.ch")
     (comment 1 "Released under MIT Open-source License")
     (comment 2 "Based on work from Vishnu Mohanan, CIRCUITSTATE Electronics LLP")
   )
@@ -21,7 +21,7 @@
       (property "Value" "AMS1117-3.3" (at 0 3.175 0)
         (effects (font (size 1.27 1.27)) (justify left))
       )
-      (property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2" (at 0 5.08 0)
+      (property "Footprint" "00_project_library:SOT-223-3_TabPin2" (at 0 5.08 0)
         (effects (font (size 1.27 1.27)) hide)
       )
       (property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf" (at 2.54 -6.35 0)
@@ -319,7 +319,7 @@
       (property "Value" "RP2040" (at 30.48 16.51 0)
         (effects (font (size 1.524 1.524)))
       )
-      (property "Footprint" "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP5.6x5.6mm" (at 73.279 -5.842 0)
+      (property "Footprint" "00_project_library:RP2040-QFN-56" (at 73.279 -5.842 0)
         (effects (font (size 1.524 1.524)) hide)
       )
       (property "Datasheet" "https://datasheets.raspberrypi.org/rp2040/rp2040-datasheet.pdf" (at 74.93 -2.54 0)
@@ -335,7 +335,7 @@
         (effects (font (size 1.27 1.27)) hide)
       )
       (property "JLC" "C2040" (at 3.81 1.27 0)
-        (effects (font (size 1.27 1.27)))
+        (effects (font (size 1.27 1.27)) hide)
       )
       (property "ki_keywords" "RP2040 Raspberry Pico ARM Cortex M0" (at 0 0 0)
         (effects (font (size 1.27 1.27)) hide)
@@ -352,7 +352,7 @@
         )
       )
       (symbol "RP2040_1_0"
-        (rectangle (start 0 0) (end 60.96 76.2)
+        (rectangle (start 0 76.2) (end 60.96 0)
           (stroke (width 0.254) (type default))
           (fill (type background))
         )
@@ -2436,7 +2436,7 @@
     )
     (pin "1" (uuid a8cd11a4-310c-4f62-8aee-d54eb7c31b96))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR021") (unit 1)
         )
@@ -2461,7 +2461,7 @@
     )
     (pin "1" (uuid 2a671316-e370-42b4-96f6-b7c35a0811e1))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR017") (unit 1)
         )
@@ -2511,7 +2511,7 @@
     (pin "B9" (uuid 1c3801d7-f38a-4f96-bff8-4df0daf832f2))
     (pin "S1" (uuid fcd669e4-135f-4f7a-8cf0-2cc7a7ba27fd))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "J1") (unit 1)
         )
@@ -2540,7 +2540,7 @@
     (pin "1" (uuid 1d0cd276-5384-4186-abb0-ec201579ca15))
     (pin "2" (uuid ee9284f3-f92e-4c58-b05a-f9af13af63fb))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C7") (unit 1)
         )
@@ -2566,7 +2566,7 @@
     (pin "1" (uuid b1ffa111-b26b-4101-baea-62de2b483af0))
     (pin "2" (uuid c6408557-2c50-4c26-bf0e-6a0f881677d5))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C3") (unit 1)
         )
@@ -2591,7 +2591,7 @@
     )
     (pin "1" (uuid f9564064-a062-4426-a47b-6970a8008bcf))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR025") (unit 1)
         )
@@ -2616,7 +2616,7 @@
     )
     (pin "1" (uuid ba68adc3-dddd-4de8-83b0-78be607e023f))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR020") (unit 1)
         )
@@ -2641,7 +2641,7 @@
     )
     (pin "1" (uuid dfaf24aa-0103-4e4b-a420-b962d0206a3b))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR024") (unit 1)
         )
@@ -2679,7 +2679,7 @@
     (pin "7" (uuid 43852253-70ab-44ca-9e05-282366b410f2))
     (pin "8" (uuid df355e70-346d-4ba7-99c5-1e68cfc68c0f))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "U2") (unit 1)
         )
@@ -2704,7 +2704,7 @@
     )
     (pin "1" (uuid 9cd80d90-c64c-416a-9e11-4ff03ceb1a31))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR06") (unit 1)
         )
@@ -2730,7 +2730,7 @@
     (pin "1" (uuid fad350a9-fa43-4b7d-a8f9-18db7cd0453e))
     (pin "2" (uuid f878e6aa-e1a5-4412-9c6b-83106656bfda))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C6") (unit 1)
         )
@@ -2747,7 +2747,7 @@
     (property "Value" "RP2040" (at 83.82 100.33 0)
       (effects (font (size 1.524 1.524)))
     )
-    (property "Footprint" "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP5.6x5.6mm" (at 126.619 122.682 0)
+    (property "Footprint" "00_project_library:RP2040-QFN-56" (at 126.619 122.682 0)
       (effects (font (size 1.524 1.524)) hide)
     )
     (property "Datasheet" "https://datasheets.raspberrypi.org/rp2040/rp2040-datasheet.pdf" (at 128.27 119.38 0)
@@ -2823,7 +2823,7 @@
     (pin "8" (uuid 73b58a64-f335-4d7f-afe6-5b5d91b06312))
     (pin "9" (uuid 5ba2a34b-6799-45c5-bacd-faff2dd2dd97))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "U1") (unit 1)
         )
@@ -2852,7 +2852,7 @@
     (pin "1" (uuid f40c16b0-78be-407c-a042-64155786e7d4))
     (pin "2" (uuid 952485bc-0353-49b8-bc44-8728bb684600))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C8") (unit 1)
         )
@@ -2877,7 +2877,7 @@
     )
     (pin "1" (uuid 05f60a3f-36a9-4a17-bdfd-72fd0c5ee0c8))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR09") (unit 1)
         )
@@ -2902,7 +2902,7 @@
     )
     (pin "1" (uuid 3fb9838a-53f4-4f9c-b30b-e821f9a5e8ea))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR012") (unit 1)
         )
@@ -2928,7 +2928,7 @@
     (pin "1" (uuid ed248972-1b3c-4e1c-be22-f1b2de3783b3))
     (pin "2" (uuid d82bbec9-9772-4d9d-bfd8-e66cc5a05db2))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R1") (unit 1)
         )
@@ -2953,7 +2953,7 @@
     )
     (pin "1" (uuid 96d449bd-5256-4475-8e88-3b7f55989403))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "TP1") (unit 1)
         )
@@ -2979,7 +2979,7 @@
     (pin "1" (uuid 84200145-a7d8-426a-b702-4165b102a708))
     (pin "2" (uuid ef2f86d7-a634-4c41-9089-fedd09fef8b5))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C14") (unit 1)
         )
@@ -3004,7 +3004,7 @@
     )
     (pin "1" (uuid a21a62cc-d073-46f4-bf24-ba40f7394e2f))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR022") (unit 1)
         )
@@ -3029,7 +3029,7 @@
     )
     (pin "1" (uuid 82de70cb-8c22-4397-9881-1702cf139365))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR07") (unit 1)
         )
@@ -3055,7 +3055,7 @@
     (pin "1" (uuid 7211f9a3-a549-4cb7-ad62-1a6c0fa0213c))
     (pin "2" (uuid 56891c76-3bd4-4e4b-988e-49149046efe1))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C9") (unit 1)
         )
@@ -3080,7 +3080,7 @@
     )
     (pin "1" (uuid 951d029d-b625-4710-8a70-2b1df69a1c56))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR014") (unit 1)
         )
@@ -3105,7 +3105,7 @@
     )
     (pin "1" (uuid 66e54a82-efbd-4776-bb89-7265ce5faa84))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR010") (unit 1)
         )
@@ -3131,7 +3131,7 @@
     (pin "1" (uuid d37f65e4-9e7b-475a-b2f5-02e60f0dd61f))
     (pin "2" (uuid a161d28a-a781-4f04-bd93-0e5ed654f126))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R5") (unit 1)
         )
@@ -3157,7 +3157,7 @@
     (pin "1" (uuid fcb83428-ab86-4656-83b3-35bee2d1a374))
     (pin "2" (uuid fe5ac8bb-890e-44ce-bc7b-da0e4c4cf710))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C13") (unit 1)
         )
@@ -3182,7 +3182,7 @@
     )
     (pin "1" (uuid 2ede755e-293f-4864-8419-6de907df5898))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR01") (unit 1)
         )
@@ -3208,7 +3208,7 @@
     (pin "1" (uuid a7faf970-a848-4572-b28f-7bf74b3e8d29))
     (pin "2" (uuid a84d6915-fc8d-47f1-a11b-0ed10f2bcd85))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R2") (unit 1)
         )
@@ -3234,7 +3234,7 @@
     (pin "1" (uuid cf0ab1a4-4915-492f-ac3b-26e77a8e0e44))
     (pin "2" (uuid 97db94e6-5558-48d8-b41e-21d0a02ee5b8))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C11") (unit 1)
         )
@@ -3260,7 +3260,7 @@
     (pin "1" (uuid d30c8035-9593-4f41-afe1-e9343d72997a))
     (pin "2" (uuid 4f5f1a5a-fa96-4bd8-a9b1-fa518331a7d7))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C5") (unit 1)
         )
@@ -3286,7 +3286,7 @@
     (pin "1" (uuid 343879ac-d24f-480e-9514-3e8f9a0f05bf))
     (pin "2" (uuid 3b0e9efe-db61-471f-9e08-4311c41f9f2b))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R8") (unit 1)
         )
@@ -3310,7 +3310,7 @@
       (effects (font (size 0.8 0.8)) hide)
     )
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "H3") (unit 1)
         )
@@ -3334,7 +3334,7 @@
       (effects (font (size 0.8 0.8)) hide)
     )
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "H1") (unit 1)
         )
@@ -3360,7 +3360,7 @@
     (pin "1" (uuid 84f0c5d3-a3cc-41f7-87eb-49548d4747d1))
     (pin "2" (uuid 35c5bba1-892c-47bd-a699-dd043f304251))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C1") (unit 1)
         )
@@ -3385,7 +3385,7 @@
     )
     (pin "1" (uuid 6aff6667-5fbe-4750-a6ec-483ca21d5149))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR08") (unit 1)
         )
@@ -3410,7 +3410,7 @@
     )
     (pin "1" (uuid f764b73a-2535-47d4-8f1c-2fd7f05181fb))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#FLG01") (unit 1)
         )
@@ -3435,7 +3435,7 @@
     )
     (pin "1" (uuid 8104427c-4468-468c-b725-0c2896862dce))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR016") (unit 1)
         )
@@ -3461,7 +3461,7 @@
     (pin "1" (uuid 647f1a14-e4b3-42e2-8493-3c2e3cbd5f7c))
     (pin "2" (uuid d87d4b5f-6103-441a-8613-47d5668cbeac))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R6") (unit 1)
         )
@@ -3486,7 +3486,7 @@
     )
     (pin "1" (uuid ae3acf2a-feb7-41b7-8bfe-a7800394b8fe))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR019") (unit 1)
         )
@@ -3512,7 +3512,7 @@
     (pin "1" (uuid 3e25a88f-86f4-4a62-83e7-b6fd73243fca))
     (pin "2" (uuid 46b27283-901a-41bc-9a13-fff3492ffb9e))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C4") (unit 1)
         )
@@ -3538,7 +3538,7 @@
     (pin "1" (uuid 7299a280-8aa7-4252-85cf-9e638c2049cb))
     (pin "2" (uuid b17d83fc-7d25-4fd5-acf1-e4c69443b92a))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C12") (unit 1)
         )
@@ -3563,7 +3563,7 @@
     )
     (pin "1" (uuid b76b4d2f-14f2-48fe-9f0c-832d5365b477))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR04") (unit 1)
         )
@@ -3592,7 +3592,7 @@
     (pin "1" (uuid 9111455c-909b-4804-aa1d-5fb8c2e74050))
     (pin "2" (uuid 86d213a4-c01d-4831-81cc-a5d4d4fd952f))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "D1") (unit 1)
         )
@@ -3618,7 +3618,7 @@
     (pin "1" (uuid e8246c86-1951-42e8-97ce-f37c4a98af64))
     (pin "2" (uuid c660cdd0-cb0f-4379-a604-2d45de826ecd))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C15") (unit 1)
         )
@@ -3643,7 +3643,7 @@
     )
     (pin "1" (uuid 3b37c746-d069-4fd8-9e9a-d616c7e47977))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR023") (unit 1)
         )
@@ -3669,7 +3669,7 @@
     (pin "1" (uuid c05e91cd-c1b9-4847-8b91-35ed2441ce2f))
     (pin "2" (uuid 0a926b8a-b541-4992-9b1a-c176d424a593))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C10") (unit 1)
         )
@@ -3693,7 +3693,7 @@
       (effects (font (size 0.8 0.8)) hide)
     )
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "H4") (unit 1)
         )
@@ -3718,7 +3718,7 @@
     )
     (pin "1" (uuid fadb2702-bae1-487b-9ef0-750f04211841))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR05") (unit 1)
         )
@@ -3744,7 +3744,7 @@
     (pin "1" (uuid e4fee6b5-7f19-46f6-9379-7c1445eacbf8))
     (pin "2" (uuid 4c508b2b-e0cb-48e7-b41d-fe1950e8d3dd))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R3") (unit 1)
         )
@@ -3769,7 +3769,7 @@
     )
     (pin "1" (uuid e491757c-5cad-46d1-b009-5ef9a4c1b04a))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR018") (unit 1)
         )
@@ -3794,7 +3794,7 @@
     )
     (pin "1" (uuid 706a5c57-d75e-4c6c-aeb1-954ce3bc5561))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR02") (unit 1)
         )
@@ -3825,7 +3825,7 @@
     (pin "3" (uuid 5c903f55-0d1f-4e00-ba70-2682e107ccdc))
     (pin "4" (uuid a18c974a-fc92-49b5-afcd-e565e24497a4))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "SW2") (unit 1)
         )
@@ -3851,7 +3851,7 @@
     (pin "1" (uuid 3ab6ef01-8fdd-4155-80dd-1a49e575e1e1))
     (pin "2" (uuid 83195d0d-afb4-4ce1-9193-ab19b6b66d07))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R4") (unit 1)
         )
@@ -3875,7 +3875,7 @@
       (effects (font (size 0.8 0.8)) hide)
     )
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "H2") (unit 1)
         )
@@ -3906,7 +3906,7 @@
     (pin "3" (uuid ab0f28ee-f3d0-4748-a8c4-867bc32167b6))
     (pin "4" (uuid cefb78a4-5b1c-4fe2-a0e9-ccb4ca6229a6))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "SW1") (unit 1)
         )
@@ -3932,7 +3932,7 @@
     (pin "1" (uuid 68b5d4c2-b50d-4f23-923e-f59eef94adc0))
     (pin "2" (uuid 5dde00be-f01e-4fdb-b1c9-b40cdaccc168))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C2") (unit 1)
         )
@@ -3949,7 +3949,7 @@
     (property "Value" "AMS1117-3.3" (at 332.74 31.75 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2" (at 332.74 30.48 0)
+    (property "Footprint" "00_project_library:SOT-223-3_TabPin2" (at 332.74 30.48 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf" (at 335.28 41.91 0)
@@ -3962,7 +3962,7 @@
     (pin "2" (uuid 7042cc67-5001-4a16-9280-8a1c96624f05))
     (pin "3" (uuid 8a93b5a6-01a5-4d3b-bf7c-53baf9a8f14a))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "U3") (unit 1)
         )
@@ -3987,7 +3987,7 @@
     )
     (pin "1" (uuid 7b644e6c-4075-41a2-816d-325c7a62cd00))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR015") (unit 1)
         )
@@ -4013,7 +4013,7 @@
     (pin "1" (uuid e69cb5b0-e3c2-4e00-be19-07d45c278ac0))
     (pin "2" (uuid 672f5188-b066-46ec-8f59-fac3dd736b9c))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "R7") (unit 1)
         )
@@ -4039,7 +4039,7 @@
     (pin "1" (uuid 301b1873-aad1-49d9-9002-87c1a5424490))
     (pin "2" (uuid 367d1ba1-76f4-456e-a7a2-6ee761711fa4))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "C16") (unit 1)
         )
@@ -4070,7 +4070,7 @@
     (pin "3" (uuid 8ec046c2-df46-4538-bef5-d76e690977dc))
     (pin "4" (uuid 1e39809b-9dc6-4444-a9db-4fa87f082dad))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "Y1") (unit 1)
         )
@@ -4095,7 +4095,7 @@
     )
     (pin "1" (uuid 890037b8-8cf0-43b5-b1d3-cf9143c38a82))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR011") (unit 1)
         )
@@ -4120,7 +4120,7 @@
     )
     (pin "1" (uuid 2b2ee144-79ec-4a08-893d-a615e99e15d0))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#FLG02") (unit 1)
         )
@@ -4145,7 +4145,7 @@
     )
     (pin "1" (uuid 8bb8d34e-d38a-4cd8-a882-f7016cca0021))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR03") (unit 1)
         )
@@ -4170,7 +4170,7 @@
     )
     (pin "1" (uuid 7161349b-d6c7-4144-a3da-faefcfc7ec18))
     (instances
-      (project "filament_dryer"
+      (project "pcb_dezentral"
         (path "/35c47459-45a7-4753-acae-c8b47e7575e1"
           (reference "#PWR013") (unit 1)
         )
