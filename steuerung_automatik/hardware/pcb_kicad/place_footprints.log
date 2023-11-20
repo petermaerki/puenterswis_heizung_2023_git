@@ -1,0 +1,25 @@
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 641:Plugin executed on: 'linux'
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 642:Plugin executed with python version: '3.11.6 (main, Oct  8 2023, 05:06:43) [GCC 13.2.0]'
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 643:KiCad build version: 7.0.8-7.0.8~ubuntu23.04.1
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 644:Plugin version: 2.1.2
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 645:Frame repr: <wx._core.Frame object at 0x7f051c5c1870>
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 121:getting a list of all footprints on board
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 156:Footprint H104 on root level
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 156:Footprint H103 on root level
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 156:Footprint H102 on root level
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 156:Footprint H101 on root level
+11-19 21:45:01 com_github_MitjaNemec_PlaceFootprints.place_footprints 156:Footprint J101 on root level
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 86:By Sheet GUI initialized
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 95:Selecting: 2
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 99:Should invoke level_changed()
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 276:Level_changed() invoked
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.place_footprints 244:constructing a list of sheets suitable for replication on level:'Haus R', file:'pcb_zentral_haus.kicad_sch'
+11-19 21:45:03 com_github_MitjaNemec_PlaceFootprints.place_footprints 279:suitable sheets are:[['Hausreihe D', 'Haus S'], ['Hausreihe D', 'Haus T'], ['Hausreihe D', 'Haus U']]
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 184:Saving config sheet
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 196:Saving config sheet linear
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 216:Saving config saving file
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 712:Sheets selected: [['Hausreihe D', 'Haus S'], ['Hausreihe D', 'Haus T'], ['Hausreihe D', 'Haus U']]
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 721:Footprints to place: ['Haus301', 'Haus401', 'Haus501', 'Haus601']
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.place_footprints 367:Starting placing with linear layout
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 766:Placing complete
+11-19 21:45:11 com_github_MitjaNemec_PlaceFootprints.action_place_footprints 767:Sorted_footprints: ['Haus301', 'Haus401', 'Haus501', 'Haus601']
