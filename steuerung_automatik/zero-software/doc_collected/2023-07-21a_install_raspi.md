@@ -3,11 +3,11 @@
 https://www.raspberrypi.com/software/
 https://www.raspberrypi.com/software/operating-systems/
 Raspberry Pi OS Lite
-Release date: May 3rd 2023
-System: 32-bit
+Release date: October 10th 2023
+System: 64-bit
 Kernel version: 6.1
-Debian version: 11 (bullseye)
-Size: 364MB
+Debian version: 12 (BOOKWORM)
+Size: 435MB
 
 ## Konfiguration von "Raspberry Pi Imager"
 

@@ -2,4 +2,4 @@
 **/__pycache__/
 install/622_pc_image_build-password.txt
 log/logger.txt
-config/raspi_os_config.py config/raspi_os_config.py
+config/raspi_os_config.py

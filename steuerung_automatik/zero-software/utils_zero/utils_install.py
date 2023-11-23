@@ -3,12 +3,13 @@ import importlib
 import os
 import pathlib
 import re
+import shutil
 import stat
 import sys
 import textwrap
 
 from config import raspi_os_config
-from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
+from utils_common.utils_constants import ID_RSA, ID_RSA_ASC, ID_RSA_PUB
 from utils_common.utils_install import run
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
@@ -161,12 +162,15 @@ def copy_ssh() -> None:
             print(f"{filename_new}: exists: Skip asking for content!")
             return
         print(
-            f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!"
+            f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA_ASC}' and terminate with <ctrl-d>!"
         )
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))
         os.chown(filename_new, uid=UID_ZERO, gid=GID_ZERO)
         filename_new.chmod(mode=STAT_RW)
+
+    DIRECTORY_SSH.mkdir(exist_ok=True)
+    shutil.chown(DIRECTORY_SSH, "zero", "zero")
 
     DIRECTORY_KEYS = DIRECTORY_ZEROSOFTWARE / "keys"
     copyssh_file(DIRECTORY_KEYS / "authorized_keys")

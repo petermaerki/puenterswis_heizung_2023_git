@@ -10,7 +10,6 @@ DIRECTORY_HOME_ROOT = pathlib.Path("/root")
 
 # SSH
 DIRECTORY_SSH = DIRECTORY_HOME_ZERO / ".ssh"
-DIRECTORY_SSH.mkdir(exist_ok=True)
 
 # BASHRC
 FILENAME_BASHRC_ZERO = DIRECTORY_HOME_ZERO / ".bashrc"
