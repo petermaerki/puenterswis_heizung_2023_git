@@ -457,7 +457,7 @@
         "wire_width": 6
       },
       {
-        "bus_width": 6,
+        "bus_width": 12,
         "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
@@ -465,30 +465,30 @@
         "line_style": 0,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
-        "name": "+3V3",
+        "name": "Medium",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.3,
+        "via_diameter": 0.4,
+        "via_drill": 0.2,
+        "wire_width": 12
+      },
+      {
+        "bus_width": 24,
+        "clearance": 0.15,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "Wide",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.6,
         "via_diameter": 0.4,
         "via_drill": 0.2,
-        "wire_width": 6
-      },
-      {
-        "bus_width": 6,
-        "clearance": 0.15,
-        "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "line_style": 0,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "+5V",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 2.0,
-        "via_diameter": 0.4,
-        "via_drill": 0.2,
-        "wire_width": 6
+        "wire_width": 24
       }
     ],
     "meta": {
@@ -498,12 +498,32 @@
     "netclass_assignments": null,
     "netclass_patterns": [
       {
-        "netclass": "Default",
-        "pattern": "/GPIO11"
+        "netclass": "Medium",
+        "pattern": "+3V3"
       },
       {
-        "netclass": "+5V",
+        "netclass": "Wide",
         "pattern": "+5V"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "485_0V"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "485_24V"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "ds_3V3"
+      },
+      {
+        "netclass": "Medium",
+        "pattern": "ds_0V"
       }
     ]
   },
@@ -569,6 +589,10 @@
     [
       "35c47459-45a7-4753-acae-c8b47e7575e1",
       ""
+    ],
+    [
+      "24d7d496-8920-4421-a637-0c9bf263a085",
+      "cpu"
     ]
   ],
   "text_variables": {}
