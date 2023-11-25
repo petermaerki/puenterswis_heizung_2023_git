@@ -669,7 +669,7 @@
       feeabb1d-66d4-40a3-8d41-b5773f925788
     )
   )
-  (model "/home/maerki/work_heizung/puenterswis_heizung_2023_git/steuerung_automatik/hardware/pcb_dezentral_proto/din_rail_pcb_holder/din_rail_pcb_holder-DIN-rail-clip-adjustable.step"
+  (model "${KIPRJMOD}/00_project_parts/din_rail_pcb_holder-DIN-rail-clip-adjustable.step"
     (offset (xyz 0 0 -16.1))
     (scale (xyz 1 1 1))
     (rotate (xyz -90 0 -90))
