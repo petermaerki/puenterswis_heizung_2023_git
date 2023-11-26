@@ -40,6 +40,7 @@ https://micropython-modbus.readthedocs.io/en/latest/umodbus.html#module-umodbus.
 https://micropython-modbus.readthedocs.io/en/latest/EXAMPLES.html#rtu
 
 `RP2 needs "rtu_pins = (Pin(4), Pin(5))" whereas ESP32 can use any pin the following example is for an ESP32`
+
 https://datasheets.raspberrypi.com/pico/Pico-R3-A4-Pinout.pdf
 | RX/TX | RP2 | rp2040 | uart_id |
 | - | - | - | - |
