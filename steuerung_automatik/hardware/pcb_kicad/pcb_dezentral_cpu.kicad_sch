@@ -3158,7 +3158,7 @@
   )
 
   (symbol (lib_id "Connector:TestPoint") (at 41.148 95.504 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom no) (on_board yes) (dnp no)
     (uuid 542972f0-5be2-4e66-91bc-95b84a19cb06)
     (property "Reference" "IO19" (at 34.798 95.504 90)
       (effects (font (size 1.27 1.27)))
@@ -3363,7 +3363,7 @@
   )
 
   (symbol (lib_id "Connector:TestPoint") (at 41.148 92.964 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom no) (on_board yes) (dnp no)
     (uuid 77134fec-445a-4aec-9c63-073dd5f6fc99)
     (property "Reference" "IO18" (at 34.798 92.964 90)
       (effects (font (size 1.27 1.27)))
@@ -4209,7 +4209,7 @@
   )
 
   (symbol (lib_id "Connector:TestPoint") (at 41.148 98.044 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
+    (in_bom no) (on_board yes) (dnp no)
     (uuid f5d6c3b6-6c87-4278-bf25-a7daed68a0b8)
     (property "Reference" "IO20" (at 34.798 98.044 90)
       (effects (font (size 1.27 1.27)))
