@@ -21,7 +21,10 @@ from . import const as Const
 from .common import Request
 
 # typing not natively supported on MicroPython
-from .typing import Callable, dict_keys, List, Optional, Union
+from .typing import Callable, List, Optional, Union
+from .typing import KeysView, Literal, Dict, Awaitable, overload
+
+CallbackType = Callable[[str, int, List[int]], None]
 
 
 class Modbus(object):
@@ -33,83 +36,90 @@ class Modbus(object):
     :param      addr_list:  List of addresses
     :type       addr_list:  List[int]
     """
-    def __init__(self, itf, addr_list: List[int]) -> None:
+    def __init__(self, itf, addr_list: Optional[List[int]]) -> None:
         self._itf = itf
         self._addr_list = addr_list
 
         # modbus register types with their default value
-        self._available_register_types = ['COILS', 'HREGS', 'IREGS', 'ISTS']
-        self._register_dict = dict()
+        self._available_register_types = (Const.COILS, Const.HREGS, Const.IREGS, Const.ISTS)
+        self._register_dict: Dict[str,
+                                  Dict[int,
+                                       Dict[str, Union[bool,
+                                                       int,
+                                                       List[bool],
+                                                       List[int]]]]] = dict()
         for reg_type in self._available_register_types:
             self._register_dict[reg_type] = dict()
         self._default_vals = dict(zip(self._available_register_types,
                                       [False, 0, 0, False]))
 
         # registers which can be set by remote device
-        self._changeable_register_types = ['COILS', 'HREGS']
+        self._changeable_register_types = (Const.COILS, Const.HREGS)
         self._changed_registers = dict()
         for reg_type in self._changeable_register_types:
             self._changed_registers[reg_type] = dict()
 
-    def process(self) -> bool:
+    def process(self, request: Optional[Request] = None) -> Optional[Awaitable]:
         """
         Process the Modbus requests.
 
-        :returns:   Result of processing, True on success, False otherwise
-        :rtype:     bool
+        :returns:   Request response - None for a synchronous server, or
+                    an awaitable for an asynchronous server due to AsyncRequest
+        :rtype:     Awaitable, optional
         """
         reg_type = None
         req_type = None
 
-        request = self._itf.get_request(unit_addr_list=self._addr_list,
-                                        timeout=0)
+        # for synchronous version
         if request is None:
-            return False
+            request = self._itf.get_request(unit_addr_list=self._addr_list,
+                                            timeout=0)
+        # if get_request is an async generator or None, hands it off to the async subclass
+        if not isinstance(request, Request):
+            return request
 
         if request.function == Const.READ_COILS:
             # Coils (setter+getter) [0, 1]
             # function 01 - read single register
-            reg_type = 'COILS'
-            req_type = 'READ'
+            reg_type = Const.COILS
+            req_type = Const.READ
         elif request.function == Const.READ_DISCRETE_INPUTS:
             # Ists (only getter) [0, 1]
             # function 02 - read input status (discrete inputs/digital input)
-            reg_type = 'ISTS'
-            req_type = 'READ'
+            reg_type = Const.ISTS
+            req_type = Const.READ
         elif request.function == Const.READ_HOLDING_REGISTERS:
             # Hregs (setter+getter) [0, 65535]
             # function 03 - read holding register
-            reg_type = 'HREGS'
-            req_type = 'READ'
+            reg_type = Const.HREGS
+            req_type = Const.READ
         elif request.function == Const.READ_INPUT_REGISTER:
             # Iregs (only getter) [0, 65535]
             # function 04 - read input registers
-            reg_type = 'IREGS'
-            req_type = 'READ'
+            reg_type = Const.IREGS
+            req_type = Const.READ
         elif (request.function == Const.WRITE_SINGLE_COIL or
                 request.function == Const.WRITE_MULTIPLE_COILS):
             # Coils (setter+getter) [0, 1]
             # function 05 - write single coil
             # function 15 - write multiple coil
-            reg_type = 'COILS'
-            req_type = 'WRITE'
+            reg_type = Const.COILS
+            req_type = Const.WRITE
         elif (request.function == Const.WRITE_SINGLE_REGISTER or
                 request.function == Const.WRITE_MULTIPLE_REGISTERS):
             # Hregs (setter+getter) [0, 65535]
             # function 06 - write holding register
             # function 16 - write multiple holding register
-            reg_type = 'HREGS'
-            req_type = 'WRITE'
+            reg_type = Const.HREGS
+            req_type = Const.WRITE
         else:
-            request.send_exception(Const.ILLEGAL_FUNCTION)
+            return request.send_exception(Const.ILLEGAL_FUNCTION)
 
         if reg_type:
-            if req_type == 'READ':
-                self._process_read_access(request=request, reg_type=reg_type)
-            elif req_type == 'WRITE':
-                self._process_write_access(request=request, reg_type=reg_type)
-
-        return True
+            if req_type == Const.READ:
+                return self._process_read_access(request=request, reg_type=reg_type)
+            elif req_type == Const.WRITE:
+                return self._process_write_access(request=request, reg_type=reg_type)
 
     def _create_response(self,
                          request: Request,
@@ -129,7 +139,7 @@ class Modbus(object):
         default_value = {'val': 0}
         reg_dict = self._register_dict[reg_type]
 
-        if reg_type in ['COILS', 'ISTS']:
+        if reg_type in (Const.COILS, Const.ISTS):
             default_value = {'val': False}
 
         for addr in range(request.register_addr,
@@ -170,7 +180,8 @@ class Modbus(object):
 
         return data
 
-    def _process_read_access(self, request: Request, reg_type: str) -> None:
+    def _process_read_access(self, request: Request, reg_type: str) \
+            -> Optional[Awaitable]:
         """
         Process read access to register
 
@@ -178,6 +189,10 @@ class Modbus(object):
         :type       request:   Request
         :param      reg_type:  The register type
         :type       reg_type:  str
+
+        :returns:   Request response - None for a synchronous server, or
+                    an awaitable for an asynchronous server due to AsyncRequest
+        :rtype      Awaitable, optional
         """
         address = request.register_addr
 
@@ -189,12 +204,16 @@ class Modbus(object):
                 _cb = self._register_dict[reg_type][address]['on_get_cb']
                 _cb(reg_type=reg_type, address=address, val=vals)
 
+            #print("creating response...", type(self).__name__, "->", type(request).__name__)
             vals = self._create_response(request=request, reg_type=reg_type)
-            request.send_response(vals)
+            return request.send_response(vals)
         else:
-            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+            # "return" is hack to ensure that AsyncModbus can call await
+            # on this result if AsyncRequest is passed to its function
+            return request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
 
-    def _process_write_access(self, request: Request, reg_type: str) -> None:
+    def _process_write_access(self, request: Request, reg_type: str) \
+            -> Optional[Awaitable]:
         """
         Process write access to register
 
@@ -202,64 +221,64 @@ class Modbus(object):
         :type       request:   Request
         :param      reg_type:  The register type
         :type       reg_type:  str
+
+        :returns:   Request response - None for a synchronous server, or
+                    an awaitable for an asynchronous server due to AsyncRequest
+        :rtype      Awaitable, optional
         """
         address = request.register_addr
-        val = 0
-        valid_register = False
+        val = False
 
-        if address in self._register_dict[reg_type]:
-            if request.data is None:
-                request.send_exception(Const.ILLEGAL_DATA_VALUE)
-                return
+        if address not in self._register_dict[reg_type]:
+            return request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+        elif request.data is None:
+            return request.send_exception(Const.ILLEGAL_DATA_VALUE)
+        elif reg_type == Const.COILS:
+            if request.function == Const.WRITE_SINGLE_COIL:
+                val = request.data[0]
+                if 0x00 < val < 0xFF:
+                    return request.send_exception(Const.ILLEGAL_DATA_VALUE)
+                val = [(val == 0xFF)]
+            elif request.function == Const.WRITE_MULTIPLE_COILS:
+                tmp = int.from_bytes(request.data, "big")
+                val = [
+                    bool(tmp & (1 << n)) for n in range(request.quantity)
+                ]
 
-            if reg_type == 'COILS':
-                valid_register = True
+            self.set_coil(address=address, value=val)
+        elif reg_type == Const.HREGS:
+            val = list(functions.to_short(byte_array=request.data,
+                                          signed=False))
 
-                if request.function == Const.WRITE_SINGLE_COIL:
-                    val = request.data[0]
-                    if 0x00 < val < 0xFF:
-                        valid_register = False
-                        request.send_exception(Const.ILLEGAL_DATA_VALUE)
-                    else:
-                        val = [(val == 0xFF)]
-                elif request.function == Const.WRITE_MULTIPLE_COILS:
-                    tmp = int.from_bytes(request.data, "big")
-                    val = [
-                        bool(tmp & (1 << n)) for n in range(request.quantity)
-                    ]
-
-                if valid_register:
-                    self.set_coil(address=address, value=val)
-            elif reg_type == 'HREGS':
-                valid_register = True
-                val = list(functions.to_short(byte_array=request.data,
-                                              signed=False))
-
-                if request.function in [Const.WRITE_SINGLE_REGISTER,
-                                        Const.WRITE_MULTIPLE_REGISTERS]:
-                    self.set_hreg(address=address, value=val)
-            else:
-                # nothing except holding registers or coils can be set
-                request.send_exception(Const.ILLEGAL_FUNCTION)
-
-            if valid_register:
-                request.send_response()
-                self._set_changed_register(reg_type=reg_type,
-                                           address=address,
-                                           value=val)
-                if self._register_dict[reg_type][address].get('on_set_cb', 0):
-                    _cb = self._register_dict[reg_type][address]['on_set_cb']
-                    _cb(reg_type=reg_type, address=address, val=val)
+            if request.function in [Const.WRITE_SINGLE_REGISTER,
+                                    Const.WRITE_MULTIPLE_REGISTERS]:
+                self.set_hreg(address=address, value=val)
         else:
-            request.send_exception(Const.ILLEGAL_DATA_ADDRESS)
+            # nothing except holding registers or coils can be set
+            return request.send_exception(Const.ILLEGAL_FUNCTION)
+
+        if self._register_dict[reg_type][address].get('on_pre_set_cb', 0):
+            _cb = self._register_dict[reg_type][address]['on_pre_set_cb']
+            if _cb(reg_type=reg_type, address=address, val=val):
+                return request.send_exception(Const.ILLEGAL_DATA_VALUE)
+
+        self._set_changed_register(reg_type=reg_type,
+                                   address=address,
+                                   value=val)
+        if self._register_dict[reg_type][address].get('on_set_cb', 0):
+            _cb = self._register_dict[reg_type][address]['on_set_cb']
+            _cb(reg_type=reg_type, address=address, val=val)
+        return request.send_response()
 
     def add_coil(self,
                  address: int,
                  value: Union[bool, List[bool]] = False,
-                 on_set_cb: Callable[[str, int, Union[List[bool], List[int]]],
-                                     None] = None,
-                 on_get_cb: Callable[[str, int, Union[List[bool], List[int]]],
-                                     None] = None) -> None:
+                 on_set_cb: Optional[Callable[[str, int,
+                                               Union[List[bool], List[int]]],
+                                              None]] = None,
+                 on_get_cb: Optional[Callable[[str, int,
+                                               Union[List[bool], List[int]]],
+                                              None]] = None) -> None:
         """
         Add a coil to the modbus register dictionary.
 
@@ -278,7 +297,7 @@ class Modbus(object):
             None
             ]
         """
-        self._set_reg_in_dict(reg_type='COILS',
+        self._set_reg_in_dict(reg_type=Const.COILS,
                               address=address,
                               value=value,
                               on_set_cb=on_set_cb,
@@ -294,7 +313,7 @@ class Modbus(object):
         :returns:   Register value, None if register did not exist in dict
         :rtype:     Union[None, bool, List[bool]]
         """
-        return self._remove_reg_from_dict(reg_type='COILS', address=address)
+        return self._remove_reg_from_dict(reg_type=Const.COILS, address=address)
 
     def set_coil(self,
                  address: int,
@@ -307,7 +326,7 @@ class Modbus(object):
         :param      value:    The default value
         :type       value:    Union[bool, List[bool]], optional
         """
-        self._set_reg_in_dict(reg_type='COILS',
+        self._set_reg_in_dict(reg_type=Const.COILS,
                               address=address,
                               value=value)
 
@@ -321,24 +340,24 @@ class Modbus(object):
         :returns:   Coil value
         :rtype:     Union[bool, List[bool]]
         """
-        return self._get_reg_in_dict(reg_type='COILS',
+        return self._get_reg_in_dict(reg_type=Const.COILS,
                                      address=address)
 
     @property
-    def coils(self) -> dict_keys:
+    def coils(self) -> KeysView:
         """
         Get the configured coils.
 
         :returns:   The dictionary keys.
-        :rtype:     dict_keys
+        :rtype:     KeysView
         """
-        return self._get_regs_of_dict(reg_type='COILS')
+        return self._get_regs_of_dict(reg_type=Const.COILS)
 
     def add_hreg(self,
                  address: int,
                  value: Union[int, List[int]] = 0,
-                 on_set_cb: Callable[[str, int, List[int]], None] = None,
-                 on_get_cb: Callable[[str, int, List[int]], None] = None) -> None:
+                 on_set_cb: Optional[CallbackType] = None,
+                 on_get_cb: Optional[CallbackType] = None) -> None:
         """
         Add a holding register to the modbus register dictionary.
 
@@ -347,11 +366,11 @@ class Modbus(object):
         :param      value:      The default value
         :type       value:      Union[int, List[int]], optional
         :param      on_set_cb:  Callback on setting the holding register
-        :type       on_set_cb:  Callable[[str, int, List[int]], None]
+        :type       on_set_cb:  Callable[[str, int, List[int]], None], optional
         :param      on_get_cb:  Callback on getting the holding register
-        :type       on_get_cb:  Callable[[str, int, List[int]], None]
+        :type       on_get_cb:  Callable[[str, int, List[int]], None], optional
         """
-        self._set_reg_in_dict(reg_type='HREGS',
+        self._set_reg_in_dict(reg_type=Const.HREGS,
                               address=address,
                               value=value,
                               on_set_cb=on_set_cb,
@@ -367,7 +386,7 @@ class Modbus(object):
         :returns:   Register value, None if register did not exist in dict
         :rtype:     Union[None, int, List[int]]
         """
-        return self._remove_reg_from_dict(reg_type='HREGS', address=address)
+        return self._remove_reg_from_dict(reg_type=Const.HREGS, address=address)
 
     def set_hreg(self, address: int, value: Union[int, List[int]] = 0) -> None:
         """
@@ -378,7 +397,7 @@ class Modbus(object):
         :param      value:    The default value
         :type       value:    int or list of int, optional
         """
-        self._set_reg_in_dict(reg_type='HREGS',
+        self._set_reg_in_dict(reg_type=Const.HREGS,
                               address=address,
                               value=value)
 
@@ -392,24 +411,25 @@ class Modbus(object):
         :returns:   Holding register value
         :rtype:     Union[int, List[int]]
         """
-        return self._get_reg_in_dict(reg_type='HREGS',
+        return self._get_reg_in_dict(reg_type=Const.HREGS,
                                      address=address)
 
     @property
-    def hregs(self) -> dict_keys:
+    def hregs(self) -> KeysView:
         """
         Get the configured holding registers.
 
         :returns:   The dictionary keys.
-        :rtype:     dict_keys
+        :rtype:     KeysView
         """
-        return self._get_regs_of_dict(reg_type='HREGS')
+        return self._get_regs_of_dict(reg_type=Const.HREGS)
 
     def add_ist(self,
                 address: int,
                 value: Union[bool, List[bool]] = False,
-                on_get_cb: Callable[[str, int, Union[List[bool], List[int]]],
-                                    None] = None) -> None:
+                on_get_cb: Optional[Callable[[str, int,
+                                              Union[List[bool], List[int]]],
+                                             None]] = None) -> None:
         """
         Add a discrete input register to the modbus register dictionary.
 
@@ -423,7 +443,7 @@ class Modbus(object):
             None
             ]
         """
-        self._set_reg_in_dict(reg_type='ISTS',
+        self._set_reg_in_dict(reg_type=Const.ISTS,
                               address=address,
                               value=value,
                               on_get_cb=on_get_cb)
@@ -438,7 +458,7 @@ class Modbus(object):
         :returns:   Register value, None if register did not exist in dict
         :rtype:     Union[None, bool, List[bool]]
         """
-        return self._remove_reg_from_dict(reg_type='ISTS', address=address)
+        return self._remove_reg_from_dict(reg_type=Const.ISTS, address=address)
 
     def set_ist(self, address: int, value: bool = False) -> None:
         """
@@ -449,7 +469,7 @@ class Modbus(object):
         :param      value:    The default value
         :type       value:    bool or list of bool, optional
         """
-        self._set_reg_in_dict(reg_type='ISTS',
+        self._set_reg_in_dict(reg_type=Const.ISTS,
                               address=address,
                               value=value)
 
@@ -463,24 +483,25 @@ class Modbus(object):
         :returns:   Discrete input register value
         :rtype:     Union[bool, List[bool]]
         """
-        return self._get_reg_in_dict(reg_type='ISTS',
+        return self._get_reg_in_dict(reg_type=Const.ISTS,
                                      address=address)
 
     @property
-    def ists(self) -> dict_keys:
+    def ists(self) -> KeysView:
         """
         Get the configured discrete input registers.
 
         :returns:   The dictionary keys.
-        :rtype:     dict_keys
+        :rtype:     KeysView
         """
-        return self._get_regs_of_dict(reg_type='ISTS')
+        return self._get_regs_of_dict(reg_type=Const.ISTS)
 
     def add_ireg(self,
                  address: int,
                  value: Union[int, List[int]] = 0,
-                 on_get_cb: Callable[[str, int, Union[List[bool], List[int]]],
-                                     None] = None) -> None:
+                 on_get_cb: Optional[Callable[[str, int,
+                                               Union[List[bool], List[int]]],
+                                              None]] = None) -> None:
         """
         Add an input register to the modbus register dictionary.
 
@@ -494,7 +515,7 @@ class Modbus(object):
             None
             ]
         """
-        self._set_reg_in_dict(reg_type='IREGS',
+        self._set_reg_in_dict(reg_type=Const.IREGS,
                               address=address,
                               value=value,
                               on_get_cb=on_get_cb)
@@ -509,7 +530,7 @@ class Modbus(object):
         :returns:   Register value, None if register did not exist in dict
         :rtype:     Union[None, int, List[int]]
         """
-        return self._remove_reg_from_dict(reg_type='IREGS', address=address)
+        return self._remove_reg_from_dict(reg_type=Const.IREGS, address=address)
 
     def set_ireg(self, address: int, value: Union[int, List[int]] = 0) -> None:
         """
@@ -520,7 +541,7 @@ class Modbus(object):
         :param      value:    The default value
         :type       value:    Union[int, List[int]], optional
         """
-        self._set_reg_in_dict(reg_type='IREGS',
+        self._set_reg_in_dict(reg_type=Const.IREGS,
                               address=address,
                               value=value)
 
@@ -534,29 +555,31 @@ class Modbus(object):
         :returns:   Input register value
         :rtype:     Union[int, List[int]]
         """
-        return self._get_reg_in_dict(reg_type='IREGS',
+        return self._get_reg_in_dict(reg_type=Const.IREGS,
                                      address=address)
 
     @property
-    def iregs(self) -> dict_keys:
+    def iregs(self) -> KeysView:
         """
         Get the configured input registers.
 
         :returns:   The dictionary keys.
-        :rtype:     dict_keys
+        :rtype:     KeysView
         """
-        return self._get_regs_of_dict(reg_type='IREGS')
+        return self._get_regs_of_dict(reg_type=Const.IREGS)
 
     def _set_reg_in_dict(self,
                          reg_type: str,
                          address: int,
                          value: Union[bool, int, List[bool], List[int]],
-                         on_set_cb: Callable[[str, int, Union[List[bool],
-                                                              List[int]]],
-                                             None] = None,
-                         on_get_cb: Callable[[str, int, Union[List[bool],
-                                                              List[int]]],
-                                             None] = None) -> None:
+                         on_set_cb: Optional[Callable[[str, int,
+                                                       Union[List[bool],
+                                                             List[int]]],
+                                                      None]] = None,
+                         on_get_cb: Optional[Callable[[str, int,
+                                                       Union[List[bool],
+                                                             List[int]]],
+                                                      None]] = None) -> None:
         """
         Set the register value in the dictionary of registers.
 
@@ -603,14 +626,12 @@ class Modbus(object):
                                 reg_type: str,
                                 address: int,
                                 value: Union[bool, int],
-                                on_set_cb: Callable[
+                                on_set_cb: Optional[Callable[
                                     [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ] = None,
-                                on_get_cb: Callable[
+                                    None]] = None,
+                                on_get_cb: Optional[Callable[
                                     [str, int, Union[List[bool], List[int]]],
-                                    None
-                                ] = None) -> None:
+                                    None]] = None) -> None:
         """
         Set a register value in the dictionary of registers.
 
@@ -653,7 +674,19 @@ class Modbus(object):
 
         self._register_dict[reg_type][address] = data
 
+    @overload
     def _remove_reg_from_dict(self,
+                              reg_type: Literal["COILS", "ISTS"],
+                              address: int) -> Union[bool, List[bool]]:
+        pass
+
+    @overload
+    def _remove_reg_from_dict(self,  # noqa: F811
+                              reg_type: Literal["HREGS", "IREGS"],
+                              address: int) -> Union[int, List[int]]:
+        pass
+
+    def _remove_reg_from_dict(self,  # noqa: F811
                               reg_type: str,
                               address: int) -> Union[None, bool, int, List[bool], List[int]]:
         """
@@ -674,7 +707,19 @@ class Modbus(object):
 
         return self._register_dict[reg_type].pop(address, None)
 
+    @overload
     def _get_reg_in_dict(self,
+                         reg_type: Literal["HREGS", "IREGS"],
+                         address: int) -> Union[int, List[int]]:
+        pass
+
+    @overload
+    def _get_reg_in_dict(self,  # noqa: F811
+                         reg_type: Literal["COILS", "ISTS"],
+                         address: int) -> Union[bool, List[bool]]:
+        pass
+
+    def _get_reg_in_dict(self,  # noqa: F811
                          reg_type: str,
                          address: int) -> Union[bool, int, List[bool], List[int]]:
         """
@@ -699,7 +744,7 @@ class Modbus(object):
             raise KeyError('No {} available for the register address {}'.
                            format(reg_type, address))
 
-    def _get_regs_of_dict(self, reg_type: str) -> dict_keys:
+    def _get_regs_of_dict(self, reg_type: str) -> KeysView:
         """
         Get all configured registers of specified register type.
 
@@ -708,7 +753,7 @@ class Modbus(object):
 
         :raise      KeyError:  No register at specified address found
         :returns:   The configured registers of the specified register type.
-        :rtype:     dict_keys
+        :rtype:     KeysView
         """
         if not self._check_valid_register(reg_type=reg_type):
             raise KeyError('{} is not a valid register type of {}'.
@@ -726,10 +771,7 @@ class Modbus(object):
         :returns:   Flag whether register type is valid
         :rtype:     bool
         """
-        if reg_type in self._available_register_types:
-            return True
-        else:
-            return False
+        return reg_type in self._available_register_types
 
     @property
     def changed_registers(self) -> dict:
@@ -749,7 +791,7 @@ class Modbus(object):
         :returns:   The changed coil registers.
         :rtype:     dict
         """
-        return self._changed_registers['COILS']
+        return self._changed_registers[Const.COILS]
 
     @property
     def changed_hregs(self) -> dict:
@@ -759,7 +801,7 @@ class Modbus(object):
         :returns:   The changed holding registers.
         :rtype:     dict
         """
-        return self._changed_registers['HREGS']
+        return self._changed_registers[Const.HREGS]
 
     def _set_changed_register(self,
                               reg_type: str,
@@ -848,21 +890,21 @@ class Modbus(object):
                         on_set_cb = val.get('on_set_cb', None)
                         on_get_cb = val.get('on_get_cb', None)
 
-                        if reg_type == 'COILS':
+                        if reg_type == Const.COILS:
                             self.add_coil(address=address,
                                           value=value,
                                           on_set_cb=on_set_cb,
                                           on_get_cb=on_get_cb)
-                        elif reg_type == 'HREGS':
+                        elif reg_type == Const.HREGS:
                             self.add_hreg(address=address,
                                           value=value,
                                           on_set_cb=on_set_cb,
                                           on_get_cb=on_get_cb)
-                        elif reg_type == 'ISTS':
+                        elif reg_type == Const.ISTS:
                             self.add_ist(address=address,
                                          value=value,
                                          on_get_cb=on_get_cb)   # only getter
-                        elif reg_type == 'IREGS':
+                        elif reg_type == Const.IREGS:
                             self.add_ireg(address=address,
                                           value=value,
                                           on_get_cb=on_get_cb)  # only getter

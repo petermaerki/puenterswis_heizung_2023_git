@@ -12,6 +12,16 @@
 
 from micropython import const
 
+# request types
+READ = 'READ'
+WRITE = 'WRITE'
+
+# datablock names
+ISTS = 'ISTS'
+COILS = 'COILS'
+HREGS = 'HREGS'
+IREGS = 'IREGS'
+
 # function codes
 # defined as const(), see https://github.com/micropython/micropython/issues/573
 #: Read contiguous status of coils

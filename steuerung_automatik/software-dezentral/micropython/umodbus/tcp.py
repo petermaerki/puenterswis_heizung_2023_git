@@ -10,8 +10,8 @@
 
 # system packages
 # import random
-import struct
 import socket
+import struct
 import time
 
 # custom packages
@@ -22,16 +22,16 @@ from .common import ModbusException
 from .modbus import Modbus
 
 # typing not natively supported on MicroPython
-from .typing import Optional, Tuple, Union
+from .typing import Optional, Tuple, List, Union
 
 
 class ModbusTCP(Modbus):
     """Modbus TCP client class"""
-    def __init__(self):
+    def __init__(self, addr_list: Optional[List[int]] = None):
         super().__init__(
-            # set itf to TCPServer object, addr_list to None
+            # set itf to TCPServer object
             TCPServer(),
-            None
+            addr_list
         )
 
     def bind(self,
@@ -63,29 +63,21 @@ class ModbusTCP(Modbus):
             return False
 
 
-class TCP(CommonModbusFunctions):
-    """
-    TCP class handling socket connections and parsing the Modbus data
+class CommonTCPFunctions(object):
+    """Common Functions for Modbus TCP Servers"""
 
-    :param      slave_ip:    IP of this device listening for requests
-    :type       slave_ip:    str
-    :param      slave_port:  Port of this device
-    :type       slave_port:  int
-    :param      timeout:     Socket timeout in seconds
-    :type       timeout:     float
-    """
     def __init__(self,
                  slave_ip: str,
                  slave_port: int = 502,
                  timeout: float = 5.0):
-        self._sock = socket.socket()
+        self._slave_ip, self._slave_port = slave_ip, slave_port
         self.trans_id_ctr = 0
+        self.timeout = timeout
+        self.is_connected = False
 
-        # print(socket.getaddrinfo(slave_ip, slave_port))
-        # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
-        self._sock.connect(socket.getaddrinfo(slave_ip, slave_port)[0][-1])
-
-        self._sock.settimeout(timeout)
+    @property
+    def connected(self) -> bool:
+        return self.is_connected
 
     def _create_mbap_hdr(self,
                          slave_addr: int,
@@ -158,6 +150,39 @@ class TCP(CommonModbusFunctions):
 
         return response[hdr_length:]
 
+
+class TCP(CommonTCPFunctions, CommonModbusFunctions):
+    """
+    TCP class handling socket connections and parsing the Modbus data
+
+    :param      slave_ip:    IP of this device listening for requests
+    :type       slave_ip:    str
+    :param      slave_port:  Port of this device
+    :type       slave_port:  int
+    :param      timeout:     Socket timeout in seconds
+    :type       timeout:     float
+    """
+    def __init__(self,
+                 slave_ip: str,
+                 slave_port: int = 502,
+                 timeout: float = 5.0):
+        super().__init__(slave_ip=slave_ip,
+                         slave_port=slave_port,
+                         timeout=timeout)
+
+        self._sock = socket.socket()
+        self.connect()
+
+    def connect(self) -> None:
+        """Binds the IP and port for incoming requests."""
+        # print(socket.getaddrinfo(slave_ip, slave_port))
+        # [(2, 1, 0, '192.168.178.47', ('192.168.178.47', 502))]
+        self._sock.settimeout(self.timeout)
+
+        self._sock.connect(socket.getaddrinfo(self._slave_ip,
+                                              self._slave_port)[0][-1])
+        self.is_connected = True
+
     def _send_receive(self,
                       slave_addr: int,
                       modbus_pdu: bytes,
@@ -192,8 +217,8 @@ class TCP(CommonModbusFunctions):
 class TCPServer(object):
     """Modbus TCP host class"""
     def __init__(self):
-        self._sock = None
-        self._client_sock = None
+        self._sock: socket.socket = None
+        self._client_sock: socket.socket = None
         self._is_bound = False
 
     @property
@@ -313,7 +338,7 @@ class TCPServer(object):
 
     def _accept_request(self,
                         accept_timeout: float,
-                        unit_addr_list: list) -> Union[Request, None]:
+                        unit_addr_list: Optional[List[int]]) -> Optional[Request]:
         """
         Accept, read and decode a socket based request
 
@@ -356,8 +381,8 @@ class TCPServer(object):
                 # MicroPython raises an OSError instead of socket.timeout
                 # print("Socket OSError aka TimeoutError: {}".format(e))
                 return None
-            except Exception:
-                # print("Modbus request error:", e)
+            except Exception as e:
+                print("Modbus request error:", e)
                 self._client_sock.close()
                 self._client_sock = None
                 return None
@@ -380,7 +405,7 @@ class TCPServer(object):
                 return None
 
     def get_request(self,
-                    unit_addr_list: Optional[list] = None,
+                    unit_addr_list: Optional[List[int]] = None,
                     timeout: int = None) -> Union[Request, None]:
         """
         Check for request within the specified timeout

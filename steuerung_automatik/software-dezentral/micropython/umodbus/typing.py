@@ -52,10 +52,6 @@ class Awaitable:
     pass
 
 
-class Coroutine:
-    pass
-
-
 class AsyncIterable:
     pass
 
@@ -93,6 +89,9 @@ class Collection:
 Callable = _subscriptable
 
 
+Coroutine = _subscriptable
+
+
 class AbstractSet:
     pass
 
@@ -125,6 +124,9 @@ Tuple = _subscriptable
 
 
 List = _subscriptable
+
+
+Literal = _subscriptable
 
 
 class Deque:
@@ -208,5 +210,5 @@ def _overload_dummy(*args, **kwds):
     )
 
 
-def overload():
+def overload(fun):
     return _overload_dummy

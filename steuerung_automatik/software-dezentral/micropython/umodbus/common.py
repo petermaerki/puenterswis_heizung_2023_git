@@ -7,7 +7,6 @@
 # see the Pycom Licence v1.0 document supplied with this file, or
 # available at https://www.pycom.io/opensource/licensing
 #
-
 # system packages
 import struct
 
@@ -16,7 +15,7 @@ from . import const as Const
 from . import functions
 
 # typing not natively supported on MicroPython
-from .typing import List, Optional, Tuple, Union
+from .typing import List, Optional, Union
 
 
 class Request(object):
@@ -81,6 +80,7 @@ class Request(object):
         :param      signed:  Indicates if signed values are used
         :type       signed:  bool
         """
+        print("sending sync response...", type(self).__name__, "->", type(self._itf).__name__)
         self._itf.send_response(self.unit_addr,
                                 self.function,
                                 self.register_addr,
@@ -176,7 +176,7 @@ class CommonModbusFunctions(object):
                                slave_addr: int,
                                starting_addr: int,
                                register_qty: int,
-                               signed: bool = True) -> Tuple[int, ...]:
+                               signed: bool = True) -> bytes:
         """
         Read holding registers (HREGS).
 
@@ -190,7 +190,7 @@ class CommonModbusFunctions(object):
         :type       signed:         bool
 
         :returns:   State of read holding register as tuple
-        :rtype:     Tuple[int, ...]
+        :rtype:     bytes
         """
         modbus_pdu = functions.read_holding_registers(
             starting_address=starting_addr,
@@ -208,7 +208,7 @@ class CommonModbusFunctions(object):
                              slave_addr: int,
                              starting_addr: int,
                              register_qty: int,
-                             signed: bool = True) -> Tuple[int, ...]:
+                             signed: bool = True) -> bytes:
         """
         Read input registers (IREGS).
 
@@ -222,7 +222,7 @@ class CommonModbusFunctions(object):
         :type       signed:         bool
 
         :returns:   State of read input register as tuple
-        :rtype:     Tuple[int, ...]
+        :rtype:     bytes
         """
         modbus_pdu = functions.read_input_registers(
             starting_address=starting_addr,
@@ -390,3 +390,9 @@ class CommonModbusFunctions(object):
         )
 
         return operation_status
+
+    def _send_receive(self,
+                      slave_addr: int,
+                      modbus_pdu: bytes,
+                      count: bool) -> bytes:
+        raise NotImplementedError("Must be overridden by subclass")

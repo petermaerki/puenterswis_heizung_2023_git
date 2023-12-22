@@ -22,12 +22,12 @@ from .common import ModbusException
 from .modbus import Modbus
 
 # typing not natively supported on MicroPython
-from .typing import List, Optional, Union
+from .typing import List, Optional, Union, Awaitable
 
 
 class ModbusRTU(Modbus):
     """
-    Modbus RTU client class
+    Modbus RTU server class
 
     :param      addr:        The address of this device on the bus
     :type       addr:        int
@@ -54,21 +54,25 @@ class ModbusRTU(Modbus):
                  parity: Optional[int] = None,
                  pins: List[Union[int, Pin], Union[int, Pin]] = None,
                  ctrl_pin: int = None,
-                 uart_id: int = 1):
+                 uart_id: int = 1,
+                 **extra_args):
         super().__init__(
-            # set itf to Serial object, addr_list to [addr]
-            Serial(uart_id=uart_id,
-                   baudrate=baudrate,
-                   data_bits=data_bits,
-                   stop_bits=stop_bits,
-                   parity=parity,
-                   pins=pins,
-                   ctrl_pin=ctrl_pin),
+            # set itf to RTUServer object, addr_list to [addr]
+            RTUServer(uart_id=uart_id,
+                      baudrate=baudrate,
+                      data_bits=data_bits,
+                      stop_bits=stop_bits,
+                      parity=parity,
+                      pins=pins,
+                      ctrl_pin=ctrl_pin,
+                      **extra_args),
             [addr]
         )
 
 
-class Serial(CommonModbusFunctions):
+class CommonRTUFunctions(object):
+    """Common Functions for Modbus RTU servers"""
+
     def __init__(self,
                  uart_id: int = 1,
                  baudrate: int = 9600,
@@ -76,25 +80,31 @@ class Serial(CommonModbusFunctions):
                  stop_bits: int = 1,
                  parity=None,
                  pins: List[Union[int, Pin], Union[int, Pin]] = None,
-                 ctrl_pin: int = None):
+                 ctrl_pin: int = None,
+                 read_timeout: int = None,
+                 **extra_args):
         """
-        Setup Serial/RTU Modbus
+        Setup Serial/RTU Modbus (common to client and server)
 
-        :param      uart_id:     The ID of the used UART
-        :type       uart_id:     int
-        :param      baudrate:    The baudrate, default 9600
-        :type       baudrate:    int
-        :param      data_bits:   The data bits, default 8
-        :type       data_bits:   int
-        :param      stop_bits:   The stop bits, default 1
-        :type       stop_bits:   int
-        :param      parity:      The parity, default None
-        :type       parity:      Optional[int]
-        :param      pins:        The pins as list [TX, RX]
-        :type       pins:        List[Union[int, Pin], Union[int, Pin]]
-        :param      ctrl_pin:    The control pin
-        :type       ctrl_pin:    int
+        :param      uart_id:        The ID of the used UART
+        :type       uart_id:        int
+        :param      baudrate:       The baudrate, default 9600
+        :type       baudrate:       int
+        :param      data_bits:      The data bits, default 8
+        :type       data_bits:      int
+        :param      stop_bits:      The stop bits, default 1
+        :type       stop_bits:      int
+        :param      parity:         The parity, default None
+        :type       parity:         Optional[int]
+        :param      pins:           The pins as list [TX, RX]
+        :type       pins:           List[Union[int, Pin], Union[int, Pin]]
+        :param      ctrl_pin:       The control pin
+        :type       ctrl_pin:       int
+        :param      read_timeout:   The read timeout in ms.
+        :type       read_timeout:   int
         """
+
+        super().__init__()
         # UART flush function is introduced in Micropython v1.20.0
         self._has_uart_flush = callable(getattr(UART, "flush", None))
         self._uart = UART(uart_id,
@@ -102,11 +112,10 @@ class Serial(CommonModbusFunctions):
                           bits=data_bits,
                           parity=parity,
                           stop=stop_bits,
-                          # timeout_chars=2,  # WiPy only
                           # pins=pins         # WiPy only
                           tx=pins[0],
-                          rx=pins[1]
-                          )
+                          rx=pins[1],
+                          **extra_args)
 
         if ctrl_pin is not None:
             self._ctrlPin = Pin(ctrl_pin, mode=Pin.OUT)
@@ -114,7 +123,7 @@ class Serial(CommonModbusFunctions):
             self._ctrlPin = None
 
         # timing of 1 character in microseconds (us)
-        self._t1char = (1000000 * (data_bits + stop_bits + 2)) // baudrate
+        self._t1char = (1_000_000 * (data_bits + stop_bits + 2)) // baudrate
 
         # inter-frame delay in microseconds (us)
         # - <= 19200 bps: 3.5x timing of 1 character
@@ -123,6 +132,10 @@ class Serial(CommonModbusFunctions):
             self._inter_frame_delay = (self._t1char * 3500) // 1000
         else:
             self._inter_frame_delay = 1750
+
+        # no specific reason for 120, taken from _uart_read
+        # convert to us by multiplying by 1000
+        self._uart_read_timeout = (read_timeout or 0.120) * 1000
 
     def _calculate_crc16(self, data: bytearray) -> bytes:
         """
@@ -141,55 +154,121 @@ class Serial(CommonModbusFunctions):
 
         return struct.pack('<H', crc)
 
-    def _exit_read(self, response: bytearray) -> bool:
+    def _form_serial_adu(self, modbus_pdu: bytes, slave_addr: int) -> bytearray:
         """
-        Return on modbus read error
+        Adds the slave address to the beginning of the Modbus PDU and appends
+        the checksum of the resulting payload to form the Modbus Serial ADU.
 
-        :param      response:    The response
-        :type       response:    bytearray
+        :param      modbus_pdu:  The modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+        :param      slave_addr:  The slave address
+        :type       slave_addr:  int
 
-        :returns:   State of basic read response evaluation,
-                    True if entire response has been read
-        :rtype:     bool
+        :returns:   The modbus serial PDU.
+        :rtype      bytearray
         """
-        response_len = len(response)
-        if response_len >= 2 and response[1] >= Const.ERROR_BIAS:
-            if response_len < Const.ERROR_RESP_LEN:
-                return False
-        elif response_len >= 3 and (Const.READ_COILS <= response[1] <= Const.READ_INPUT_REGISTER):
-            expected_len = Const.RESPONSE_HDR_LENGTH + 1 + response[2] + Const.CRC_LENGTH
-            if response_len < expected_len:
-                return False
-        elif response_len < Const.FIXED_RESP_LEN:
-            return False
 
-        return True
+        modbus_adu = bytearray()
+        modbus_adu.append(slave_addr)
+        modbus_adu.extend(modbus_pdu)
+        modbus_adu.extend(self._calculate_crc16(modbus_adu))
+        return modbus_adu
 
-    def _uart_read(self) -> bytearray:
+    def _send(self, modbus_pdu: bytes, slave_addr: int) -> Optional[Awaitable]:
         """
-        Read incoming slave response from UART
+        Send Modbus frame via UART
 
-        :returns:   Read content
-        :rtype:     bytearray
+        If a flow control pin has been setup, it will be controlled accordingly
+
+        :param      modbus_pdu:  The modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+        :param      slave_addr:  The slave address
+        :type       slave_addr:  int
+
+        :returns:   None if called by the synchronous variant, or else an
+                    Awaitable is returned that represents the actions to take
+                    after the request is sent (e.g. sleeping)
+        :rtype:     Optional[Awaitable]
         """
-        response = bytearray()
 
-        # TODO: use some kind of hint or user-configurable delay
-        #       to determine this loop counter
-        for x in range(1, 120):
-            if self._uart.any():
-                # WiPy only
-                # response.extend(self._uart.readall())
-                response.extend(self._uart.read())
+        # modbus_adu: Modbus Application Data Unit
+        # consists of the Modbus PDU, with slave address prepended and checksum appended
+        modbus_adu = self._form_serial_adu(modbus_pdu, slave_addr)
 
-                # variable length function codes may require multiple reads
-                if self._exit_read(response):
-                    break
+        if self._ctrlPin:
+            self._ctrlPin.on()
+            # wait until the control pin really changed
+            # 85-95us (ESP32 @ 160/240MHz)
+            time.sleep_us(200)
 
-            # wait for the maximum time between two frames
-            time.sleep_us(self._inter_frame_delay)
+        # the timing of this part is critical:
+        # - if we disable output too early,
+        #   the command will not be received in full
+        # - if we disable output too late,
+        #   the incoming response will lose some data at the beginning
+        # easiest to just wait for the bytes to be sent out on the wire
 
-        return response
+        send_start_time = time.ticks_us()
+        # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
+        self._uart.write(modbus_adu)
+        send_finish_time = time.ticks_us()
+
+        sleep_time_us = self._t1char
+        if self._has_uart_flush:
+            self._uart.flush()
+        else:
+            sleep_time_us = (
+                self._t1char * len(modbus_adu) -    # total frame time in us
+                time.ticks_diff(send_finish_time, send_start_time) +
+                100     # only required at baudrates above 57600, but hey 100us
+            )
+
+        #print("serial::_send -> _post_send()")
+        return self._post_send(sleep_time_us)
+
+    def _post_send(self, sleep_time_us: float) -> None:
+        """
+        Sleeps after sending a request, along with other post-send actions.
+        """
+        #print("serial::post_send")
+        time.sleep_us(sleep_time_us)
+        if self._ctrlPin:
+            self._ctrlPin.off()
+
+
+class RTUServer(CommonRTUFunctions):
+    """Common Functions for Modbus RTU servers"""
+
+    def _parse_request(self,
+                       req: bytearray,
+                       unit_addr_list: Optional[List[int]]) \
+            -> Optional[bytearray]:
+        """
+        Parses a request and, if valid, returns the request body.
+
+        :param      req:                The request to parse
+        :type       req:                bytearray
+        :param      unit_addr_list:     The unit address list
+        :type       unit_addr_list:     Optional[list]
+
+        :returns:   The request body (i.e. excluding CRC) if it is valid,
+                    or None otherwise.
+        :rtype      bytearray, optional
+        """
+
+        if len(req) < 8:
+            return None
+
+        if req[0] not in unit_addr_list:
+            return None
+
+        req_crc = req[-Const.CRC_LENGTH:]
+        req_no_crc = req[:-Const.CRC_LENGTH]
+        expected_crc = self._calculate_crc16(req_no_crc)
+
+        if (req_crc[0] != expected_crc[0]) or (req_crc[1] != expected_crc[1]):
+            return None
+        return req_no_crc
 
     def _uart_read_frame(self, timeout: Optional[int] = None) -> bytearray:
         """
@@ -239,82 +318,148 @@ class Serial(CommonModbusFunctions):
         # return the result in case the overall timeout has been reached
         return received_bytes
 
-    def _send(self, modbus_pdu: bytes, slave_addr: int) -> None:
+    def get_request(self,
+                    unit_addr_list: Optional[List[int]] = None,
+                    timeout: Optional[int] = None) -> Optional[Request]:
         """
-        Send Modbus frame via UART
+        Check for request within the specified timeout
 
-        If a flow control pin has been setup, it will be controlled accordingly
+        :param      unit_addr_list:  The unit address list
+        :type       unit_addr_list:  Optional[list]
+        :param      timeout:         The timeout
+        :type       timeout:         Optional[int]
 
-        :param      modbus_pdu:  The modbus Protocol Data Unit
-        :type       modbus_pdu:  bytes
-        :param      slave_addr:  The slave address
-        :type       slave_addr:  int
+        :returns:   A request object or None.
+        :rtype:     Union[Request, None]
         """
-        # modbus_adu: Modbus Application Data Unit
-        # consists of the Modbus PDU, with slave address prepended and checksum appended
-        modbus_adu = bytearray()
-        modbus_adu.append(slave_addr)
-        modbus_adu.extend(modbus_pdu)
-        modbus_adu.extend(self._calculate_crc16(modbus_adu))
+        req = self._uart_read_frame(timeout=timeout)
+        req_no_crc = self._parse_request(req, unit_addr_list)
+        try:
+            if req_no_crc is not None:
+                return Request(interface=self, data=req_no_crc)
+        except ModbusException as e:
+            self.send_exception_response(
+                slave_addr=req[0],
+                function_code=e.function_code,
+                exception_code=e.exception_code)
+            return None
 
-        if self._ctrlPin:
-            self._ctrlPin.on()
-            # wait until the control pin really changed
-            # 85-95us (ESP32 @ 160/240MHz)
-            time.sleep_us(200)
-
-        # the timing of this part is critical:
-        # - if we disable output too early,
-        #   the command will not be received in full
-        # - if we disable output too late,
-        #   the incoming response will lose some data at the beginning
-        # easiest to just wait for the bytes to be sent out on the wire
-
-        send_start_time = time.ticks_us()
-        # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
-        self._uart.write(modbus_adu)
-        send_finish_time = time.ticks_us()
-
-        if self._has_uart_flush:
-            self._uart.flush()
-            time.sleep_us(self._t1char)
-        else:
-            sleep_time_us = (
-                self._t1char * len(modbus_adu) -    # total frame time in us
-                time.ticks_diff(send_finish_time, send_start_time) +
-                100     # only required at baudrates above 57600, but hey 100us
-            )
-            time.sleep_us(sleep_time_us)
-
-        if self._ctrlPin:
-            self._ctrlPin.off()
-
-    def _send_receive(self,
-                      modbus_pdu: bytes,
+    def send_response(self,
                       slave_addr: int,
-                      count: bool) -> bytes:
+                      function_code: int,
+                      request_register_addr: int,
+                      request_register_qty: int,
+                      request_data: list,
+                      values: Optional[list] = None,
+                      signed: bool = True) -> Optional[Awaitable]:
         """
-        Send a modbus message and receive the reponse.
+        Send a response to a client.
 
-        :param      modbus_pdu:  The modbus Protocol Data Unit
-        :type       modbus_pdu:  bytes
-        :param      slave_addr:  The slave address
-        :type       slave_addr:  int
-        :param      count:       The count
-        :type       count:       bool
+        :param      slave_addr:             The slave address
+        :type       slave_addr:             int
+        :param      function_code:          The function code
+        :type       function_code:          int
+        :param      request_register_addr:  The request register address
+        :type       request_register_addr:  int
+        :param      request_register_qty:   The request register qty
+        :type       request_register_qty:   int
+        :param      request_data:           The request data
+        :type       request_data:           list
+        :param      values:                 The values
+        :type       values:                 Optional[list]
+        :param      signed:                 Indicates if signed
+        :type       signed:                 bool
 
-        :returns:   Validated response content
-        :rtype:     bytes
+        :returns:   Request response - None for a synchronous server, or
+                    an awaitable for an asynchronous server due to AsyncRequest
+        :rtype      Awaitable, optional
         """
-        # flush the Rx FIFO buffer
-        self._uart.read()
+        modbus_pdu = functions.response(
+            function_code=function_code,
+            request_register_addr=request_register_addr,
+            request_register_qty=request_register_qty,
+            request_data=request_data,
+            value_list=values,
+            signed=signed
+        )
+        return self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
 
-        self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
+    def send_exception_response(self,
+                                slave_addr: int,
+                                function_code: int,
+                                exception_code: int) -> Optional[Awaitable]:
+        """
+        Send an exception response to a client.
 
-        return self._validate_resp_hdr(response=self._uart_read(),
-                                       slave_addr=slave_addr,
-                                       function_code=modbus_pdu[0],
-                                       count=count)
+        :param      slave_addr:      The slave address
+        :type       slave_addr:      int
+        :param      function_code:   The function code
+        :type       function_code:   int
+        :param      exception_code:  The exception code
+        :type       exception_code:  int
+
+        :returns:   Request response - None for a synchronous server, or
+                    an awaitable for an asynchronous server due to AsyncRequest
+        :rtype      Awaitable, optional
+        """
+        modbus_pdu = functions.exception_response(
+            function_code=function_code,
+            exception_code=exception_code)
+        return self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
+
+
+class Serial(CommonRTUFunctions, CommonModbusFunctions):
+    """Modbus Serial/RTU client"""
+
+    def _exit_read(self, response: bytearray) -> bool:
+        """
+        Return on modbus read error
+
+        :param      response:    The response
+        :type       response:    bytearray
+
+        :returns:   State of basic read response evaluation,
+                    True if entire response has been read
+        :rtype:     bool
+        """
+        response_len = len(response)
+        if response_len >= 2 and response[1] >= Const.ERROR_BIAS:
+            if response_len < Const.ERROR_RESP_LEN:
+                return False
+        elif response_len >= 3 and (Const.READ_COILS <= response[1] <= Const.READ_INPUT_REGISTER):
+            expected_len = Const.RESPONSE_HDR_LENGTH + 1 + response[2] + Const.CRC_LENGTH
+            if response_len < expected_len:
+                return False
+        elif response_len < Const.FIXED_RESP_LEN:
+            return False
+
+        return True
+
+    def _uart_read(self) -> bytearray:
+        """
+        Read incoming slave response from UART
+
+        :returns:   Read content
+        :rtype:     bytearray
+        """
+        response = bytearray()
+        # number of repetitions = <wait_time_in_ms> // <sleep_per_repetition>
+        repetitions = self._uart_read_timeout // self._inter_frame_delay
+
+        for _ in range(1, repetitions):
+            if self._uart.any():
+                # WiPy only
+                # response.extend(self._uart.readall())
+                response.extend(self._uart.read())
+
+                # variable length function codes may require multiple reads
+                if self._exit_read(response):
+                    break
+
+            # wait for the maximum time between two frames
+            time.sleep_us(self._inter_frame_delay)
+
+        return response
 
     def _validate_resp_hdr(self,
                            response: bytearray,
@@ -360,97 +505,29 @@ class Serial(CommonModbusFunctions):
 
         return response[hdr_length:len(response) - Const.CRC_LENGTH]
 
-    def send_response(self,
+    def _send_receive(self,
+                      modbus_pdu: bytes,
                       slave_addr: int,
-                      function_code: int,
-                      request_register_addr: int,
-                      request_register_qty: int,
-                      request_data: list,
-                      values: Optional[list] = None,
-                      signed: bool = True) -> None:
+                      count: bool) -> bytes:
         """
-        Send a response to a client.
+        Send a modbus message and receive the reponse.
 
-        :param      slave_addr:             The slave address
-        :type       slave_addr:             int
-        :param      function_code:          The function code
-        :type       function_code:          int
-        :param      request_register_addr:  The request register address
-        :type       request_register_addr:  int
-        :param      request_register_qty:   The request register qty
-        :type       request_register_qty:   int
-        :param      request_data:           The request data
-        :type       request_data:           list
-        :param      values:                 The values
-        :type       values:                 Optional[list]
-        :param      signed:                 Indicates if signed
-        :type       signed:                 bool
+        :param      modbus_pdu:  The modbus Protocol Data Unit
+        :type       modbus_pdu:  bytes
+        :param      slave_addr:  The slave address
+        :type       slave_addr:  int
+        :param      count:       The count
+        :type       count:       bool
+
+        :returns:   Validated response content
+        :rtype:     bytes
         """
-        modbus_pdu = functions.response(
-            function_code=function_code,
-            request_register_addr=request_register_addr,
-            request_register_qty=request_register_qty,
-            request_data=request_data,
-            value_list=values,
-            signed=signed
-        )
+        # flush the Rx FIFO buffer
+        self._uart.read()
+
         self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
 
-    def send_exception_response(self,
-                                slave_addr: int,
-                                function_code: int,
-                                exception_code: int) -> None:
-        """
-        Send an exception response to a client.
-
-        :param      slave_addr:      The slave address
-        :type       slave_addr:      int
-        :param      function_code:   The function code
-        :type       function_code:   int
-        :param      exception_code:  The exception code
-        :type       exception_code:  int
-        """
-        modbus_pdu = functions.exception_response(
-            function_code=function_code,
-            exception_code=exception_code)
-        self._send(modbus_pdu=modbus_pdu, slave_addr=slave_addr)
-
-    def get_request(self,
-                    unit_addr_list: List[int],
-                    timeout: Optional[int] = None) -> Union[Request, None]:
-        """
-        Check for request within the specified timeout
-
-        :param      unit_addr_list:  The unit address list
-        :type       unit_addr_list:  Optional[list]
-        :param      timeout:         The timeout
-        :type       timeout:         Optional[int]
-
-        :returns:   A request object or None.
-        :rtype:     Union[Request, None]
-        """
-        req = self._uart_read_frame(timeout=timeout)
-
-        if len(req) < 8:
-            return None
-
-        if req[0] not in unit_addr_list:
-            return None
-
-        req_crc = req[-Const.CRC_LENGTH:]
-        req_no_crc = req[:-Const.CRC_LENGTH]
-        expected_crc = self._calculate_crc16(req_no_crc)
-
-        if (req_crc[0] != expected_crc[0]) or (req_crc[1] != expected_crc[1]):
-            return None
-
-        try:
-            request = Request(interface=self, data=req_no_crc)
-        except ModbusException as e:
-            self.send_exception_response(
-                slave_addr=req[0],
-                function_code=e.function_code,
-                exception_code=e.exception_code)
-            return None
-
-        return request
+        return self._validate_resp_hdr(response=self._uart_read(),
+                                       slave_addr=slave_addr,
+                                       function_code=modbus_pdu[0],
+                                       count=count)
