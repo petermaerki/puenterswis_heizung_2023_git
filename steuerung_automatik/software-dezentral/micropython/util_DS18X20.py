@@ -11,7 +11,8 @@ class Ds:
     """
 
     MEASUREMENTS_MEDIAN_LEN = const(8)
-    MEASUREMENT_FAILED_mC = const(0)
+    MEASUREMENT_FAILED_cK = const(0)
+    TEMPERATURE_0C_cK = const(27315)
 
     def __init__(self, gpio: str):
         self._ds = DS18X20(OneWire(machine.Pin(gpio)))
@@ -22,7 +23,7 @@ class Ds:
         """
         These are the sensors we discovered on this 1wire pin.
         """
-        self._measurements_C = [self.MEASUREMENT_FAILED_mC]
+        self._measurements_cK = [self.MEASUREMENT_FAILED_cK]
         """
         A list of MEASUREMENTS_MEDIAN_LEN measurements.
         """
@@ -44,36 +45,36 @@ class Ds:
         except OneWireError:
             self._addrs = []
 
-    def _read_temp(self) -> float:
+    def _read_temp_cK(self) -> float:
         """
         Read all DS18 connected to this 1wire pin.
         Return after we get the first successful reading
         """
         for addr in self._addrs:
             try:
-                return self._ds.read_temp(addr)
+                temp_C = self._ds.read_temp(addr)
+                return round(100.0 * temp_C) + self.TEMPERATURE_0C_cK
             except OneWireError:
                 pass
-        return self.MEASUREMENT_FAILED_mC
+        return self.MEASUREMENT_FAILED_cK
 
     def read_temp(self) -> None:
         """
         Insert a measurement at the beginning of the list.
         Remove a measurement at the end of the list.
         """
-        self._measurements_C.insert(0, self._read_temp())
+        self._measurements_cK.insert(0, self._read_temp_cK())
 
-        while len(self._measurements_C) > self.MEASUREMENTS_MEDIAN_LEN:
-            self._measurements_C.pop()
+        while len(self._measurements_cK) > self.MEASUREMENTS_MEDIAN_LEN:
+            self._measurements_cK.pop()
 
     @property
-    def temp_mC(self) -> int:
+    def temp_cK(self) -> int:
         """
         return the median
-        Unit: mC / int
-        0.0 -> 0
-        25.0 -> 25000
+        Unit: cK / int
+        0.0 C -> 27315 cK
+        25.0 C -> 29815 mK
         """
-        s = sorted(self._measurements_C)
-        median_C = s[len(s) // 2]  # Median
-        return round(1000.0 * median_C)
+        s = sorted(self._measurements_cK)
+        return s[len(s) // 2]  # Median

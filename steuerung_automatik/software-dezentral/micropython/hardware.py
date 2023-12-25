@@ -3,7 +3,7 @@ import machine
 
 from umodbus.asynchronous.serial import AsyncModbusRTU
 
-from util_constants import DAY_MS, WEEK_MS
+from util_constants import DEVELOPMENT
 from util_DS18X20 import Ds
 
 UART_MODBUS_ID = 0
@@ -38,16 +38,20 @@ GPIO_DS = (
 
 
 class Hardware:
+    LIMIT_UPTIME_MS = (1200 if DEVELOPMENT else 12 * 60 * 60) * 1000
+
     def __init__(self):
-        self._timer_callbacks = []
+        self._ticks_boot_ms = time.ticks_ms()
+        """
+        If None, LIMIT_UPTIME_S has been reached.
+        """
         self.PIN_RELAIS = machine.Pin(3, machine.Pin.OUT)
         self.PIN_RELAIS.off()
         # Make sure we release the modbus!
         machine.Pin(GPIO_MODBUS_DE, machine.Pin.OUT).off()
-        self._ticks_boot_ms = time.ticks_ms()
-        self._modbus_server_addr = self.dip_switch_addr
+        self.modbus_server_addr = self.dip_switch_addr
         self.modbus = AsyncModbusRTU(
-            addr=self._modbus_server_addr,
+            addr=self.modbus_server_addr,
             uart_id=UART_MODBUS_ID,
             pins=(GPIO_MODBUS_DI, GPIO_MODBUS_RO),  # (TX, RX)
             ctrl_pin=GPIO_MODBUS_DE,
@@ -62,33 +66,30 @@ class Hardware:
     @property
     def dip_switch_changed(self) -> bool:
         new_addr = self.dip_switch_addr
-        changed = new_addr != self._modbus_server_addr
+        changed = new_addr != self.modbus_server_addr
         if changed:
             print(
-                f"Dip Switch changed from {self._modbus_server_addr} to {new_addr}: reset()"
+                f"Dip Switch changed from {self.modbus_server_addr} to {new_addr}: reset()"
             )
         return changed
 
     @property
-    def _uptime_ms(self) -> int:
+    def uptime_ms(self) -> int:
         """
-        Return the uptime, wrap around after some time.
-        See: https://docs.micropython.org/en/latest/library/time.html#time.ticks_ms
+        'uptime_ms()' will start from 0 when the RP2 starts or soft-resets.
+        The time will be limited to LIMIT_UPTIME_S.
         """
-        return time.ticks_diff(time.ticks_ms(), self._ticks_boot_ms)
+        if self._ticks_boot_ms is None:
+            return self.LIMIT_UPTIME_MS
 
-    @property
-    def wrap_uptime_ms(self) -> int:
-        """
-        wrap_uptime_ms will start from 0 when the RP2 starts or soft-resets.
-        After one week, the time will wrap down by one day.
-        """
-        while True:
-            uptime_ms = self._uptime_ms
-            if uptime_ms < WEEK_MS:
-                return uptime_ms
-            # Wrap the uptime down by DAY_MS
-            self._ticks_boot_ms = time.ticks_add(self.ticks_boot_ms, DAY_MS)
+        # See: https://docs.micropython.org/en/latest/library/time.html#time.ticks_ms
+        uptime_ms = time.ticks_diff(time.ticks_ms(), self._ticks_boot_ms)
+
+        if uptime_ms < self.LIMIT_UPTIME_MS:
+            return uptime_ms
+
+        self._ticks_boot_ms = None
+        return self.LIMIT_UPTIME_MS
 
     @property
     def dip_switch_addr(self) -> int:

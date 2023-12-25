@@ -92,7 +92,7 @@ def dezentral(slave_id: int):
         print(response)
         time.sleep(1.0)
 
-    if False:
+    if True:
         message = rtu.read_input_registers(
             slave_id=slave_id,
             starting_address=EnumModbusRegisters.IREGS_TEMP_C,

@@ -6,7 +6,6 @@ from hardware import Hardware
 from umodbus.asynchronous.serial import AsyncModbusRTU
 
 from portable_modbus_registers import EnumModbusRegisters
-from util_watchdog import Watchdog
 
 
 class ModbusRegisters:
@@ -28,11 +27,11 @@ class ModbusRegisters:
         self._modbus.add_ireg(
             address=EnumModbusRegisters.IREGS_TEMP_C,
             value=[0] * len(hw.sensors_ds),
-            on_get_cb=self._get_temp_mC,
+            on_get_cb=self._get_temp_cK,
         )
 
     def _get_uptime_s(self, reg_type, address, val):
-        val[0] = self._hw.wrap_uptime_ms // 1000
+        val[0] = self._hw.uptime_ms // 1000
 
     def _set_relais(self, reg_type, address, val):
         print(f"Relais set {val=}")
@@ -43,10 +42,10 @@ class ModbusRegisters:
         print(f"Relais get {val=}")
         val[0] = self._hw.PIN_RELAIS.value()
 
-    def _get_temp_mC(self, reg_type, address, val):
+    def _get_temp_cK(self, reg_type, address, val):
         assert address == EnumModbusRegisters.IREGS_TEMP_C
         assert len(val) == len(self._hw.sensors_ds)
         for i, ds in enumerate(self._hw.sensors_ds):
-            val[i] = ds.temp_mC
+            val[i] = ds.temp_cK
         print(f"temp_mC get{val=}")
         self._wdt_feed_cb()

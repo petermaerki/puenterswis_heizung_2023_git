@@ -1,11 +1,13 @@
 import time
 import machine
 
+from util_constants import DEVELOPMENT
+
 
 class Watchdog:
     # The maximum value for timeout is 8388 ms.
     WDT_TIMEOUT_MAX_MS = const(8388)
-    MODBUS_WATCHDOG_MS = const(120_000)
+    MODBUS_WATCHDOG_MS = 60_000 if DEVELOPMENT else 600_000
 
     def __init__(self):
         self._modbus_last_ms = time.ticks_ms()
