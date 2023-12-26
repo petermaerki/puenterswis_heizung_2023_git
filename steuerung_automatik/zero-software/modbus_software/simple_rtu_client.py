@@ -15,6 +15,9 @@ class EnumModbusRegisters:
     IREGS_TEMP_cK = 50  # 50..57
 
 
+modbus_time_1char_ms = 11 / 9600
+
+
 def get_serial_port():
     """Return serial.Serial instance, ready to use for RS485."""
     port = Serial(
@@ -23,7 +26,7 @@ def get_serial_port():
         parity=PARITY_NONE,
         stopbits=1,
         bytesize=8,
-        timeout=1,
+        timeout=0.1,
     )
 
     fh = port.fileno()
@@ -82,7 +85,7 @@ def dezentral(slave_id: int):
             print(response)
             time.sleep(1.0)
 
-    if True:
+    if False:
         message = rtu.read_input_registers(
             slave_id=slave_id,
             starting_address=EnumModbusRegisters.IREGS_UPTIME_S,
@@ -93,7 +96,7 @@ def dezentral(slave_id: int):
         print(f"UPTIME_S: {response}")
         time.sleep(0.1)
 
-    if True:
+    if False:
         message = rtu.read_input_registers(
             slave_id=slave_id,
             starting_address=EnumModbusRegisters.IREGS_TEMP_cK,
@@ -113,7 +116,8 @@ def dezentral(slave_id: int):
 
         response = rtu.send_message(message, serial_port)
         print(f"Version: {response}")
-        time.sleep(0.1)
+        time.sleep(0.006)
+        # time.sleep(0.1)
 
 
 while True:
@@ -121,10 +125,10 @@ while True:
         # relais()
         # time.sleep(0.5)
         dezentral(slave_id=64)
-        time.sleep(0.5)
+        # time.sleep(0.5)
     except ValueError as exc:
         print("Failed")
         # raise exc
-        time.sleep(5)
+        time.sleep(0.006)
 
 serial_port.close()

@@ -98,46 +98,40 @@ class CommonAsyncRTUFunctions(CommonRTUFunctions):
     async def _uart_read_frame(self,
                                timeout: Optional[int] = None) -> bytearray:
         """@see RTUServer._uart_read_frame"""
+        t1char_ms = max(1, self._t1char//1000)
+        # A rtu message is at least 10 chars. We wait for 8 chars and then start reading.
+        t8char_ms = max(1, 8*self._t1char//1000)
+
+        # Wait here till the next frame starts
+        while not self._uart.any():
+            await asyncio.sleep_ms(t8char_ms)
 
         received_bytes = bytearray()
 
-        # set default timeout to at twice the inter-frame delay
-        if timeout == 0 or timeout is None:
-            timeout = 2 * self._inter_frame_delay  # in microseconds
-
-        start_us = time.ticks_us()
-
-        # stay inside this while loop at least for the timeout time
-        while (time.ticks_diff(time.ticks_us(), start_us) <= timeout):
+        last_read_us = time.ticks_us()
+        while True:
             # check amount of available characters
-            if self._uart.any():
-                # remember this time in microseconds
-                last_byte_ts = time.ticks_us()
+            charactes_ready = self._uart.any()
+            if charactes_ready:
+                # WiPy only
+                # r = self._uart.readall()
+                r = self._uart.read(charactes_ready)
 
-                # do not stop reading and appending the result to the buffer
-                # until the time between two frames elapsed
-                while time.ticks_diff(time.ticks_us(), last_byte_ts) <= self._inter_frame_delay:
-                    # WiPy only
-                    # r = self._uart.readall()
-                    r = self._uart.read()
+                if r is not None:
+                    # append the new read stuff to the buffer
+                    last_read_us = time.ticks_us()
+                    received_bytes.extend(r)
+                    continue
 
-                    # if something has been read after the first iteration of
-                    # this inner while loop (within self._inter_frame_delay)
-                    if r is not None:
-                        # append the new read stuff to the buffer
-                        received_bytes.extend(r)
-
-                        # update the timestamp of the last byte being read
-                        last_byte_ts = time.ticks_us()
-            else:
-                await asyncio.sleep_ms(self._inter_frame_delay // 10)  # 175 ms, arbitrary for now
-
-            # if something has been read before the overall timeout is reached
-            if len(received_bytes) > 0:
+            silence_us = time.ticks_diff(time.ticks_us(), last_read_us)
+            if silence_us > self._inter_frame_delay:
+                # The Modbus Specification: The frame is complete after
+                # silence of 1.5 times a character.
+                # Here we use 'self._inter_frame_delay' which on the save side.
                 return received_bytes
 
-        # return the result in case the overall timeout has been reached
-        return received_bytes
+            await asyncio.sleep_ms(t1char_ms)
+
 
     async def _send(self,
                     modbus_pdu: bytes,

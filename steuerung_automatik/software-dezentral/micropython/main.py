@@ -24,16 +24,17 @@ async def task_sensor_ds():
     while True:
         for ds in hw.sensors_ds:
             ds.scan()
+            await asyncio.sleep_ms(10)
 
         for ds in hw.sensors_ds:
             ds.convert_temp()
+            await asyncio.sleep_ms(10)
 
         await asyncio.sleep_ms(750 + 150)  # See Datasheet
 
         for ds in hw.sensors_ds:
             ds.read_temp()
-
-        await asyncio.sleep_ms(100)
+            await asyncio.sleep_ms(10)
 
         wdt.feed_sensors()
 
