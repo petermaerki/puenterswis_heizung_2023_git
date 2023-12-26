@@ -6,7 +6,7 @@ from hardware import Hardware
 from umodbus.asynchronous.serial import AsyncModbusRTU
 
 from portable_modbus_registers import EnumModbusRegisters
-
+from util_constants import SW_VERSION
 
 class ModbusRegisters:
     def __init__(self, hw: Hardware, modbus: AsyncModbusRTU, wdt_feed_cb):
@@ -25,9 +25,14 @@ class ModbusRegisters:
             on_set_cb=self._set_relais,
         )
         self._modbus.add_ireg(
-            address=EnumModbusRegisters.IREGS_TEMP_C,
+            address=EnumModbusRegisters.IREGS_TEMP_cK,
             value=[0] * len(hw.sensors_ds),
             on_get_cb=self._get_temp_cK,
+        )
+        self._modbus.add_ireg(
+            address=EnumModbusRegisters.IREGS_VERSION,
+            value=0,
+            on_get_cb=self._get_version,
         )
 
     def _get_uptime_s(self, reg_type, address, val):
@@ -43,9 +48,12 @@ class ModbusRegisters:
         val[0] = self._hw.PIN_RELAIS.value()
 
     def _get_temp_cK(self, reg_type, address, val):
-        assert address == EnumModbusRegisters.IREGS_TEMP_C
+        assert address == EnumModbusRegisters.IREGS_TEMP_cK
         assert len(val) == len(self._hw.sensors_ds)
         for i, ds in enumerate(self._hw.sensors_ds):
             val[i] = ds.temp_cK
         print(f"temp_mC get{val=}")
         self._wdt_feed_cb()
+
+    def _get_version(self, reg_type, address, val):
+        val[0] = SW_VERSION

@@ -1,5 +1,6 @@
 
 class EnumModbusRegisters:
-    IREGS_UPTIME_S = 40
-    COILS_RELAIS = 41
-    IREGS_TEMP_C = 42
+    IREGS_VERSION = 40
+    IREGS_UPTIME_S = 41
+    COILS_RELAIS = 42
+    IREGS_TEMP_cK = 50 # 50..57

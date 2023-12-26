@@ -9,9 +9,10 @@ from umodbus.client.serial import rtu
 
 
 class EnumModbusRegisters:
-    IREGS_UPTIME_S = 40
-    COILS_RELAIS = 41
-    IREGS_TEMP_C = 42
+    IREGS_VERSION = 40
+    IREGS_UPTIME_S = 41
+    COILS_RELAIS = 42
+    IREGS_TEMP_cK = 50  # 50..57
 
 
 def get_serial_port():
@@ -89,19 +90,30 @@ def dezentral(slave_id: int):
         )
 
         response = rtu.send_message(message, serial_port)
-        print(response)
-        time.sleep(1.0)
+        print(f"UPTIME_S: {response}")
+        time.sleep(0.1)
 
     if True:
         message = rtu.read_input_registers(
             slave_id=slave_id,
-            starting_address=EnumModbusRegisters.IREGS_TEMP_C,
+            starting_address=EnumModbusRegisters.IREGS_TEMP_cK,
             quantity=8,
         )
 
         response = rtu.send_message(message, serial_port)
-        print(response)
-        time.sleep(1.0)
+        print(f"Temp cK: {response}")
+        time.sleep(0.1)
+
+    if True:
+        message = rtu.read_input_registers(
+            slave_id=slave_id,
+            starting_address=EnumModbusRegisters.IREGS_VERSION,
+            quantity=1,
+        )
+
+        response = rtu.send_message(message, serial_port)
+        print(f"Version: {response}")
+        time.sleep(0.1)
 
 
 while True:
