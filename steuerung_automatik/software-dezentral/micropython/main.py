@@ -7,10 +7,12 @@ import uasyncio as asyncio
 import micropython
 import machine
 
+
 from hardware import Hardware
 from util_modbus import ModbusRegisters
 from util_watchdog import Watchdog
 from util_constants import DEVELOPMENT
+from util_uart_reader import start_uart_reader
 
 micropython.alloc_emergency_exception_buf(100)
 
@@ -52,6 +54,9 @@ async def task_modbus_server():
     await hw.modbus.bind()
     print(f"Modbus address {hw.modbus_server_addr}")
     await hw.modbus.serve_forever()
+
+
+start_uart_reader(uart=hw.modbus._itf._uart)
 
 
 asyncio.create_task(task_reset_on_dipswitch())

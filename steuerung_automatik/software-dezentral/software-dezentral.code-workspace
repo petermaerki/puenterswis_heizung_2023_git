@@ -1,7 +1,12 @@
 {
 	"folders": [
 		{
+			"name": "dezentral",
 			"path": "."
+		},
+		{
+			"name": "zero",
+			"path": "../zero-software/modbus_software"
 		}
 	],
 	"settings": {

@@ -105,6 +105,12 @@ class CommonRTUFunctions(object):
         """
 
         super().__init__()
+
+        from math import ceil
+        duration_char_ms =  11/9600
+        timeout_char_ms = ceil(1.5*1000*duration_char_ms)
+        timeout_ms = ceil(4.5*1000*duration_char_ms)
+
         # UART flush function is introduced in Micropython v1.20.0
         self._has_uart_flush = callable(getattr(UART, "flush", None))
         self._uart = UART(uart_id,
@@ -115,6 +121,8 @@ class CommonRTUFunctions(object):
                           # pins=pins         # WiPy only
                           tx=pins[0],
                           rx=pins[1],
+                          timeout=timeout_ms,
+                          timeout_char=timeout_char_ms,
                           **extra_args)
 
         if ctrl_pin is not None:
@@ -208,6 +216,7 @@ class CommonRTUFunctions(object):
         #   the incoming response will lose some data at the beginning
         # easiest to just wait for the bytes to be sent out on the wire
 
+        print(f"write: {modbus_adu=}")
         send_start_time = time.ticks_us()
         # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
         self._uart.write(modbus_adu)

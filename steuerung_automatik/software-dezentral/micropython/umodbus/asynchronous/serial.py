@@ -16,6 +16,8 @@ except ImportError:
     import asyncio
 import time
 
+from util_uart_reader import uart_rx, USE_CORE2
+
 # custom packages
 from .async_utils import hybrid_sleep
 from .common import CommonAsyncModbusFunctions, AsyncRequest
@@ -98,6 +100,13 @@ class CommonAsyncRTUFunctions(CommonRTUFunctions):
     async def _uart_read_frame(self,
                                timeout: Optional[int] = None) -> bytearray:
         """@see RTUServer._uart_read_frame"""
+
+        if USE_CORE2:
+            uart_rx_data = await uart_rx.wait()
+            print(f"{uart_rx_data=}")
+            return uart_rx_data
+
+
         t1char_ms = max(1, self._t1char//1000)
         # A rtu message is at least 10 chars. We wait for 8 chars and then start reading.
         t8char_ms = max(1, 8*self._t1char//1000)

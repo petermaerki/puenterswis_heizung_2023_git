@@ -113,6 +113,11 @@ def dezentral(slave_id: int):
             starting_address=EnumModbusRegisters.IREGS_VERSION,
             quantity=1,
         )
+        # message = rtu.write_multiple_coils(
+        #     slave_id=slave_id,
+        #     starting_address=EnumModbusRegisters.IREGS_VERSION,
+        #     values=(True,)*100,
+        # )
 
         response = rtu.send_message(message, serial_port)
         print(f"Version: {response}")
@@ -120,15 +125,23 @@ def dezentral(slave_id: int):
         # time.sleep(0.1)
 
 
-while True:
+start_s = time.time()
+errors = 0
+for i in range(1000_000):
     try:
         # relais()
         # time.sleep(0.5)
         dezentral(slave_id=64)
         # time.sleep(0.5)
     except ValueError as exc:
+        errors+=1
         print("Failed")
         # raise exc
         time.sleep(0.006)
+        # break
+    if i%100 == 99:
+        duration_s = time.time()-start_s
+        print(f"********  {i=}, {i/errors:0.0f}calls per error, {1000*duration_s/i:0.0f}ms per call.")
+        pass
 
 serial_port.close()

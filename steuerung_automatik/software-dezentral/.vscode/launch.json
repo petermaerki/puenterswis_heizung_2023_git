@@ -14,11 +14,20 @@
       "justMyCode": false
     },
     {
+      "name": "simple_rtu_client",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder:zero}/simple_rtu_client.py",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
       "name": "Current File",
       "type": "python",
       "request": "launch",
       "program": "${file}",
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "justMyCode": false
     }
   ]
 }
