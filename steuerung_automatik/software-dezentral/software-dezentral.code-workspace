@@ -7,6 +7,9 @@
 		{
 			"name": "zero",
 			"path": "../zero-software/modbus_software"
+		},
+		{
+			"path": "../../../fork-uModbus"
 		}
 	],
 	"settings": {

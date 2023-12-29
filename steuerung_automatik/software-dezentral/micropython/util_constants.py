@@ -1,4 +1,5 @@
-SW_VERSION = 1
+VERSION_HW = 1
+VERSION_SW = 1
 DEVELOPMENT = True
 
 DAY_MS = const(24 * 60 * 60 * 1000)

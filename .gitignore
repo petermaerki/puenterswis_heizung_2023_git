@@ -4,3 +4,4 @@ steuerung_automatik/hardware/pcb_kicad/*.bak
 steuerung_automatik/hardware/pcb_kicad/production/*
 
 steuerung_automatik/software-dezentral/micropython_bak/**
+steuerung_automatik/**/__pycache__/

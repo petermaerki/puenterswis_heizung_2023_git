@@ -11,7 +11,7 @@ import machine
 from hardware import Hardware
 from util_modbus import ModbusRegisters
 from util_watchdog import Watchdog
-from util_constants import DEVELOPMENT
+import util_constants
 from util_uart_reader import start_uart_reader
 
 micropython.alloc_emergency_exception_buf(100)
@@ -49,7 +49,7 @@ async def task_reset_on_dipswitch():
 
 
 async def task_modbus_server():
-    if not DEVELOPMENT:
+    if not util_constants.DEVELOPMENT:
         await asyncio.sleep_ms(10000)
     await hw.modbus.bind()
     print(f"Modbus address {hw.modbus_server_addr}")
