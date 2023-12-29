@@ -9,6 +9,10 @@
 			"path": "../zero-software/modbus_software"
 		},
 		{
+			"name": "top",
+			"path": "../"
+		},
+		{
 			"path": "../../../fork-uModbus"
 		}
 	],
