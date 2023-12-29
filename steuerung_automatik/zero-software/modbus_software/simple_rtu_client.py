@@ -157,7 +157,7 @@ for i in range(1000_000):
     if i % 100 == 99:
         duration_s = time.time() - start_s
         print(
-            f"********  {i=}, {i/errors:0.0f}calls per error, {1000*duration_s/i:0.0f}ms per call."
+            f"********  {i=}, {errors=}, {i/errors:0.0f}calls per error, {1000*duration_s/i:0.0f}ms per call."
         )
         pass
 

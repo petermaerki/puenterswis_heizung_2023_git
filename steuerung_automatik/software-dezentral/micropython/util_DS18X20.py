@@ -2,6 +2,8 @@ import machine
 from onewire import OneWire, OneWireError
 from ds18x20 import DS18X20
 
+MAX_ERROR = 2**16 - 1
+
 
 class Ds:
     """
@@ -27,6 +29,11 @@ class Ds:
         """
         A list of MEASUREMENTS_MEDIAN_LEN measurements.
         """
+        self.error_count = 0
+
+    def _error(self):
+        if self.error_count < MAX_ERROR:
+            self.error_count += 1
 
     def scan(self) -> None:
         """
@@ -39,11 +46,13 @@ class Ds:
         Tell all sensors on the 1wire pin to start measureing.
         """
         if len(self._addrs) == 0:
+            self._error()
             return
         try:
             self._ds.convert_temp()
         except OneWireError:
             self._addrs = []
+            self._error()
 
     def _read_temp_cK(self) -> float:
         """
@@ -55,7 +64,7 @@ class Ds:
                 temp_C = self._ds.read_temp(addr)
                 return round(100.0 * temp_C) + self.TEMPERATURE_0C_cK
             except OneWireError:
-                pass
+                self._error()
         return self.MEASUREMENT_FAILED_cK
 
     def read_temp(self) -> None:

@@ -4,9 +4,21 @@ class EnumModbusRegisters:
 
 
 class Ireg:
-    def __init__(self, reg: int, count: 1):
+    def __init__(self, iregsall, reg: int, count: 1):
+        self._iregsall = iregsall
         self.reg = reg
         self.count = count
+
+    def set_value(self, values, value, i=0):
+        assert isinstance(value, int)
+        assert len(values) == self._iregsall.register_count
+        assert i < self.count
+        values[self.reg + i] = value
+
+    def get_value(self, values, i=0):
+        assert len(values) == self._iregsall.register_count
+        assert i < self.count
+        return values[self.reg + i]
 
 
 class IregsAll:
@@ -18,16 +30,14 @@ class IregsAll:
         self.reset_cause = self._add(2)
         self.uptime_s = self._add(3)
         self.errors_modbus = self._add(4)
-        self.errors_ds18 = self._add(5)
-        self.relais_gpio = self._add(6)
-        self.temperature_cK = self._add(7, 8)
-
-        self.values = [2**16-1,]*self.register_count
+        self.relais_gpio = self._add(5)
+        self.temperature_cK = self._add(6, 8)
+        self.errors_ds18 = self._add(14, 8)
 
     def _add(self, reg: int, count=1) -> Ireg:
         assert reg == self._next_reg
         self._next_reg += count
-        ireg = Ireg(reg=reg, count=count)
+        ireg = Ireg(iregsall=self, reg=reg, count=count)
         self._all.append(ireg)
         return ireg
 

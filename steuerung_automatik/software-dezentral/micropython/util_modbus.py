@@ -40,17 +40,16 @@ class ModbusRegisters:
 
     def _get_all(self, reg_type, address, val):
         assert address == EnumModbusRegisters.IREGS_ALL
-        self.iregs_all.values[self.iregs_all.version_hw.reg] = util_constants.VERSION_HW
-        self.iregs_all.values[self.iregs_all.version_sw.reg] = util_constants.VERSION_SW
-
-        self.iregs_all.values[self.iregs_all.reset_cause.reg] = machine.reset_cause()
-        self.iregs_all.values[self.iregs_all.uptime_s.reg] = self._hw.uptime_ms // 1000
-        self.iregs_all.values[self.iregs_all.errors_modbus.reg] = 42
-        self.iregs_all.values[self.iregs_all.errors_ds18.reg] = 42
-        self.iregs_all.values[
-            self.iregs_all.relais_gpio.reg
-        ] = self._hw.PIN_RELAIS.value()
-        assert len(self._hw.sensors_ds) == self.iregs_all.temperature_cK.count
+        a = self.iregs_all
+        a.version_hw.set_value(val, util_constants.VERSION_HW)
+        a.version_sw.set_value(val, util_constants.VERSION_SW)
+        a.reset_cause.set_value(val, machine.reset_cause())
+        a.uptime_s.set_value(val, self._hw.uptime_ms // 1000)
+        a.errors_modbus.set_value(val, 42)
+        a.relais_gpio.set_value(val, self._hw.PIN_RELAIS.value())
+        assert len(self._hw.sensors_ds) == a.temperature_cK.count
         for i, ds in enumerate(self._hw.sensors_ds):
-            self.iregs_all.values[self.iregs_all.temperature_cK.reg + i] = ds.temp_cK
+            a.errors_ds18.set_value(val, ds.error_count, i)
+            a.temperature_cK.set_value(val, ds.temp_cK, i)
+
         self._wdt_feed_cb()
