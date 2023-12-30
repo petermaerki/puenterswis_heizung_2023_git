@@ -4,6 +4,9 @@ import time
 import pathlib
 
 import serial
+import fcntl
+import struct
+from typing import List
 from serial.tools import list_ports
 from umodbus.client.serial import rtu
 
@@ -24,16 +27,31 @@ modbus_time_1char_ms = 11 / 9600
 
 def find_serial_port() -> str:
     ports = list(list_ports.comports())
+    ports.sort(key=lambda p: p.device)
+    if True:
+        # Waveshare USB to RS485
+        vid = 0x0403  # Vendor Id
+        pid = 0x6001  # Product Id
+        product = 'FT232R USB UART'
+    if False:
+        # Waveshare USB to RS485 (B)
+        vid = 0x1A86  # Vendor Id
+        pid = 0x55D3  # Product Id
+        product = "USB Single Serial"
+    if False:
+        # Waveshare USB to 4Ch RS485
+        vid = 0x1A86  # Vendor Id
+        pid = 0x55D3  # Product Id
+        product = "USB Quad_Serial"
 
-    vid = 0x1A86
-    pid = 0x55D3
-    product = "USB Single Serial"
     for port in ports:
         if port.product != product:
             continue
         if port.vid != vid:
             continue
         return port.device
+
+    raise Exception(f"No serial interface found for {vid=} {product=}")
 
 
 def get_serial_port():
@@ -45,20 +63,21 @@ def get_serial_port():
         parity=serial.PARITY_NONE,
         stopbits=1,
         bytesize=8,
-        timeout=0.1,
+        timeout=0.2,
     )
 
-    fh = port.fileno()
+    if False:
+        fh = port.fileno()
 
-    # A struct with configuration for serial port.
-    # serial_rs485 = struct.pack("hhhhhhhh", 1, 0, 0, 0, 0, 0, 0, 0)
-    # fcntl.ioctl(fh, 0x542F, serial_rs485)
+        # A struct with configuration for serial port.
+        serial_rs485 = struct.pack("hhhhhhhh", 1, 0, 0, 0, 0, 0, 0, 0)
+        fcntl.ioctl(fh, 0x542F, serial_rs485)
 
     return port
 
 
 class Context:
-    def __init__(self, config_baubaschnitt: config_base.ConfigBauabschnitt):
+    def __init__(self, config_baubaschnitt: config_base.ConfigBauetappe):
         self.serial_port = get_serial_port()
         self.config_baubaschnitt = config_baubaschnitt
 
@@ -71,9 +90,9 @@ class Context:
 
     def modbus_haueser_loop(self) -> None:
         for haus in self.config_baubaschnitt.haeuser:
-            self.handle_hans(haus)
+            self.handle_haus(haus)
 
-    def handle_hans(self, haus: config_base.Haus) -> None:
+    def handle_haus(self, haus: config_base.Haus) -> None:
         iregs_all = portable_modbus_registers.IregsAll()
         message = rtu.read_input_registers(
             slave_id=haus.config_haus.modbus_client_id,
@@ -85,12 +104,12 @@ class Context:
             response = rtu.send_message(message, self.serial_port)
         except ValueError:
             print("ValueError")
-            haus.status_haus.modbus_gauge.failed()
+            haus.status_haus.modbus_history.failed()
             return
 
         assert len(response) == iregs_all.register_count
         haus.status_haus.modbus_success_iregs = response
-        haus.status_haus.modbus_gauge.success()
+        haus.status_haus.modbus_history.success()
         print(f"Iregsall: {response}")
         time.sleep(0.006)
 
@@ -98,10 +117,10 @@ class Context:
 def main():
     with Context(config_bochs.config_bauabschnitt_bochs) as ctx:
         while True:
+            print("")
             ctx.modbus_haueser_loop()
             haus = ctx.config_baubaschnitt.haeuser[0].status_haus
-            print("")
-            print(f"{haus.modbus_ok} {sum(haus.modbus_gauge._success):0.2f} {haus.modbus_gauge._success}")
+            print(haus.modbus_history.text_history)
             time.sleep(1.0)
 
 

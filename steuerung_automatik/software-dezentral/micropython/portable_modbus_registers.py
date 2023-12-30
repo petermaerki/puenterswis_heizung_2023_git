@@ -1,6 +1,6 @@
 class EnumModbusRegisters:
     HREG_RELAIS_GPIO = 43
-    IREGS_ALL = 60
+    IREGS_ALL = 60 # 0x3C
 
 
 class Ireg:

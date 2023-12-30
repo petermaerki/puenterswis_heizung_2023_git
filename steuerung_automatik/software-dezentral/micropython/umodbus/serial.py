@@ -216,7 +216,7 @@ class CommonRTUFunctions(object):
         #   the incoming response will lose some data at the beginning
         # easiest to just wait for the bytes to be sent out on the wire
 
-        print(f"write: {modbus_adu=}")
+        # print(f"write: {modbus_adu=}")
         send_start_time = time.ticks_us()
         # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
         self._uart.write(modbus_adu)

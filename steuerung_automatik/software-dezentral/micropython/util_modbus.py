@@ -49,7 +49,7 @@ class ModbusRegisters:
         a.relais_gpio.set_value(val, self._hw.PIN_RELAIS.value())
         assert len(self._hw.sensors_ds) == a.temperature_cK.count
         for i, ds in enumerate(self._hw.sensors_ds):
-            a.errors_ds18.set_value(val, ds.error_count, i)
+            a.errors_ds18.set_value(val, ds.history.percent, i)
             a.temperature_cK.set_value(val, ds.temp_cK, i)
 
         self._wdt_feed_cb()
