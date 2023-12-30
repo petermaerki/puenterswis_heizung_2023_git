@@ -85,12 +85,12 @@ class Context:
             response = rtu.send_message(message, self.serial_port)
         except ValueError:
             print("ValueError")
-            haus.status_haus.modbus_failed_s.add()
+            haus.status_haus.modbus_gauge.failed()
             return
 
         assert len(response) == iregs_all.register_count
         haus.status_haus.modbus_success_iregs = response
-        haus.status_haus.modbus_success_s.add()
+        haus.status_haus.modbus_gauge.success()
         print(f"Iregsall: {response}")
         time.sleep(0.006)
 
@@ -101,9 +101,7 @@ def main():
             ctx.modbus_haueser_loop()
             haus = ctx.config_baubaschnitt.haeuser[0].status_haus
             print("")
-            print(f"{haus.modbus_failed_s.timestamps_s}")
-            print(f"{haus.modbus_success_s.timestamps_s}")
-            print(f"{haus.modbus_ok}")
+            print(f"{haus.modbus_ok} {sum(haus.modbus_gauge._success):0.2f} {haus.modbus_gauge._success}")
             time.sleep(1.0)
 
 
