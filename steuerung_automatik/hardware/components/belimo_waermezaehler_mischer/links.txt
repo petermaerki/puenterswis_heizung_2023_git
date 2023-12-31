@@ -1,0 +1,24 @@
+Wir werden haben:
+
+EV020R3+BAC
+
+https://www.belimo.com/mam/general-documents/datasheets/de-ch/belimo_EV..R3_BAC_datasheet_de-ch.pdf
+
+https://www.belimo.com/mam/general-documents/system_integration/Modbus/belimo_Modbus-Register_Energy-Valve_v4_01_en-gb.pdf
+
+Wir brauchen voraussichtlich:
+
+setzen:
+Setpoint [%]
+
+
+
+Nach Influx:
+Setpoint [%]
+Absolute volumetric flow [l/s] 0…45 l/s (0…45‘000)
+Cooling Energy [kWh]
+Heating Energy [kWh]
+Temperature 1 (external) [°C] **
+Temperature 2 (integrated) [°C] 
+Absolute cooling power [kW]
+Absolute heating power [kW] 
