@@ -9,3 +9,6 @@ U2: 180Grad
 
 # Errors to be fixed
 
+* Neu: Modbus Terminierungs Widerstände
+* Neu: Button mit GPIO verbinden
+* Neu: Von Zentrale gesteuerte Status LED
