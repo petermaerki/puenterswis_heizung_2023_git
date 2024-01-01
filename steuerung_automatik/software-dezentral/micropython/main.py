@@ -19,7 +19,10 @@ micropython.alloc_emergency_exception_buf(100)
 
 wdt = Watchdog()
 hw = Hardware()
-regs = ModbusRegisters(hw=hw, modbus=hw.modbus, wdt_feed_cb=wdt.feed_modbus)
+regs = ModbusRegisters(hw=hw,
+                       modbus=hw.modbus,
+                       wdt_feed_cb=wdt.feed_modbus,
+                       wdt_disable_feed_cb=wdt.disable_feed)
 
 
 async def task_sensor_ds():
@@ -50,7 +53,10 @@ async def task_reset_on_dipswitch():
 
 async def task_modbus_server():
     if not util_constants.DEVELOPMENT:
-        await asyncio.sleep_ms(10000)
+        print("...measure temperatures...")
+        for _ in range(10):
+            await asyncio.sleep_ms(1000)
+            wdt.feed_sensors()
     await hw.modbus.bind()
     print(f"Modbus address {hw.modbus_server_addr}")
     await hw.modbus.serve_forever()

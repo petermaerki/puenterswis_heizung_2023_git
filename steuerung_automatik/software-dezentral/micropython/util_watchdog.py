@@ -14,6 +14,7 @@ class Watchdog:
     def __init__(self):
         self._modbus_last_ms = time.ticks_ms()
         self._wdt = None
+        self._disable_feed = False
         if self.ENABLE_WATCHDOG:
             self._wdt = machine.WDT(timeout=WDT_TIMEOUT_MAX_MS)
 
@@ -21,9 +22,15 @@ class Watchdog:
         """
         Feed the watchdog
         """
+        if self._disable_feed:
+            return
         if self._modbus_happy:
             if self.ENABLE_WATCHDOG:
                 self._wdt.feed()
+
+    def disable_feed(self) -> None:
+        self._disable_feed = True
+
 
     @property
     def _modbus_happy(self) -> bool:

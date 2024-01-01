@@ -92,11 +92,13 @@ class Context:
         for haus in self.config_baubaschnitt.haeuser:
             self.handle_haus(haus)
 
+            # self.reboot_reset(haus=haus)
+
     def handle_haus(self, haus: config_base.Haus) -> None:
         iregs_all = portable_modbus_registers.IregsAll()
         message = rtu.read_input_registers(
             slave_id=haus.config_haus.modbus_client_id,
-            starting_address=portable_modbus_registers.EnumModbusRegisters.IREGS_ALL,
+            starting_address=portable_modbus_registers.EnumModbusRegisters.SETGET16BIT_ALL,
             quantity=iregs_all.register_count,
         )
 
@@ -112,6 +114,16 @@ class Context:
         haus.status_haus.modbus_history.success()
         print(f"Iregsall: {response}")
         time.sleep(0.006)
+
+    def reboot_reset(self, haus: config_base.Haus):
+        message = rtu.write_single_coil(
+            slave_id=haus.config_haus.modbus_client_id,
+            address=portable_modbus_registers.EnumModbusRegisters.SETGET1BIT_REBOOT_WATCHDOG,
+            value=1,
+        )
+        response = rtu.send_message(message, self.serial_port)
+        print("Reboot")
+
 
 
 def main():
