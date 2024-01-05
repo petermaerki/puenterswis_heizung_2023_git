@@ -69,7 +69,7 @@ def get_modbus_client():
     client = AsyncModbusSerialClient(
         port=port,
         framer=Framer.RTU,
-        baudrate=9200,
+        baudrate=9600,
         bytesize=8,
         parity="N",
         stopbits=1,

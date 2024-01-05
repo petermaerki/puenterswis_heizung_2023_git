@@ -38,10 +38,10 @@
       "justMyCode": false
     },
     {
-      "name": "belimo_sample_a",
+      "name": "example_mischventil_a.py",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder:zero}/belimo_sample_a.py",
+      "program": "${workspaceFolder:zero}/example_mischventil_a.py",
       "console": "integratedTerminal",
       "justMyCode": false
     },
