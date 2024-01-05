@@ -14,11 +14,11 @@ Setpoint [%]
 
 
 Nach Influx:
-Setpoint [%]	read -> zentral_valve_0_1  0.0. bis 1.0
-Absolute volumetric flow [l/s] 0…45 l/s (0…45‘000) -> zentral_fluss_l_s
-Cooling Energy [kWh]	-> zentral_cooling_energie_kwh
-Heating Energy [kWh]	-> zentral_heating_energie_kwh
-Temperature 1 (external) [°C] ** -> zentral_valve_T1_C
-Temperature 2 (integrated) [°C]  -> zentral_valve_T2_C
-Absolute cooling power [kW]  -> zentral_cooling_power_kw
-Absolute heating power [kW] -> zentral_heating_power_kw
+1	Setpoint [%]	read -> zentral_valve_0_1  0.0. bis 1.0  wert/10000.0
+8	Absolute volumetric flow [l/s] 0…45 l/s (0…45‘000) -> zentral_fluss_m3_s   wert/100_000
+66	65	Cooling Energy [kWh]	-> zentral_cooling_energie_j -> wert*3.6E6
+72	73	Heating Energy [kWh]	-> zentral_heating_energie_j -> wert*3.6E6
+20	Temperature 1 (external) [°C] ** -> zentral_valve_T1_C  wert *100.0
+22	Temperature 2 (integrated) [°C]  -> zentral_valve_T2_C wert *100.0
+28	Absolute cooling power [kW]  -> zentral_cooling_power_w 	wert*1.0
+34	Absolute heating power [kW] -> zentral_heating_power_w	wert*1.0
