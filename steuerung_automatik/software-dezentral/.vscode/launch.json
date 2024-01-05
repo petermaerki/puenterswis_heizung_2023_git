@@ -38,6 +38,14 @@
       "justMyCode": false
     },
     {
+      "name": "belimo_sample_a",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder:zero}/belimo_sample_a.py",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
       "name": "Current File",
       "type": "python",
       "request": "launch",
