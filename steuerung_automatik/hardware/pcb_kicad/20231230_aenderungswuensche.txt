@@ -1,0 +1,10 @@
+Peter Maerki 2023-12-30_12_36_18
+
+Widerstand von A (neu D+) auf 3V3	10k
+Widerstand von B (neu D-) auf GND	10k
+Zwischen A (neu D+) und B (neu D-), in Serie	100nF, 4700 Ohm
+
+Beschriftung Schema und Siebdruckt: 
+
+Statt A: D+
+Statt B: D-

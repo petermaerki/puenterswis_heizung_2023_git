@@ -2,5 +2,6 @@ steuerung_automatik/hardware/pcb_kicad/*-backups/*
 steuerung_automatik/hardware/pcb_kicad/fp-info-cache
 steuerung_automatik/hardware/pcb_kicad/*.bak
 steuerung_automatik/hardware/pcb_kicad/production/*
-
 steuerung_automatik/software-dezentral/micropython_bak/**
+/**/*gitignore*
+/**/*__pycache__*
