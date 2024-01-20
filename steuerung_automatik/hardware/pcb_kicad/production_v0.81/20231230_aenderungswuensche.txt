@@ -8,3 +8,8 @@ Beschriftung Schema und Siebdruckt:
 
 Statt A: D+
 Statt B: D-
+
+* Neu: Button mit GPIO verbinden
+* Neu: Von Zentrale gesteuerte Status LED
+
+Bestellung jlcpcb: 40 Stück
