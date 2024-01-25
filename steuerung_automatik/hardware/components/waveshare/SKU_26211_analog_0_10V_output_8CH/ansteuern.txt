@@ -1,0 +1,25 @@
+https://www.waveshare.com/wiki/Modbus_RTU_Analog_Output_8CH_(B)
+
+
+
+
+Das Mischventil ist am Ausgang 0 (Beschriftet auf Gehäuse AO1).
+
+Alle Ausgaenge setzen:
+
+Fields	Description
+02	Device Address
+10	10 Command
+00 00	Register Initial Address
+00 08	Register 
+10	Bytes Numbers	Set the output bytes (verstehe ich nicht)
+8 mal 16 bit Spannungswerte, der erste Wert ist mischventil_mV, die anderen vorerst 0.
+
+
+Code Umrechnung:
+
+# waveshare: 0x03E8 = 1000mV, or 1V
+mischventil_stellung_0_1 = 0.3 # Stellung Mischventil in 0: zu, kaltes wassser, 1: offen, heisses wasser
+MISCHVENTIL_zu_kalt_V = 0.5
+MISCHVENTIL_offen_heiss_V = 10.0
+mischventil_mV = 1000 * int(mischventil_stellung_0_1 * (MISCHVENTIL_offen_heiss_V-MISCHVENTIL_zu_kalt_V) + MISCHVENTIL_zu_kalt_V)
