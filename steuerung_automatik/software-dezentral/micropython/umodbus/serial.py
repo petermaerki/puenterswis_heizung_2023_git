@@ -9,6 +9,7 @@
 #
 
 # system packages
+import os
 from machine import UART
 from machine import Pin
 import struct
@@ -113,6 +114,12 @@ class CommonRTUFunctions(object):
 
         # UART flush function is introduced in Micropython v1.20.0
         self._has_uart_flush = callable(getattr(UART, "flush", None))
+        sysname, _nodename, release, _version, _machine = os.uname()
+        if sysname == "rp2" and release in ("1.22.0", "1.22.1"):
+            # See: https://github.com/micropython/micropython/issues/13377
+            self._has_uart_flush = False
+            print("https://github.com/micropython/micropython/issues/13377")
+
         self._uart = UART(uart_id,
                           baudrate=baudrate,
                           bits=data_bits,
@@ -216,7 +223,6 @@ class CommonRTUFunctions(object):
         #   the incoming response will lose some data at the beginning
         # easiest to just wait for the bytes to be sent out on the wire
 
-        print(f"write: {modbus_adu=}")
         send_start_time = time.ticks_us()
         # 360-400us @ 9600-115200 baud (measured) (ESP32 @ 160/240MHz)
         self._uart.write(modbus_adu)

@@ -3,23 +3,27 @@
 
 """
 """
-import uasyncio as asyncio
-import micropython
 import machine
-
-
+import uasyncio as asyncio
+import util_constants
 from hardware import Hardware
 from util_modbus import ModbusRegisters
-from util_watchdog import Watchdog
-from util_constants import DEVELOPMENT
 from util_uart_reader import start_uart_reader
+from util_watchdog import Watchdog
+
+import micropython
 
 micropython.alloc_emergency_exception_buf(100)
 
 
 wdt = Watchdog()
 hw = Hardware()
-regs = ModbusRegisters(hw=hw, modbus=hw.modbus, wdt_feed_cb=wdt.feed_modbus)
+regs = ModbusRegisters(
+    hw=hw,
+    modbus=hw.modbus,
+    wdt_feed_cb=wdt.feed_modbus,
+    wdt_disable_feed_cb=wdt.disable_feed,
+)
 
 
 async def task_sensor_ds():
@@ -49,7 +53,7 @@ async def task_reset_on_dipswitch():
 
 
 async def task_modbus_server():
-    if not DEVELOPMENT:
+    if not util_constants.DEVELOPMENT:
         await asyncio.sleep_ms(10000)
     await hw.modbus.bind()
     print(f"Modbus address {hw.modbus_server_addr}")
