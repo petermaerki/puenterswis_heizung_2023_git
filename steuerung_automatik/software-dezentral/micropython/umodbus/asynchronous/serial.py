@@ -16,8 +16,6 @@ except ImportError:
     import asyncio
 import time
 
-from util_uart_reader import uart_rx, USE_CORE2
-
 # custom packages
 from .async_utils import hybrid_sleep
 from .common import CommonAsyncModbusFunctions, AsyncRequest
@@ -100,34 +98,23 @@ class CommonAsyncRTUFunctions(CommonRTUFunctions):
     async def _uart_read_frame(self,
                                timeout: Optional[int] = None) -> bytearray:
         """@see RTUServer._uart_read_frame"""
-
-        if USE_CORE2:
-            uart_rx_data = await uart_rx.wait()
-            print(f"{uart_rx_data=}")
-            return uart_rx_data
-
-
         t1char_ms = max(1, self._t1char//1000)
-        # A rtu message is at least 10 chars. We wait for 8 chars and then start reading.
-        t8char_ms = max(1, 8*self._t1char//1000)
 
         # Wait here till the next frame starts
         while not self._uart.any():
-            await asyncio.sleep_ms(t8char_ms)
+            await asyncio.sleep_ms(t1char_ms)
 
         received_bytes = bytearray()
-
         last_read_us = time.ticks_us()
+
         while True:
             # check amount of available characters
-            charactes_ready = self._uart.any()
-            if charactes_ready:
+            chars_ready = self._uart.any()
+            if chars_ready:
                 # WiPy only
                 # r = self._uart.readall()
-                r = self._uart.read(charactes_ready)
-
+                r = self._uart.read(chars_ready)
                 if r is not None:
-                    # append the new read stuff to the buffer
                     last_read_us = time.ticks_us()
                     received_bytes.extend(r)
                     continue
@@ -139,8 +126,9 @@ class CommonAsyncRTUFunctions(CommonRTUFunctions):
                 # Here we use 'self._inter_frame_delay' which on the save side.
                 return received_bytes
 
-            await asyncio.sleep_ms(t1char_ms)
-
+            # Here, I am using a blocking sleep in favor of 'asyncio.sleep_ms()'.
+            # The communication proved to be much more stable.
+            time.sleep_ms(t1char_ms)
 
     async def _send(self,
                     modbus_pdu: bytes,
@@ -159,7 +147,10 @@ class CommonAsyncRTUFunctions(CommonRTUFunctions):
         @see CommonRTUFunctions._post_send
         """
 
-        await hybrid_sleep(sleep_time_us)
+        # Do NOT use 'hybrid_sleep()' as it may fall back to 'asyncio.sleep()'.
+        # The sleep MUST NOT TAKE TOO LONG as this might squelsh the subsequent
+        # frame sent by the client.
+        time.sleep_us(sleep_time_us)
         if self._ctrlPin:
             self._ctrlPin.off()
 

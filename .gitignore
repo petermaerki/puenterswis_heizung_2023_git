@@ -5,3 +5,4 @@ steuerung_automatik/hardware/pcb_kicad/production/*
 steuerung_automatik/software-dezentral/micropython_bak/**
 /**/*gitignore*
 /**/*__pycache__*
+steuerung_automatik/zero-software/log/*

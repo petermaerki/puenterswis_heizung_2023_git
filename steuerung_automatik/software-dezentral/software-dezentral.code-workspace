@@ -5,13 +5,175 @@
 			"path": "."
 		},
 		{
+			"name": "repo",
+			"path": ".."
+		},
+		{
 			"name": "zero",
-			"path": "../zero-software/modbus_software"
+			"path": "../zero-software"
 		}
 	],
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Black",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "black",
+				"cwd": "${workspaceFolder:dezentral}",
+				"args": [
+					"--config=${workspaceFolder:repo}/.ruff.toml",
+					"."
+				],
+				"console": "integratedTerminal",
+				"justMyCode": true
+			},
+			{
+				"name": "Ruff",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "ruff",
+				"cwd": "${workspaceFolder:dezentral}",
+				"console": "integratedTerminal",
+				"args": [
+					"check",
+					".",
+					"hsm",
+				],
+				"justMyCode": true
+			},
+			{
+				"name": "Mypy",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "mypy",
+				"cwd": "${workspaceFolder:dezentral}",
+				"console": "integratedTerminal",
+				"args": [
+					"--config={workspaceFolder:repo}/.mypy.ini"
+				],
+				"justMyCode": true
+			},
+			{
+				"name": "Pylint",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "pylint",
+				"cwd": "${workspaceFolder:dezentral}",
+				"args": [
+					"--rcfile=${workspaceFolder:repo}/.pylintrc",
+					"--verbose",
+					"--recursive=yes",
+					"."
+				],
+				"console": "integratedTerminal"
+			},
+			{
+				"name": "run_from_pc (Micropython)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:dezentral}/run_from_pc.py",
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder:dezentral}",
+				"justMyCode": false
+			},
+			{
+				"name": "simple_rtu_client",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:zero}/modbus_software/simple_rtu_client.py",
+				"cwd": "${workspaceFolder:zero}",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "run_zentral",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:zero}/modbus_software/run_zentral.py",
+				"cwd": "${workspaceFolder:zero}",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "example_mischventil_a.py",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:zero}/example_mischventil_a.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "Current File",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			}
+		]
+	},
 	"settings": {
-		"[python]": {
-			"editor.defaultFormatter": "ms-python.black-formatter"
+		"python.formatting.provider": "black",
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": false,
+		"python.linting.pylintArgs": [
+			"--rcfile=${workspaceFolder:repo}/.pylintrc"
+		],
+		"python.linting.cwd": "${workspaceFolder:dezentral}",
+		"python.linting.mypyEnabled": true,
+		// "python.testing.pytestArgs": [],
+		"python.testing.cwd": "${workspaceFolder}",
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true,
+		"terminal.integrated.env.linux": {
+			"PYTHONPATH": "${workspaceFolder:dezentral}/micropython:${workspaceFolder:zero}"
 		},
+		"python.linting.mypyArgs": [
+			"--config-file=${workspaceFolder}/.mypy.ini"
+		],
+		"ruff.organizeImports": true,
+		"ruff.fixAll": true,
+		"ruff.importStrategy": "fromEnvironment",
+		"ruff.args": [
+			"--config=${workspaceFolder}/.ruff.toml"
+		],
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll": "explicit",
+				"source.organizeImports": "explicit"
+			}
+		},
+		// "isort.args": [
+		// 	"--profile",
+		// 	"black"
+		// ],
+		// "base", "forest", "dark", "default", "neutral"
+		"markdown-mermaid.lightModeTheme": "base",
+		"markdown-mermaid.darkModeTheme": "dark",
+		"files.exclude": {
+			"**/__pycache__/": true,
+			"**/.mypy_cache/": true,
+			"**/.pytest_cache/": true
+		},
+		"git.openRepositoryInParentFolders": "always",
+		"qtForPython.rcc.liveExecution.enabled": false
+	},
+	"extensions": {
+		"recommendations": [
+			"bierner.markdown-mermaid",
+			"charliermarsh.ruff",
+			"hediet.vscode-drawio",
+			"joffreykern.markdown-toc",
+			"mhutchie.git-graph",
+			"ms-python.black-formatter",
+			"ms-python.isort",
+			"ms-python.mypy-type-checker",
+			"ms-python.pylint",
+			"ms-python.python"
+		]
 	}
 }

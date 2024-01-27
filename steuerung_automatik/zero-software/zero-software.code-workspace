@@ -1,76 +1,31 @@
 {
 	"folders": [
 		{
-			"name": "pc",
+			"name": "software-dezentral",
+			"path": "../software-dezentral"
+		},
+		{
+			"name": "zero-software",
 			"path": "."
+		},
+		{
+			"name": "repo",
+			"path": ".."
 		}
 	],
 	"extensions": {
 		"recommendations": [
-			"kelvin.vscode-sshfs",
+			"bierner.markdown-mermaid",
 			"charliermarsh.ruff",
+			"hediet.vscode-drawio",
+			"joffreykern.markdown-toc",
+			"mhutchie.git-graph",
 			"ms-python.black-formatter",
 			"ms-python.isort",
-			"ms-python.python",
-			"ms-python.pylint"
+			"ms-python.mypy-type-checker",
+			"ms-python.pylint",
+			"ms-python.python"
 		],
-	},
-	"launch": {
-		"version": "0.2.0",
-		"configurations": [
-			{
-				"name": "Python: Current File",
-				"type": "python",
-				"request": "launch",
-				"program": "${file}",
-				"console": "integratedTerminal",
-				"env": {
-					"PYTHONPATH": "${workspaceFolder:pc}"
-				},
-				"justMyCode": false
-			},
-			{
-				"name": "Python: test_main.py",
-				"type": "python",
-				"request": "launch",
-				"program": "program/test_main.py",
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder}",
-				"env": {
-					"PYTHONPATH": "${workspaceFolder:pc}"
-				},
-				"justMyCode": false
-			},
-			{
-				"name": "Python: 442_pc-linux_decrypt.py",
-				"type": "python",
-				"request": "launch",
-				"program": "install/442_pc-linux_decrypt.py",
-				"console": "integratedTerminal",
-				"cwd": "${workspaceFolder}",
-				"env": {
-					"PYTHONPATH": "${workspaceFolder:pc}"
-				},
-				"justMyCode": false
-			},
-			{
-				"name": "Python: Remote Attach",
-				"type": "python",
-				"request": "attach",
-				"connect": {
-					"host": "puentpi",
-					"port": 5678
-				},
-				"pathMappings": [
-					{
-						"localRoot": "${workspaceFolder}/program",
-						"remoteRoot": "."
-					}
-				],
-				"justMyCode": true
-			}
-		],
-		"compounds": []
 	},
 	"settings": {
 		"python.linting.enabled": true,
@@ -90,7 +45,7 @@
 		],
 		"[python]": {
 			"editor.defaultFormatter": "ms-python.black-formatter",
-			"editor.formatOnSave": true,
+			"editor.formatOnSave": false,
 			"editor.codeActionsOnSave": {
 				"source.fixAll": "explicit",
 				"source.organizeImports": "explicit"
@@ -100,21 +55,9 @@
 			"--profile",
 			"black"
 		],
+		"markdown-mermaid.lightModeTheme": "base",
+		"markdown-mermaid.darkModeTheme": "dark",
 		"python.formatting.provider": "black",
-		"python.envFile": "${workspaceFolder}/.env",
-		"sshfs.configs": [
-			{
-				"name": "zero-puent",
-				"host": "zero-puent",
-				"username": "zero",
-				"privateKeyPath": "$HOME/.ssh/id_rsa"
-			},
-			{
-				"name": "zero-bochs",
-				"host": "zero-bochs",
-				"username": "zero",
-				"privateKeyPath": "$HOME/.ssh/id_rsa"
-			}
-		]
+		"git.openRepositoryInParentFolders": "always"
 	}
 }
