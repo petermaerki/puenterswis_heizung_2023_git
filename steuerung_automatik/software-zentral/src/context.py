@@ -1,8 +1,8 @@
-from modbus_software.config_base import ConfigBauabschnitt
-from modbus_software.constants import DIRECTORY_LOG
-from modbus_software.hsm_zentral import HsmZentral
+from src.config_base import ConfigBauabschnitt
+from src.constants import DIRECTORY_LOG
+from src.hsm_zentral import HsmZentral
 
-from modbus_software.util_modbus_communication import ModbusCommunication
+from src.util_modbus_communication import ModbusCommunication
 
 
 class Context:

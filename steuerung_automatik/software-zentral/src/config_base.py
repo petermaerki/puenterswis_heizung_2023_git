@@ -1,6 +1,6 @@
 import dataclasses
 from typing import List, Tuple
-from modbus_software.hsm_dezentral import HsmDezentral
+from src.hsm_dezentral import HsmDezentral
 
 
 class StatusHaus:

@@ -4,18 +4,18 @@ import typing
 from pymodbus import ModbusException
 
 if typing.TYPE_CHECKING:
-    from modbus_software.context import Context
+    from src.context import Context
 
-from modbus_software.constants import (
+from src.constants import (
     MODBUS_ADDRESS_BELIMO,
     MODBUS_ADDRESS_RELAIS,
     MODBUS_ADDRESS_ADC,
 )
 
-from modbus_software.util_modbus import get_modbus_client
-from modbus_software.util_modbus_mischventil import Mischventil
-from modbus_software.util_modbus_relais import Relais
-from modbus_software.util_modbus_adc import Dac
+from src.util_modbus import get_modbus_client
+from src.util_modbus_mischventil import Mischventil
+from src.util_modbus_relais import Relais
+from src.util_modbus_adc import Dac
 
 
 class ModbusCommunication:

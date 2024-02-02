@@ -10,8 +10,8 @@ import config_base
 # from ptpython.repl import embed
 from pymodbus import ModbusException
 
-from modbus_software.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
-from modbus_software.hsm_dezentral_signal import ModbusSuccess
+from src.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
+from src.hsm_dezentral_signal import ModbusSuccess
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
 DIRECTORY_MICROPYTHON = (

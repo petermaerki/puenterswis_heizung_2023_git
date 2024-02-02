@@ -5,6 +5,10 @@
 			"path": "."
 		},
 		{
+			"name": "zentral",
+			"path": "../software-zentral"
+		},
+		{
 			"name": "repo",
 			"path": ".."
 		},
@@ -82,7 +86,7 @@
 				"name": "simple_rtu_client",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:zero}/modbus_software/simple_rtu_client.py",
+				"program": "${workspaceFolder:zero}/src/simple_rtu_client.py",
 				"cwd": "${workspaceFolder:zero}",
 				"console": "integratedTerminal",
 				"justMyCode": false
@@ -91,7 +95,7 @@
 				"name": "run_zentral",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:zero}/modbus_software/run_zentral.py",
+				"program": "${workspaceFolder:zero}/src/run_zentral.py",
 				"cwd": "${workspaceFolder:zero}",
 				"console": "integratedTerminal",
 				"justMyCode": false
@@ -128,7 +132,7 @@
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestEnabled": true,
 		"terminal.integrated.env.linux": {
-			"PYTHONPATH": "${workspaceFolder:dezentral}/micropython:${workspaceFolder:zero}"
+			"PYTHONPATH": "${workspaceFolder:dezentral}/micropython:${workspaceFolder:zentral}"
 		},
 		"python.linting.mypyArgs": [
 			"--config-file=${workspaceFolder}/.mypy.ini"

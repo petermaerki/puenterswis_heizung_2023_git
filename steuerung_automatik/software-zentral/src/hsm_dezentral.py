@@ -3,7 +3,7 @@ import typing
 
 from hsm import hsm
 
-from modbus_software.hsm_dezentral_signal import (
+from src.hsm_dezentral_signal import (
     SignalDezentralBase,
     ModbusSuccess,
     ModbusFailed,

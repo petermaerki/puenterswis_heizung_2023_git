@@ -3,8 +3,8 @@ import typing
 
 from hsm import hsm
 
-from modbus_software.hsm_zentral_signal import SignalZentralBase
-from modbus_software.utils_logger import ZeroLogger
+from src.hsm_zentral_signal import SignalZentralBase
+from src.utils_logger import ZeroLogger
 
 logger = logging.getLogger(__name__)
 

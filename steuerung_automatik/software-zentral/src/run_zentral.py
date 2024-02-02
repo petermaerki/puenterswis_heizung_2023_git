@@ -10,9 +10,9 @@ import config_bochs
 
 from pymodbus import ModbusException
 
-from modbus_software.context import Context
-from modbus_software.config_base import ConfigBauabschnitt
-from modbus_software.utils_logger import initialize_logger
+from src.context import Context
+from src.config_base import ConfigBauabschnitt
+from src.utils_logger import initialize_logger
 
 
 logging.basicConfig()
