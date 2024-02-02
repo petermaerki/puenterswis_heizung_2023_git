@@ -113,6 +113,6 @@ if ! shopt -oq posix; then
 fi
 
 ### puenterswis_heizung_2023
-export PYTHONPATH="/home/zero/zero-software"
-PATH="/home/zero/zero-software/install:$PATH"
+export PYTHONPATH="/home/zero/software-zero"
+PATH="/home/zero/software-zero/install:$PATH"
 

@@ -19,6 +19,7 @@ from utils_zero.utils_constants import (
     FILENAME_BASHRC_ROOT,
     FILENAME_BASHRC_ZERO,
     FILENAME_CONFIG,
+    ZEROES,
 )
 
 UID_ROOT = 0
@@ -52,8 +53,9 @@ def ask():
         return user_input
 
     hostname = input_default(
-        "Hostname (zero-puent, zero-bochs): ", raspi_os_config.hostname
+        f"Hostname ({','.join(ZEROES)}): ", raspi_os_config.hostname
     )
+    assert hostname in ZEROES
     wlan_ssid = input_default("WLAN ssid: ", raspi_os_config.wlan_ssid)
     wlan_pw = input_default("WLAN pw: ", raspi_os_config.wlan_pw)
 

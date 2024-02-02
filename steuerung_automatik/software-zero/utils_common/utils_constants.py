@@ -3,7 +3,7 @@ import pathlib
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
 
 DIRECTORY_WORKSPACE = DIRECTORY_OF_THIS_FILE.parent
-assert (DIRECTORY_WORKSPACE / "zero-software.code-workspace").exists()
+assert (DIRECTORY_WORKSPACE / "software-zero.code-workspace").exists()
 
 # top directories
 DIRECTORY_KEYS = DIRECTORY_WORKSPACE / "keys"

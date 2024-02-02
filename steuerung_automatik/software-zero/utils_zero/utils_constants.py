@@ -15,12 +15,12 @@ DIRECTORY_SSH = DIRECTORY_HOME_ZERO / ".ssh"
 FILENAME_BASHRC_ZERO = DIRECTORY_HOME_ZERO / ".bashrc"
 FILENAME_BASHRC_ROOT = DIRECTORY_HOME_ROOT / ".bashrc"
 
-# zero-software
+# software-zero
 DIRECTORY_ZEROSOFTWARE = (
     DIRECTORY_HOME_ZERO
-    / "puenterswis_heizung_2023_git/steuerung_automatik/zero-software"
+    / "puenterswis_heizung_2023_git/steuerung_automatik/software-zero"
 )
-DIRECTORY_ZEROSOFTWARE_LINK = DIRECTORY_HOME_ZERO / "zero-software"
+DIRECTORY_ZEROSOFTWARE_LINK = DIRECTORY_HOME_ZERO / "software-zero"
 
 ZERO_NAME = socket.gethostname()
 assert ZERO_NAME in ZEROES
