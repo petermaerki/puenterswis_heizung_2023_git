@@ -1,18 +1,15 @@
-# scripts/example/simple_rtu_client.py
 import asyncio
+import argparse
 
-# import fcntl
 import logging
 import os
 
 import asyncssh
-import config_bochs
+from zentral import config_bochs
 
-from pymodbus import ModbusException
-
-from src.context import Context
-from src.config_base import ConfigBauabschnitt
-from src.utils_logger import initialize_logger
+from zentral.context import Context
+from zentral.context_mock import ContextMock
+from zentral.utils_logger import initialize_logger
 
 
 logging.basicConfig()
@@ -57,7 +54,13 @@ class MySSHServer(asyncssh.SSHServer):
         return session
 
 
-async def main(port: int = 8222):
+async def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--mocked", help="increase output verbosity", action="store_true"
+    )
+    args = parser.parse_args()
+    ContextClass = ContextMock if args.mocked else Context
     if False:
         # Namespace exposed in the REPL.
         environ = {"hello": "world"}
@@ -78,7 +81,7 @@ async def main(port: int = 8222):
         )
         # await asyncio.Future()  # Wait forever.
 
-    async with Context(config_bochs.config_bauabschnitt_bochs) as ctx:
+    async with ContextClass(config_bochs.config_bauabschnitt_bochs) as ctx:
         await asyncio.create_task(ctx.modbus_communication.task_modbus())
 
     # await interactive_shell()

@@ -1,15 +1,16 @@
 uvicorn[standard]
-fastapi
+fastapi[all]
 Jinja2
 
 hsm @ git+https://github.com/hmaerki/HierarchicalStateMachine.git
 
 # TODO: REMOVE 'uModbus'
 # uModbus @ git+https://github.com/AdvancedClimateSystems/uModbus.git@1.0.4#egg=uModbus
-uModbus @ git+https://github.com/hmaerki/fork-uModbus@master#egg=uModbus
+# uModbus @ git+https://github.com/hmaerki/fork-uModbus@master#egg=uModbus
 
 pymodbus
-aiomonitor
-aioconsole
+# aiomonitor
+# aioconsole
 ptpython
 asyncssh
+mpfshell2

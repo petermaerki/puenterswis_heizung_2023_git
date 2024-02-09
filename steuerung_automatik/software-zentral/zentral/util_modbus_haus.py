@@ -2,16 +2,16 @@ import asyncio
 import pathlib
 import sys
 
-from pymodbus.client import AsyncModbusSerialClient
 
-import config_base
+from zentral import config_base
 
 # from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
 # from ptpython.repl import embed
 from pymodbus import ModbusException
 
-from src.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
-from src.hsm_dezentral_signal import ModbusSuccess
+from zentral.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
+from zentral.hsm_dezentral_signal import ModbusSuccess
+from zentral.util_modbus_wrapper import ModbusWrapper
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
 DIRECTORY_MICROPYTHON = (
@@ -24,21 +24,22 @@ from portable_modbus_registers import EnumModbusRegisters, IregsAll
 
 
 class ModbusHaus:
-    def __init__(self, modbus: AsyncModbusSerialClient, config_haus: config_base.Haus):
+    def __init__(self, modbus: ModbusWrapper, config_haus: config_base.Haus):
+        assert isinstance(modbus, ModbusWrapper)
         self._modbus = modbus
         self._config_haus = config_haus
 
     async def handle_haus_relais(self, haus: config_base.Haus) -> None:
         try:
             response = await self._modbus.read_holding_registers(
-                slave=haus.config_haus.modbus_client_id,
+                slave=haus.config_haus.modbus_server_id,
                 address=EnumModbusRegisters.SETGET16BIT_RELAIS_GPIO,
                 count=1,
             )
 
         except ModbusException as exc:
             print(
-                f"ERROR: exception in haus {haus.config_haus.modbus_client_id}: {exc}"
+                f"ERROR: exception in haus {haus.config_haus.modbus_server_id}: {exc}"
             )
             haus.status_haus.modbus_history.failed()
             return
@@ -55,14 +56,14 @@ class ModbusHaus:
         iregs_all = IregsAll()
         try:
             response = await self._modbus.read_input_registers(
-                slave=haus.config_haus.modbus_client_id,
+                slave=haus.config_haus.modbus_server_id,
                 address=EnumModbusRegisters.SETGET16BIT_ALL,
                 count=iregs_all.register_count,
             )
 
         except ModbusException as exc:
             print(
-                f"ERROR: exception in haus {haus.config_haus.modbus_client_id}: {exc}"
+                f"ERROR: exception in haus {haus.config_haus.modbus_server_id}: {exc}"
             )
             haus.status_haus.modbus_history.failed()
             await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
@@ -83,7 +84,7 @@ class ModbusHaus:
     async def reboot_reset(self, haus: config_base.Haus):
         try:
             response = await self._modbus.write_coil(
-                slave=haus.config_haus.modbus_client_id,
+                slave=haus.config_haus.modbus_server_id,
                 address=EnumModbusRegisters.SETGET1BIT_REBOOT_WATCHDOG,
                 value=True,
             )

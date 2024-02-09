@@ -1,10 +1,9 @@
 import logging
-import typing
 
 from hsm import hsm
 
-from src.hsm_zentral_signal import SignalZentralBase
-from src.utils_logger import ZeroLogger
+from zentral.hsm_zentral_signal import SignalZentralBase
+from zentral.utils_logger import ZeroLogger
 
 logger = logging.getLogger(__name__)
 

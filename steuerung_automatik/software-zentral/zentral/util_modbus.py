@@ -1,4 +1,3 @@
-import struct
 
 from mp.util_serial import find_serial_port, FindArguments, SerialPortNotFoundException
 from pymodbus.client import AsyncModbusSerialClient
@@ -23,8 +22,10 @@ def get_serial_port2():
 
 
 def get_modbus_client() -> AsyncModbusSerialClient:
+    """
+    Return serial.Serial instance, ready to use for RS485.
+    """
     port = get_serial_port2()
-    """Return serial.Serial instance, ready to use for RS485."""
     client = AsyncModbusSerialClient(
         port=port,
         framer=Framer.RTU,
@@ -39,12 +40,5 @@ def get_modbus_client() -> AsyncModbusSerialClient:
         reconnect_delay=0.3,  # :param reconnect_delay: Minimum delay in seconds.milliseconds before reconnecting.
         reconnect_delay_max=1.0,  # :param reconnect_delay_max: Maximum delay in seconds.milliseconds before reconnecting.
     )
-
-    if False:
-        fh = port.fileno()
-
-        # A struct with configuration for serial port.
-        serial_rs485 = struct.pack("hhhhhhhh", 1, 0, 0, 0, 0, 0, 0, 0)
-        fcntl.ioctl(fh, 0x542F, serial_rs485)
 
     return client

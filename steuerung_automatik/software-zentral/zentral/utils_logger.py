@@ -5,7 +5,7 @@ from typing import List
 
 from hsm.hsm import HsmLogger, HsmMixin, HsmState
 
-from program.constants import DIRECTORY_LOG
+from zentral.constants import DIRECTORY_LOG
 
 logger = logging.getLogger(__name__)
 

@@ -2,11 +2,16 @@
 import asyncio
 
 from pymodbus import ModbusException
-from pymodbus.client import AsyncModbusSerialClient
+
+from zentral.util_modbus_wrapper import ModbusWrapper
 
 
 class Relais:
-    def __init__(self, modbus: AsyncModbusSerialClient, modbus_address: int):
+    COIL_ADDRESS = 0
+    RELAIS_COUNT = 8
+
+    def __init__(self, modbus: ModbusWrapper, modbus_address: int):
+        assert isinstance(modbus, ModbusWrapper)
         self._modbus = modbus
         self._modbus_address = modbus_address
 
@@ -29,10 +34,10 @@ class Relais:
 
     async def set(self, list_relays: tuple[bool]) -> None:
         assert isinstance(list_relays, (list, tuple))
-        assert len(list_relays) == 8
+        assert len(list_relays) == self.RELAIS_COUNT
         response = await self._modbus.write_coils(
             slave=self._modbus_address,
-            address=0,
+            address=self.COIL_ADDRESS,
             values=list_relays,
         )
         if response.isError():

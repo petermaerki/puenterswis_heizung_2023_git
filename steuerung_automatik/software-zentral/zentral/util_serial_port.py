@@ -1,4 +1,3 @@
-from mp.util_serial import find_serial_port, FindArguments, SerialPortNotFoundException
 from serial import PARITY_NONE, Serial
 
 modbus_time_1char_ms = 11 / 9600

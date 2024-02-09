@@ -2,11 +2,12 @@
 import asyncio
 import enum
 import logging
-import time
 
 from pymodbus import Framer
 from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
+from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException, ModbusIOException
+from pymodbus.payload import BinaryPayloadDecoder
 from serial.tools import list_ports
 
 modbus_time_1char_ms = 11 / 9600
@@ -71,7 +72,7 @@ def find_serial_port() -> str:
 
 
 def get_modbus_client():
-    if False:
+    if True:
         port = find_serial_port()
         """Return serial.Serial instance, ready to use for RS485."""
         client = AsyncModbusSerialClient(
@@ -85,6 +86,23 @@ def get_modbus_client():
             retries=1,  # TODO: 1 or 0? # :param retries: Max number of retries per request.
             retry_on_empty=0,  # :param retry_on_empty: Retry on empty response.
             broadcast_enable=False,  # :param broadcast_enable: True to treat id 0 as broadcast address.
+            reconnect_delay=0.3,  # :param reconnect_delay: Minimum delay in seconds.milliseconds before reconnecting.
+            reconnect_delay_max=1.0,  # :param reconnect_delay_max: Maximum delay in seconds.milliseconds before reconnecting.
+        )
+    if False:
+        port = find_serial_port()
+        """Return serial.Serial instance, ready to use for RS485."""
+        client = AsyncModbusSerialClient(
+            port=port,
+            framer=Framer.RTU,
+            baudrate=38400,
+            bytesize=8,
+            parity="N",
+            stopbits=2,
+            timeout=1.0,  # :param timeout: Timeout for a request, in seconds.
+            retries=1,  # TODO: 1 or 0? # :param retries: Max number of retries per request.
+            retry_on_empty=0,  # :param retry_on_empty: Retry on empty response.
+            broadcast_enable=True,  # :param broadcast_enable: True to treat id 0 as broadcast address.
             reconnect_delay=0.3,  # :param reconnect_delay: Minimum delay in seconds.milliseconds before reconnecting.
             reconnect_delay_max=1.0,  # :param reconnect_delay_max: Maximum delay in seconds.milliseconds before reconnecting.
         )
@@ -137,6 +155,53 @@ async def relais(modbus):
         await asyncio.sleep(0.5)
 
 
+class Belimo:
+    def __init__(self, modbus):
+        self._modbus = modbus
+
+    async def zentral_valve_T1_C(self):
+        # https://github.com/pymodbus-dev/pymodbus/issues/669
+        # rr = client.read_input_registers(1, 1, unit=UNIT)
+
+        # for address in range(140):
+        for address in range(19, 21):
+            response = await self._modbus.read_holding_registers(
+                slave=MODBUS_ADDRESS_BELIMO,
+                address=address,  #  EnumRegisters.ZENTRAL_VALVE_T1_C + 1,
+                count=1,
+            )
+            print(f"{address=} {response.registers=}")
+
+        response = await self._modbus.read_holding_registers(
+            slave=MODBUS_ADDRESS_BELIMO,
+            address=EnumRegisters.ZENTRAL_VALVE_T1_C,
+            count=1,
+        )
+        value_raw = response.registers[0] / 100.0
+        value = value_raw / 100.0
+        print(f"{value_raw=}, {value=}")
+
+        if False:
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                response.registers,
+                byteorder=Endian.LITTLE,
+                wordorder=Endian.LITTLE,
+            )
+
+            # assert (
+            #     decoder._byteorder == builder._byteorder
+            # ), "Make sure byteorder is consistent between BinaryPayloadBuilder and BinaryPayloadDecoder"
+
+            # assert (
+            #     decoder._wordorder == builder._wordorder
+            # ), "Make sure wordorder is consistent between BinaryPayloadBuilder and BinaryPayloadDecoder"
+
+            # v = decoder.decode_32bit_int() / 100.0
+            v = decoder.decode_32bit_uint()
+            v1 = (v - 2000) / 100.0
+            print(f"{v=}, {v1=}")
+
+
 async def call_belimo(modbus):
     # response = await modbus.read_input_registers(
     #     slave=MODBUS_ADDRESS_BELIMO,
@@ -156,9 +221,11 @@ async def main():
     modbus = get_modbus_client()
     await modbus.connect()
 
+    await call_belimo(modbus)
+    b = Belimo(modbus=modbus)
+    print(f"{await b.zentral_valve_T1_C()=}")
     # await relais(modbus)
     # await scan_modbus_slaves(modbus)
-    await call_belimo(modbus)
 
     modbus.close()
     print("Done")

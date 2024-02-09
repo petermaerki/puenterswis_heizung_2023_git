@@ -3,7 +3,8 @@ import enum
 from pymodbus import ModbusException
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.client import AsyncModbusSerialClient
+
+from zentral.util_modbus_wrapper import ModbusWrapper
 
 
 class EnumRegisters(enum.IntEnum):
@@ -34,7 +35,8 @@ class EnumRegisters(enum.IntEnum):
 
 
 class Mischventil:
-    def __init__(self, modbus: AsyncModbusSerialClient, modbus_address: int):
+    def __init__(self, modbus: ModbusWrapper, modbus_address: int):
+        assert isinstance(modbus, ModbusWrapper)
         self._modbus = modbus
         self._modbus_address = modbus_address
 

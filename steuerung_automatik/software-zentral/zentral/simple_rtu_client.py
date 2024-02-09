@@ -3,9 +3,7 @@ import sys
 import time
 import pathlib
 
-from serial import PARITY_NONE, Serial
 from umodbus.client.serial import rtu
-from mp.util_serial import find_serial_port, FindArguments, SerialPortNotFoundException
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
 DIRECTORY_MICROPYTHON = (
@@ -131,7 +129,7 @@ for i in range(1000_000):
         # time.sleep(0.5)
         dezentral(slave_id=8)
         # time.sleep(0.5)
-    except ValueError as exc:
+    except ValueError:
         # except IllegalDataAddressError as exc:
         errors += 1
         print("Failed")

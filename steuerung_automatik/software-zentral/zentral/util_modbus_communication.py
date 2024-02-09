@@ -2,39 +2,47 @@ import asyncio
 import typing
 
 from pymodbus import ModbusException
+from pymodbus.client import AsyncModbusSerialClient
+
+from zentral.util_modbus_wrapper import ModbusWrapper
 
 if typing.TYPE_CHECKING:
-    from src.context import Context
+    from context import Context
 
-from src.constants import (
+from zentral.constants import (
     MODBUS_ADDRESS_BELIMO,
     MODBUS_ADDRESS_RELAIS,
     MODBUS_ADDRESS_ADC,
 )
 
-from src.util_modbus import get_modbus_client
-from src.util_modbus_mischventil import Mischventil
-from src.util_modbus_relais import Relais
-from src.util_modbus_adc import Dac
+from zentral.util_modbus import get_modbus_client
+from zentral.util_modbus_mischventil import Mischventil
+from zentral.util_modbus_relais import Relais
+from zentral.util_modbus_adc import Dac
 
 
 class ModbusCommunication:
     def __init__(self, context: "Context"):
-        self._modbus = get_modbus_client()
         self._context = context
+        self._modbus = ModbusWrapper(
+            context=context, modbus_client=self._get_modbus_client()
+        )
 
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
         self.r = Relais(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_ADC)
 
+    def _get_modbus_client(self) -> AsyncModbusSerialClient:
+        return get_modbus_client()
+
     async def connect(self):
         await self._modbus.connect()
 
     async def close(self):
-        self._modbus.close()
+        await self._modbus.close()
 
     async def modbus_haueser_loop(self) -> None:
-        from util_modbus_haus import ModbusHaus
+        from zentral.util_modbus_haus import ModbusHaus
 
         for config_haus in self._context.config_bauabschnitt.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, config_haus=config_haus)
