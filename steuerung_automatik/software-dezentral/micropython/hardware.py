@@ -47,6 +47,9 @@ class Hardware:
         """
         self.PIN_RELAIS = machine.Pin(3, machine.Pin.OUT)
         self.PIN_RELAIS.off()
+        self.PIN_DS_OK_LED = machine.Pin(20, machine.Pin.OUT)
+        self.PIN_DS_OK_LED.off()
+
         # Make sure we release the modbus!
         machine.Pin(GPIO_MODBUS_DE, machine.Pin.OUT).off()
         self.modbus_server_addr = self.dip_switch_addr
@@ -62,6 +65,19 @@ class Hardware:
         )
 
         self.sensors_ds = [Ds(gpio) for gpio in GPIO_DS]
+
+    def handle_ds_ok_led(self) -> None:
+        """
+        The 'DS OK' LED should be on when all temperature sensors
+        in use work find.
+        """
+        # The first two sensors are not in use
+        DS_NOT_IN_USE = 2
+        ds_ok = True
+        for ds in self.sensors_ds[DS_NOT_IN_USE:]:
+            if not ds.history.last_ok:
+                ds_ok = False
+        self.PIN_DS_OK_LED.value(ds_ok)
 
     @property
     def dip_switch_changed(self) -> bool:

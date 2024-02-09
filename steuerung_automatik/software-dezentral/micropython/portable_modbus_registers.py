@@ -1,6 +1,3 @@
-from typing import List
-
-
 class EnumModbusRegisters:
     SETGET1BIT_REBOOT_RESET = 0x20
     SETGET1BIT_REBOOT_WATCHDOG = 0x21

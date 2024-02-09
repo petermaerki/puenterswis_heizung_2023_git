@@ -8,8 +8,10 @@ class History:
         self._percent_ok = percent_ok
         self._counter_success = 0
         self._counter_failed = 0
+        self.last_ok = False
 
     def _add(self, value: int) -> None:
+        self.last_ok = value
         self._array[self._array_ptr] = value
         self._array_ptr += 1
         self._array_ptr %= len(self._array)
