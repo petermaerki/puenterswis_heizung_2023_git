@@ -8,6 +8,9 @@ hsm @ git+https://github.com/hmaerki/HierarchicalStateMachine.git
 # uModbus @ git+https://github.com/AdvancedClimateSystems/uModbus.git@1.0.4#egg=uModbus
 # uModbus @ git+https://github.com/hmaerki/fork-uModbus@master#egg=uModbus
 
+influxdb-client
+aiohttp # Required by influxdb-client
+
 pymodbus
 # aiomonitor
 # aioconsole

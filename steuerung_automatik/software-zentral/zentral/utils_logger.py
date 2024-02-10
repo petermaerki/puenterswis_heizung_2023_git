@@ -3,25 +3,22 @@
 import logging
 from typing import List
 
-from hsm.hsm import HsmLogger, HsmMixin, HsmState
+from hsm.hsm import HsmLogger, HsmState
 
 from zentral.constants import DIRECTORY_LOG
 
 logger = logging.getLogger(__name__)
 
 
-class ZeroLogger(HsmLogger):
-    def __init__(
-        self,
-        hsm: HsmMixin,
-    ):
-        self._prefix = f"{hsm.__class__.__name__}: "
+class HsmLogger(HsmLogger):
+    def __init__(self, label: str):
+        self._label = label
 
     def fn_log_debug(self, msg: str) -> None:
-        logger.debug(self._prefix + msg)
+        logger.debug(f"{self._label}: {msg}")
 
     def fn_log_info(self, msg: str) -> None:
-        logger.debug(self._prefix + msg)
+        logger.debug(f"{self._label}: {msg}")
 
     # def fn_state_change(self, _before: HsmState, _after: HsmState) -> None:
     #     logger.warning(
@@ -34,15 +31,15 @@ class ZeroLogger(HsmLogger):
         why: str,
         list_entry_exit: List[str],
     ) -> None:
+        if before == after:
+            return
         why_text = ""
         if why is not None:
             why_text = f" ({why})"
         text_entry_exit = "==>"
         if len(list_entry_exit) > 0:
             text_entry_exit = f"==>{'==>'.join(list_entry_exit)}==>"
-        logger.info(
-            f"{self._prefix}: {before.full_name} {text_entry_exit} {after.full_name}{why_text}"
-        )
+        logger.info(f"{self._label}: {before.full_name} {text_entry_exit} {after.full_name}{why_text}")
 
 
 class ColorFormatter(logging.Formatter):
@@ -80,8 +77,8 @@ def initialize_logger() -> None:
         filename=DIRECTORY_LOG / "logger.txt",
         filemode="w",
         format="%(asctime)s %(filename)s:%(lineno)s - %(levelname)s - %(message)s",
-        # level=logging.DEBUG,
-        level=logging.INFO,
+        level=logging.DEBUG,
+        # level=logging.INFO,
     )
 
     ch = logging.StreamHandler()
@@ -89,9 +86,7 @@ def initialize_logger() -> None:
     ch.setLevel(level=logging.INFO)
 
     # create formatter
-    formatter = ColorFormatter(
-        fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s"
-    )
+    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s")
 
     # add formatter to ch
     ch.setFormatter(formatter)

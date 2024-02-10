@@ -1,8 +1,8 @@
 import enum
 
-from pymodbus import ModbusException
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+from zentral.constants import MODBUS_ADDRESS_BELIMO
 
 from zentral.util_modbus_wrapper import ModbusWrapper
 
@@ -69,15 +69,11 @@ class Mischventil:
 
     @property
     async def zentral_cooling_energie_J(self) -> float:
-        return await self._read_32bit(
-            EnumRegisters.ZENTRAL_COOLING_ENERGIE_J, factor=3.6e6
-        )
+        return await self._read_32bit(EnumRegisters.ZENTRAL_COOLING_ENERGIE_J, factor=3.6e6)
 
     @property
     async def zentral_heating_energie_J(self) -> float:
-        return await self._read_32bit(
-            EnumRegisters.ZENTRAL_HEATING_ENERGIE_J, factor=3.6e6
-        )
+        return await self._read_32bit(EnumRegisters.ZENTRAL_HEATING_ENERGIE_J, factor=3.6e6)
 
     @property
     async def zentral_cooling_power_W(self) -> float:
@@ -92,32 +88,17 @@ class Mischventil:
         return await self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
 
     async def _read_16bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(
-            slave=self._modbus_address, address=address, count=1
-        )
-        if response.isError():
-            print("ERROR: pymodbus returned an error!")
-            raise ModbusException("Hallo")
-
+        response = await self._modbus.read_holding_registers(slave=self._modbus_address, address=address, count=1)
         return response.registers[0] * factor
 
-    async def _write_16bit(self, address: int, value: float, factor: float) -> float:
+    async def _write_16bit(self, address: int, value: float, factor: float) -> None:
         value_raw = round(value / factor)
         assert 0 <= value_raw < 2**16
-        response = await self._modbus.write_registers(
-            slave=MODBUS_ADDRESS_BELIMO, address=address, values=[value_raw]
-        )
-        if response.isError():
-            print("ERROR: pymodbus returned an error!")
-            raise ModbusException("Hallo")
+        await self._modbus.write_registers(slave=MODBUS_ADDRESS_BELIMO, address=address, values=[value_raw])
 
     async def _read_32bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(
-            slave=self._modbus_address, address=address, count=2
-        )
-        if response.isError():
-            print("ERROR: pymodbus returned an error!")
-            raise ModbusException("Hallo")
+        response = await self._modbus.read_holding_registers(slave=self._modbus_address, address=address, count=2)
+        assert not response.isError()
 
         decoder = BinaryPayloadDecoder.fromRegisters(
             response.registers,

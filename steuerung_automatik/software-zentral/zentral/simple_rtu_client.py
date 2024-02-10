@@ -6,9 +6,7 @@ import pathlib
 from umodbus.client.serial import rtu
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
-DIRECTORY_MICROPYTHON = (
-    DIRECTORY_OF_THIS_FILE.parent.parent / "software-dezentral" / "micropython"
-)
+DIRECTORY_MICROPYTHON = DIRECTORY_OF_THIS_FILE.parent.parent / "software-dezentral" / "micropython"
 assert DIRECTORY_MICROPYTHON.is_dir()
 sys.path.append(str(DIRECTORY_MICROPYTHON))
 
@@ -48,9 +46,7 @@ def dezentral(slave_id: int):
 
     if False:
         # Dummy register
-        message = rtu.read_input_registers(
-            slave_id=slave_id, starting_address=10, quantity=1
-        )
+        message = rtu.read_input_registers(slave_id=slave_id, starting_address=10, quantity=1)
 
         response = rtu.send_message(message, serial_port)
         print(response)
@@ -58,9 +54,7 @@ def dezentral(slave_id: int):
     if False:
         for value in (0, 1):
             # Relais coil
-            message = rtu.write_single_coil(
-                slave_id=slave_id, address=EnumModbusRegisters.COILS_RELAIS, value=value
-            )
+            message = rtu.write_single_coil(slave_id=slave_id, address=EnumModbusRegisters.COILS_RELAIS, value=value)
 
             response = rtu.send_message(message, serial_port)
             print(response)
@@ -106,15 +100,14 @@ def dezentral(slave_id: int):
         # time.sleep(0.1)
 
     if True:
-        iregs_all = portable_modbus_registers.IregsAll()
         message = rtu.read_input_registers(
             slave_id=slave_id,
             starting_address=portable_modbus_registers.EnumModbusRegisters.IREGS_ALL,
-            quantity=iregs_all.register_count,
+            quantity=IREGS_ALL.register_count,
         )
 
         response = rtu.send_message(message, serial_port)
-        assert len(response) == iregs_all.register_count
+        assert len(response) == IREGS_ALL.register_count
 
         print(f"Iregsall: {response}")
         time.sleep(0.006)
@@ -138,9 +131,7 @@ for i in range(1000_000):
         # break
     if i % 100 == 99:
         duration_s = time.time() - start_s
-        print(
-            f"********  {i=}, {errors=}, {i/errors:0.0f}calls per error, {1000*duration_s/i:0.0f}ms per call."
-        )
+        print(f"********  {i=}, {errors=}, {i/errors:0.0f}calls per error, {1000*duration_s/i:0.0f}ms per call.")
         pass
 
 serial_port.close()

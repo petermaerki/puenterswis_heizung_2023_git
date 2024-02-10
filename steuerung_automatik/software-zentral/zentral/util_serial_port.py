@@ -1,5 +1,7 @@
 from serial import PARITY_NONE, Serial
 
+from zentral.util_modbus import get_serial_port2
+
 modbus_time_1char_ms = 11 / 9600
 
 
@@ -16,7 +18,7 @@ def get_serial_port():
         timeout=0.1,
     )
 
-    fh = serial.fileno()
+    # fh = serial.fileno()
 
     # A struct with configuration for serial port.
     # serial_rs485 = struct.pack("hhhhhhhh", 1, 0, 0, 0, 0, 0, 0, 0)

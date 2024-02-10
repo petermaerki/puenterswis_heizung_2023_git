@@ -21,19 +21,6 @@
 		"version": "0.2.0",
 		"configurations": [
 			{
-				"name": "Black",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "black",
-				"cwd": "${workspaceFolder:dezentral}",
-				"args": [
-					"--config=${workspaceFolder:repo}/.ruff.toml",
-					"."
-				],
-				"console": "integratedTerminal",
-				"justMyCode": true
-			},
-			{
 				"name": "Ruff",
 				"type": "debugpy",
 				"request": "launch",
@@ -42,11 +29,9 @@
 				"console": "integratedTerminal",
 				"args": [
 					"--config=${workspaceFolder:repo}/.ruff.toml",
-					"format",
 					"--fix",
-					"${workspaceFolder:zentral}/zentral",
+					"${workspaceFolder:zentral}",
 					"${workspaceFolder:dezentral}"
-					
 				],
 				"justMyCode": true
 			},
@@ -90,7 +75,7 @@
 				"justMyCode": false
 			},
 			{
-				"name": "run_zentral Mocked Fastapi",
+				"name": "run_zentral Fastapi",
 				"type": "debugpy",
 				"request": "launch",
 				"module": "uvicorn",
@@ -99,22 +84,31 @@
 					"zentral.run_zentral_fastapi:app",
 					"--reload",
 					"--workers=1",
-					"--reload-dirs=${workspaceFolder:zentral} ${workspaceFolder:dezentral}"
+					"--reload-dir=${workspaceFolder:repo}"
 				],
+				"env": {
+					"HEIZUNG2023_MOCKED": "0"
+				},
 				"console": "integratedTerminal",
 				"jinja": true,
 				"justMyCode": false
 			},
 			{
-				"name": "FastAPI Mocked",
+				"name": "run_zentral Fastapi Mocked",
 				"type": "debugpy",
 				"request": "launch",
 				"module": "uvicorn",
+				"cwd": "${workspaceFolder:zentral}",
 				"args": [
-					"zentral.example_fastapi_lifespan:app",
-					"--reload"
+					"zentral.run_zentral_fastapi:app",
+					"--reload",
+					"--workers=1",
+					"--reload-dir=${workspaceFolder:repo}"
 				],
-				"cwd": "${workspaceFolder:zero}",
+				"env": {
+					"HEIZUNG2023_MOCKED": "1"
+				},
+				"console": "integratedTerminal",
 				"jinja": true,
 				"justMyCode": false
 			},
@@ -150,11 +144,19 @@
 	},
 	"settings": {
 		// "python.testing.pytestArgs": [],
-		"python.testing.cwd": "${workspaceFolder}",
+		"python.testing.cwd": "${workspaceFolder:dezentral}",
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestEnabled": true,
+		"python.autoComplete.extraPaths": [
+			"${workspaceFolder:zentral}",
+			"${workspaceFolder:dezentral}"
+		],
+		"python.analysis.extraPaths": [
+			"${workspaceFolder:zentral}",
+			"${workspaceFolder:dezentral}"
+		],
 		"terminal.integrated.env.linux": {
-			"PYTHONPATH": "${workspaceFolder:dezentral}/micropython:${workspaceFolder:zentral}"
+			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
 		},
 		"[python]": {
 			"editor.formatOnSave": true,
@@ -162,7 +164,7 @@
 			"editor.codeActionsOnSave": {
 				"source.organizeImports": "explicit",
 				"source.fixAll.ruff": "explicit"
-			},
+			}
 		},
 		"markdown-mermaid.lightModeTheme": "base",
 		"markdown-mermaid.darkModeTheme": "dark",
@@ -172,6 +174,7 @@
 			"**/.pytest_cache/": true
 		},
 		"git.openRepositoryInParentFolders": "always",
+		"python.analysis.autoSearchPaths": false,
 	},
 	"extensions": {
 		"recommendations": [

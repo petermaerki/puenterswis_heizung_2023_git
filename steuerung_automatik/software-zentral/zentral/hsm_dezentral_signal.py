@@ -1,4 +1,7 @@
-from typing import List
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from zentral.util_modbus_haus import ModbusIregsAll
 
 
 class SignalDezentralBase:
@@ -7,8 +10,8 @@ class SignalDezentralBase:
 
 
 class ModbusSuccess(SignalDezentralBase):
-    def __init__(self, values: List[int]):
-        self.values = values
+    def __init__(self, modbus_iregs_all: "ModbusIregsAll"):
+        self.modbus_iregs_all: "ModbusIregsAll" = modbus_iregs_all
 
 
 class ModbusFailed(SignalDezentralBase):

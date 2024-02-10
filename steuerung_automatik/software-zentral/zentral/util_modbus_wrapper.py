@@ -2,12 +2,16 @@ from typing import Any, TYPE_CHECKING, Union, List
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
+from zentral.constants import ModbusExceptionIsError, ModbusExceptionRegisterCount
 from zentral.util_scenarios import (
     SCENARIOS,
+    ScenarioBase,
     ScenarioHausModbusError,
     ScenarioHausModbusException,
     ScenarioHausModbusWrongRegisterCount,
+    ScenarioHausSpTemperatureIncrease,
 )
+from micropython.portable_modbus_registers import IREGS_ALL
 
 if TYPE_CHECKING:
     from zentral.context_mock import ModbusMockClient
@@ -29,12 +33,15 @@ class ModbusWrapper:
         self._context = context
         self._modbus_client = modbus_client
 
-        self._dict_modbus_server_id_2_haus = {
-            h.config_haus.modbus_server_id: h
-            for h in self._context.config_bauabschnitt.haeuser
-        }
+        self._dict_modbus_server_id_2_haus = {h.config_haus.modbus_server_id: h for h in self._context.config_etappe.haeuser}
 
-    def find_by_class_slave(self, cls_scenario, slave: int) -> Any:
+    async def connect(self):
+        await self._modbus_client.connect()
+
+    async def close(self):
+        await self._modbus_client.close()
+
+    def _find_by_class_slave(self, cls_scenario, slave: int) -> ScenarioBase | None:
         haus = self._dict_modbus_server_id_2_haus.get(slave, None)
         if haus is None:
             return None
@@ -43,6 +50,11 @@ class ModbusWrapper:
             haus=haus,
         )
 
+    def _assert_register_count(self, rsp: ModbusResponse, expected_register_count: int) -> None:
+        register_count = len(rsp.registers)
+        if register_count != expected_register_count:
+            raise ModbusExceptionRegisterCount(f"Expected {expected_register_count} registers but got {register_count}!")
+
     async def read_input_registers(
         self,
         address: int,
@@ -50,21 +62,11 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        modbus_error: ScenarioHausModbusException = self.find_by_class_slave(
+        if self._find_by_class_slave(
             cls_scenario=ScenarioHausModbusException,
             slave=slave,
-        )
-        if modbus_error is not None:
+        ):
             raise ModbusException("ScenarioHausModbusException")
-
-        modbus_error: ScenarioHausModbusError = self.find_by_class_slave(
-            cls_scenario=ScenarioHausModbusError,
-            slave=slave,
-        )
-        if modbus_error is not None:
-            rsp = ModbusResponse()
-            rsp.function_code = 0xFE
-            return rsp
 
         rsp = await self._modbus_client.read_input_registers(
             address=address,
@@ -73,12 +75,30 @@ class ModbusWrapper:
             kwargs=kwargs,
         )
 
-        modbus_error: ScenarioHausModbusWrongRegisterCount = self.find_by_class_slave(
+        if self._find_by_class_slave(
+            cls_scenario=ScenarioHausModbusError,
+            slave=slave,
+        ):
+            rsp.function_code = 0xFE
+
+        if rsp.isError():
+            raise ModbusExceptionIsError("isError")
+
+        if self._find_by_class_slave(
             cls_scenario=ScenarioHausModbusWrongRegisterCount,
             slave=slave,
-        )
-        if modbus_error is not None:
+        ):
             rsp.registers = rsp.registers[:-1]
+
+        self._assert_register_count(rsp=rsp, expected_register_count=count)
+
+        scenario: ScenarioHausSpTemperatureIncrease = self._find_by_class_slave(
+            cls_scenario=ScenarioHausSpTemperatureIncrease,
+            slave=slave,
+        )
+        if scenario is not None:
+            for i in range(IREGS_ALL.ds18_temperature_cK.reg, IREGS_ALL.ds18_temperature_cK.reg + IREGS_ALL.ds18_temperature_cK.count):
+                rsp.registers[i] += scenario.delta_C * 100.0
 
         return rsp
 
@@ -89,12 +109,18 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        return await self._modbus_client.read_holding_registers(
+        rsp = await self._modbus_client.read_holding_registers(
             address=address,
             count=count,
             slave=slave,
             kwargs=kwargs,
         )
+        if rsp.isError():
+            raise ModbusExceptionIsError("isError")
+
+        self._assert_register_count(rsp=rsp, expected_register_count=count)
+
+        return rsp
 
     async def write_registers(
         self,
@@ -103,12 +129,17 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        return await self._modbus_client.write_registers(
+        rsp = await self._modbus_client.write_registers(
             address=address,
             values=values,
             slave=slave,
             kwargs=kwargs,
         )
+        if rsp.isError():
+            raise ModbusExceptionIsError("isError")
+
+        self._assert_register_count(rsp=rsp, expected_register_count=0)
+        return rsp
 
     async def write_coils(
         self,
@@ -117,9 +148,14 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        return await self._modbus_client.write_coils(
+        rsp = await self._modbus_client.write_coils(
             address=address,
             values=values,
             slave=slave,
             kwargs=kwargs,
         )
+        if rsp.isError():
+            raise ModbusExceptionIsError("isError")
+
+        self._assert_register_count(rsp=rsp, expected_register_count=0)
+        return rsp

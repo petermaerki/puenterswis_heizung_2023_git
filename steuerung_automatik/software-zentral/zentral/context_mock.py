@@ -6,10 +6,10 @@ from zentral.constants import (
     MODBUS_ADDRESS_BELIMO,
     MODBUS_ADDRESS_RELAIS,
 )
-from zentral.config_base import ConfigBauabschnitt, Haus
+from zentral.config_base import ConfigEtappe, Haus
 from pymodbus.pdu import ModbusResponse
-from portable_modbus_registers import EnumModbusRegisters, IregsAll
-import util_constants
+from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
+from micropython import util_constants
 from pymodbus.client import AsyncModbusSerialClient
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.context import Context
@@ -28,9 +28,10 @@ class ModbusMockClient:
         self._context = context
 
     def _get_haus(self, slave: int) -> Haus:
-        return self._context.config_bauabschnitt.get_haus_by_modbus_server_id(
-            modbus_server_id=slave
-        )
+        return self._context.config_etappe.get_haus_by_modbus_server_id(modbus_server_id=slave)
+
+    async def close(self):
+        pass
 
     async def read_input_registers(
         self,
@@ -41,7 +42,7 @@ class ModbusMockClient:
     ) -> ModbusResponse:
         assert address == EnumModbusRegisters.SETGET16BIT_ALL
 
-        haus = self._get_haus(slave=slave)
+        _haus = self._get_haus(slave=slave)
 
         a = IregsAll()
         registers = [
@@ -53,20 +54,19 @@ class ModbusMockClient:
         a.uptime_s.set_value(registers, 42)
         a.errors_modbus.set_value(registers, 42)
         a.relais_gpio.set_value(registers, 1)
-        assert a.temperature_cK.count == _DS_COUNT
+        assert a.ds18_temperature_cK.count == _DS_COUNT
         for i in range(_DS_COUNT):
-            a.errors_ds18.set_value(registers, 10, i)
-            a.temperature_cK.set_value(registers, 4711, i)
+            a.ds18_ok_percent.set_value(registers, 10, i)
+            a.ds18_temperature_cK.set_value(registers, 4711, i)
 
+        registers = [10000, 100, 1, 1200, 42, 0, 0, 0, 29359, 29365, 29378, 29346, 29352, 29359, 0, 0, 100, 100, 100, 100, 100, 100]
         rsp = ModbusResponse()
         rsp.registers = registers
         return rsp
 
-    async def read_holding_registers(
-        self, address: int, count: int = 1, slave: int = 0, **kwargs: Any
-    ) -> ModbusResponse:
+    async def read_holding_registers(self, address: int, count: int = 1, slave: int = 0, **kwargs: Any) -> ModbusResponse:
         if address == EnumModbusRegisters.SETGET16BIT_RELAIS_GPIO:
-            haus = self._get_haus(slave=slave)
+            _haus = self._get_haus(slave=slave)
 
             rsp = ModbusResponse()
             rsp.registers = [1]
@@ -82,15 +82,13 @@ class ModbusMockClient:
                 return rsp
         assert False
 
-    async def write_registers(
-        self, address: int, values: List[int], slave: int = 0, **kwargs: Any
-    ) -> ModbusResponse:
+    async def write_registers(self, address: int, values: List[int], slave: int = 0, **kwargs: Any) -> ModbusResponse:
         assert address == util_modbus_adc.Dac.ADC_ADDRESS
         assert slave == MODBUS_ADDRESS_ADC
         assert len(values) == 8
 
         rsp = ModbusResponse()
-        rsp.registers = values
+        rsp.registers = []
         return rsp
 
     async def write_coils(
@@ -103,9 +101,7 @@ class ModbusMockClient:
         assert address == util_modbus_relais.Relais.COIL_ADDRESS
         assert slave == MODBUS_ADDRESS_RELAIS
         rsp = ModbusResponse()
-        rsp.registers = [
-            1,
-        ] * util_modbus_relais.Relais.RELAIS_COUNT
+        rsp.registers = []
         return rsp
 
 
@@ -121,8 +117,8 @@ class ModbusCommunicationMock(ModbusCommunication):
 
 
 class ContextMock(Context):
-    def __init__(self, config_bauabschnitt: ConfigBauabschnitt):
-        super().__init__(config_bauabschnitt=config_bauabschnitt)
+    def __init__(self, config_etappe: ConfigEtappe):
+        super().__init__(config_etappe=config_etappe)
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunicationMock(self)

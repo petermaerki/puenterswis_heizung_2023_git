@@ -1,29 +1,35 @@
 """
 """
 
-from zentral.config_base import ConfigBauabschnitt, ConfigHaus, Haus
+from zentral.config_base import ConfigEtappe, ConfigHaus, Haus
+from zentral.constants import ETAPPE_TAG_PUENT, ETAPPE_TAG_BOCHS
 
-config_bauabschnitt_bochs = ConfigBauabschnitt(name="Bochseln")
-config_bauabschnitt_puent = ConfigBauabschnitt(name="Puenterswis")
 
-Haus(
-    config_haus=ConfigHaus(
-        nummer=17,
-        modbus_server_id=7,
-        addresse="Zelglistrasse 26",
-        bewohner="Peter Märki und Sonja Rota",
-        bauabschnitt=config_bauabschnitt_bochs,
+def create_config_bochs() -> ConfigEtappe:
+    config = ConfigEtappe(tag=ETAPPE_TAG_BOCHS, name="Bochseln")
+
+    Haus(
+        config_haus=ConfigHaus(
+            nummer=12,
+            addresse="Zelglistrasse 47",
+            bewohner="Nicole S.",
+            bauetappe=config,
+        )
     )
-)
-Haus(
-    config_haus=ConfigHaus(
-        nummer=2,
-        modbus_server_id=8,
-        addresse="Zelglistrasse 28",
-        bewohner="Hans Muster",
-        bauabschnitt=config_bauabschnitt_bochs,
+    Haus(
+        config_haus=ConfigHaus(
+            nummer=13,
+            addresse="Zelglistrasse 49",
+            bewohner="Peter Märki und Sonja Rota",
+            bauetappe=config,
+        )
     )
-)
+    return config
 
 
-print(f"{config_bauabschnitt_bochs.haeuser=}")
+def create_config_puent() -> ConfigEtappe:
+    config = ConfigEtappe(tag=ETAPPE_TAG_PUENT, name="Puenterswis")
+    return config
+
+
+# print(f"{config_etappe_bochs.haeuser=}")

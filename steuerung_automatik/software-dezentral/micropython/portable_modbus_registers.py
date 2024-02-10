@@ -33,8 +33,8 @@ class IregsAll:
         self.uptime_s = self._add(3)
         self.errors_modbus = self._add(4)
         self.relais_gpio = self._add(5)
-        self.temperature_cK = self._add(6, 8)
-        self.errors_ds18 = self._add(14, 8)
+        self.ds18_temperature_cK = self._add(6, 8)
+        self.ds18_ok_percent = self._add(14, 8)
 
     def _add(self, reg: int, count=1) -> Ireg:
         assert reg == self._next_reg
@@ -46,3 +46,6 @@ class IregsAll:
     @property
     def register_count(self) -> int:
         return self._next_reg
+
+
+IREGS_ALL = IregsAll()
