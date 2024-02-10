@@ -1,0 +1,30 @@
+Heizung D901, green
+
+00_project_library:LED GREEN
+ 1: K
+ 2: A
+00_project_library:LED_0603_1608Metric
+
+C2297, KT-0805G, 0805
+ 1: A
+ 2: K
+
+
+
+Filament Dryer, D9, g
+
+00_project_library:LED
+1: K
+2: A
+
+00_project_library:LED_0603_1608Metric
+
+
+C2297
+
+
+Fileament Dryer, D8, r
+
+C2286, KT-0603R, 0603
+1: A
+2: K

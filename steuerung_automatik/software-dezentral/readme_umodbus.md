@@ -8,6 +8,21 @@
 | Master | Slave | old |
 |  | Host | bad |
 
+
+## We use these two versions:
+
+* micropython modbus v2.3.7
+https://github.com/hmaerki/fork_micropython-modbus/tree/bugfix/on_get_cb-returnvalue-swallowed
+https://github.com/hmaerki/fork_micropython-modbus/tree/improve-uart_read_frame
+ ->  brainelectronics/micropython-modbus
+
+  * These files have been copied to `micropython/umodbus`
+
+      https://github.com/GimmickNG/pycopy-modbus/tree/mpmodbus-compatibility
+
+      This is a pull request for
+https://github.com/brainelectronics/micropython-modbus/pull/56
+
 ### Links
 
 * https://www.youtube.com/watch?v=goskYrT9-v4
@@ -23,11 +38,6 @@ https://github.com/brainelectronics/micropython-modbus/issues/7
 
 https://de.aliexpress.com/item/1005006139334276.html?spm=a2g0o.productlist.main.1.532f2b53qa7QVU&algo_pvid=1735452c-caac-4194-9ae6-d4f47a90db34&algo_exp_id=1735452c-caac-4194-9ae6-d4f47a90db34-0&pdp_npi=4%40dis%21CHF%216.52%212.02%21%21%2151.65%21%21%40210318ec17009369501343825ec69a%2112000035936433862%21sea%21CH%21848852944%21&curPageLogUid=cYlmtKU09Jsd
 
-
-### Version
-https://github.com/GimmickNG/pycopy-modbus/tree/mpmodbus-compatibility
-This is a pull request for
-https://github.com/brainelectronics/micropython-modbus/pull/56
 
 ## Documentation
 
