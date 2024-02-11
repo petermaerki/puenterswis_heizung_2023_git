@@ -5,5 +5,7 @@ steuerung_automatik/hardware/pcb_kicad/production/*
 steuerung_automatik/software-dezentral/micropython_bak/**
 /**/*gitignore*
 /**/*__pycache__*
+/**/*.FCBak*
+/**/*.bgcode*
 steuerung_automatik/software-zero/log/*
 steuerung_automatik/software-zero/install/622_pc_image_build-password.txt
