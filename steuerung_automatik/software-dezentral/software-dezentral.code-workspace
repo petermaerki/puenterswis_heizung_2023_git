@@ -21,57 +21,19 @@
 		"version": "0.2.0",
 		"configurations": [
 			{
-				"name": "Black",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "black",
-				"cwd": "${workspaceFolder:dezentral}",
-				"args": [
-					"--config=${workspaceFolder:repo}/.ruff.toml",
-					"."
-				],
-				"console": "integratedTerminal",
-				"justMyCode": true
-			},
-			{
 				"name": "Ruff",
 				"type": "debugpy",
 				"request": "launch",
 				"module": "ruff",
-				"cwd": "${workspaceFolder:dezentral}",
+				"cwd": "${workspaceFolder:repo}",
 				"console": "integratedTerminal",
 				"args": [
-					"check",
-					".",
-					"hsm",
+					"--config=${workspaceFolder:repo}/.ruff.toml",
+					"--fix",
+					"${workspaceFolder:zentral}",
+					"${workspaceFolder:dezentral}"
 				],
 				"justMyCode": true
-			},
-			{
-				"name": "Mypy",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "mypy",
-				"cwd": "${workspaceFolder:dezentral}",
-				"console": "integratedTerminal",
-				"args": [
-					"--config={workspaceFolder:repo}/.mypy.ini"
-				],
-				"justMyCode": true
-			},
-			{
-				"name": "Pylint",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "pylint",
-				"cwd": "${workspaceFolder:dezentral}",
-				"args": [
-					"--rcfile=${workspaceFolder:repo}/.pylintrc",
-					"--verbose",
-					"--recursive=yes",
-					"."
-				],
-				"console": "integratedTerminal"
 			},
 			{
 				"name": "run_from_pc (Micropython)",
@@ -95,8 +57,70 @@
 				"name": "run_zentral",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:zero}/src/run_zentral.py",
+				"module": "zentral.run_zentral",
 				"cwd": "${workspaceFolder:zero}",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "run_zentral Mocked",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "zentral.run_zentral",
+				"cwd": "${workspaceFolder:zero}",
+				"args": [
+					"--mocked"
+				],
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "run_zentral Fastapi",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "uvicorn",
+				"cwd": "${workspaceFolder:zentral}",
+				"args": [
+					"zentral.run_zentral_fastapi:app",
+					"--reload",
+					"--workers=1",
+					"--reload-dir=${workspaceFolder:repo}"
+				],
+				"env": {
+					"HEIZUNG2023_MOCKED": "0"
+				},
+				"console": "integratedTerminal",
+				"jinja": true,
+				"justMyCode": false
+			},
+			{
+				"name": "run_zentral Fastapi Mocked",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "uvicorn",
+				"cwd": "${workspaceFolder:zentral}",
+				"args": [
+					"zentral.run_zentral_fastapi:app",
+					"--reload",
+					"--workers=1",
+					"--reload-dir=${workspaceFolder:repo}"
+				],
+				"env": {
+					"HEIZUNG2023_MOCKED": "1"
+				},
+				"console": "integratedTerminal",
+				"jinja": true,
+				"justMyCode": false
+			},
+			{
+				"name": "util_ssh_repl",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "zentral.util_ssh_repl",
+				"cwd": "${workspaceFolder:zero}",
+				"args": [
+					"--mocked"
+				],
 				"console": "integratedTerminal",
 				"justMyCode": false
 			},
@@ -119,43 +143,29 @@
 		]
 	},
 	"settings": {
-		"python.formatting.provider": "black",
-		"python.linting.enabled": true,
-		"python.linting.pylintEnabled": false,
-		"python.linting.pylintArgs": [
-			"--rcfile=${workspaceFolder:repo}/.pylintrc"
-		],
-		"python.linting.cwd": "${workspaceFolder:dezentral}",
-		"python.linting.mypyEnabled": true,
 		// "python.testing.pytestArgs": [],
-		"python.testing.cwd": "${workspaceFolder}",
+		"python.testing.cwd": "${workspaceFolder:dezentral}",
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestEnabled": true,
+		"python.autoComplete.extraPaths": [
+			"${workspaceFolder:zentral}",
+			"${workspaceFolder:dezentral}"
+		],
+		"python.analysis.extraPaths": [
+			"${workspaceFolder:zentral}",
+			"${workspaceFolder:dezentral}"
+		],
 		"terminal.integrated.env.linux": {
-			"PYTHONPATH": "${workspaceFolder:dezentral}/micropython:${workspaceFolder:zentral}"
+			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
 		},
-		"python.linting.mypyArgs": [
-			"--config-file=${workspaceFolder}/.mypy.ini"
-		],
-		"ruff.organizeImports": true,
-		"ruff.fixAll": true,
-		"ruff.importStrategy": "fromEnvironment",
-		"ruff.args": [
-			"--config=${workspaceFolder}/.ruff.toml"
-		],
 		"[python]": {
-			"editor.defaultFormatter": "ms-python.black-formatter",
 			"editor.formatOnSave": true,
+			"editor.defaultFormatter": "charliermarsh.ruff",
 			"editor.codeActionsOnSave": {
-				"source.fixAll": "explicit",
-				"source.organizeImports": "explicit"
+				"source.organizeImports": "explicit",
+				"source.fixAll.ruff": "explicit"
 			}
 		},
-		// "isort.args": [
-		// 	"--profile",
-		// 	"black"
-		// ],
-		// "base", "forest", "dark", "default", "neutral"
 		"markdown-mermaid.lightModeTheme": "base",
 		"markdown-mermaid.darkModeTheme": "dark",
 		"files.exclude": {
@@ -164,7 +174,7 @@
 			"**/.pytest_cache/": true
 		},
 		"git.openRepositoryInParentFolders": "always",
-		"qtForPython.rcc.liveExecution.enabled": false
+		"python.analysis.autoSearchPaths": false,
 	},
 	"extensions": {
 		"recommendations": [
@@ -173,10 +183,6 @@
 			"hediet.vscode-drawio",
 			"joffreykern.markdown-toc",
 			"mhutchie.git-graph",
-			"ms-python.black-formatter",
-			"ms-python.isort",
-			"ms-python.mypy-type-checker",
-			"ms-python.pylint",
 			"ms-python.python"
 		]
 	}

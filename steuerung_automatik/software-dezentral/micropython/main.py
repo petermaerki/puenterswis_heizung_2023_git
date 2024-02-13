@@ -42,6 +42,7 @@ async def task_sensor_ds():
             ds.read_temp()
             await asyncio.sleep_ms(10)
 
+        hw.handle_ds_ok_led()
         wdt.feed_sensors()
 
 

@@ -1,43 +1,4 @@
-# scripts/example/simple_rtu_client.py
-import asyncio
 
-from pymodbus import ModbusException
-from pymodbus.client import AsyncModbusSerialClient
-
-
-class Relais:
-    def __init__(self, modbus: AsyncModbusSerialClient, modbus_address: int):
-        self._modbus = modbus
-        self._modbus_address = modbus_address
-
-    async def relais_set_obsolete(self):
-        for coils in ([1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 1]):
-            response = await self._modbus.write_coils(
-                slave=MODBUS_ADDRESS_RELAIS,
-                address=0,
-                values=coils,
-            )
-            print(response)
-
-            response = await self._modbus.read_coils(
-                slave=MODBUS_ADDRESS_RELAIS,
-                address=0,
-                count=8,
-            )
-            print(response)
-            await asyncio.sleep(0.5)
-
-    async def set(self, list_relays: tuple[bool]) -> None:
-        assert isinstance(list_relays, (list, tuple))
-        assert len(list_relays) == 8
-        response = await self._modbus.write_coils(
-            slave=self._modbus_address,
-            address=0,
-            values=list_relays,
-        )
-        if response.isError():
-            print("ERROR: pymodbus returned an error!")
-            raise ModbusException("Hallo")
 
 
 async def main():

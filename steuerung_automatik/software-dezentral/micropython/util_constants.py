@@ -8,5 +8,5 @@ VERSION_SW = to_version((0, 1, 0))
 
 DEVELOPMENT = True
 
-DAY_MS = const(24 * 60 * 60 * 1000)
-WEEK_MS = const(7 * DAY_MS)
+DAY_MS = 24 * 60 * 60 * 1000
+WEEK_MS = 7 * DAY_MS

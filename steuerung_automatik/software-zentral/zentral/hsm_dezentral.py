@@ -1,15 +1,20 @@
 import logging
-import typing
+from typing import TYPE_CHECKING
 
 from hsm import hsm
 
-from src.hsm_dezentral_signal import (
+from zentral.utils_logger import HsmLogger
+
+from zentral.hsm_dezentral_signal import (
     SignalDezentralBase,
     ModbusSuccess,
     ModbusFailed,
 )
-from utils_logger import ZeroLogger
-from util_history2 import History2
+from zentral.util_history2 import History2
+
+if TYPE_CHECKING:
+    from zentral.config_base import Haus
+    from zentral.util_modbus_haus import ModbusIregsAll
 
 logger = logging.getLogger(__name__)
 
@@ -17,18 +22,19 @@ logger = logging.getLogger(__name__)
 class HsmDezentral(hsm.HsmMixin):
     """ """
 
-    def __init__(self):
+    def __init__(self, haus: "Haus"):
         hsm.HsmMixin.__init__(self, mermaid_detailed=False, mermaid_entryexit=False)
-        self.set_logger(ZeroLogger(self))
-        self.modbus_success_values: List[int] = None
+        self._haus = haus
+        self.set_logger(HsmLogger(label=f"HsmHaus{haus.config_haus.nummer:02d}"))
         self.modbus_history = History2()
+        self.modbus_iregs_all: "ModbusIregsAll" = None
 
     def _handle_modbus(self, signal: SignalDezentralBase) -> bool:
         """
         returns True, if the signal was not handled
         """
         if isinstance(signal, ModbusSuccess):
-            self.modbus_success_values = signal.values
+            self.modbus_iregs_all = signal.modbus_iregs_all
             self.modbus_history.success()
             if self.modbus_history.ok:
                 raise hsm.StateChangeException(self.state_ok)

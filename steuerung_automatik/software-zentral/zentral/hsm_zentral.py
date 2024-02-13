@@ -1,10 +1,9 @@
 import logging
-import typing
 
 from hsm import hsm
 
-from src.hsm_zentral_signal import SignalZentralBase
-from src.utils_logger import ZeroLogger
+from zentral.hsm_zentral_signal import SignalZentralBase
+from zentral.utils_logger import HsmLogger
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ class HsmZentral(hsm.HsmMixin):
 
     def __init__(self):
         hsm.HsmMixin.__init__(self, mermaid_detailed=False, mermaid_entryexit=False)
-        self.set_logger(ZeroLogger(self))
+        self.set_logger(HsmLogger(label="HsmZentral"))
 
     @hsm.init_state
     def state_initializeing(self, signal: SignalZentralBase):

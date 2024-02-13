@@ -6,17 +6,14 @@ import os
 import pathlib
 import struct
 import sys
-import time
 
 import asyncssh
 from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
 from ptpython.repl import embed
-from pymodbus import Framer, ModbusException
+from pymodbus import Framer
 from pymodbus.client import AsyncModbusSerialClient
 from serial.tools import list_ports
 
-import config_base
-import config_bochs
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent.absolute()
 DIRECTORY_MICROPYTHON = (
@@ -25,7 +22,6 @@ DIRECTORY_MICROPYTHON = (
 assert DIRECTORY_MICROPYTHON.is_dir()
 sys.path.append(str(DIRECTORY_MICROPYTHON))
 
-import portable_modbus_registers
 
 modbus_time_1char_ms = 11 / 9600
 
