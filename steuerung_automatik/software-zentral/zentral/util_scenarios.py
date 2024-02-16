@@ -18,10 +18,11 @@
 """
 
 import abc
-from enum import StrEnum
 import dataclasses
 from typing import List, Optional, TYPE_CHECKING
 import logging
+
+from zentral.util_constants_haus import SpPosition
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -113,12 +114,6 @@ class ScenarioHausModbusException(ScenarioBase):
 
 
 SCENARIO_CLASSES.append(ScenarioHausModbusException)
-
-
-class SpPosition(StrEnum):
-    OBEN = "oben"
-    MITTE = "mitte"
-    UNTEN = "unten"
 
 
 @dataclasses.dataclass

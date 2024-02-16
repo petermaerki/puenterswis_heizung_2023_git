@@ -9,9 +9,7 @@ from zentral.util_scenarios import (
     ScenarioHausModbusError,
     ScenarioHausModbusException,
     ScenarioHausModbusWrongRegisterCount,
-    ScenarioHausSpTemperatureIncrease,
 )
-from micropython.portable_modbus_registers import IREGS_ALL
 
 if TYPE_CHECKING:
     from zentral.context_mock import ModbusMockClient
@@ -91,14 +89,6 @@ class ModbusWrapper:
             rsp.registers = rsp.registers[:-1]
 
         self._assert_register_count(rsp=rsp, expected_register_count=count)
-
-        scenario: ScenarioHausSpTemperatureIncrease = self._find_by_class_slave(
-            cls_scenario=ScenarioHausSpTemperatureIncrease,
-            slave=slave,
-        )
-        if scenario is not None:
-            for i in range(IREGS_ALL.ds18_temperature_cK.reg, IREGS_ALL.ds18_temperature_cK.reg + IREGS_ALL.ds18_temperature_cK.count):
-                rsp.registers[i] += scenario.delta_C * 100.0
 
         return rsp
 
