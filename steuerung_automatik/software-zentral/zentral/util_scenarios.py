@@ -19,10 +19,10 @@
 
 import abc
 import dataclasses
-from typing import List, Optional, TYPE_CHECKING
+from typing import Iterator, List, TYPE_CHECKING
 import logging
 
-from zentral.util_constants_haus import SpPosition
+from zentral.util_constants_haus import DS18Index, SpPosition
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -49,6 +49,12 @@ class Scenarios:
 
     def add(self, scenario: ScenarioBase) -> None:
         assert isinstance(scenario, ScenarioBase)
+
+        if isinstance(scenario, ScenarioClearScenarios):
+            logger.info("Scenario: Clear")
+            self._scenarios.clear()
+            return
+
         logger.info(f"Scenario: Add {scenario!r}")
         self._scenarios.append(scenario)
 
@@ -57,20 +63,7 @@ class Scenarios:
         logger.info(f"Scenario: Remove {scenario!r}")
         self._scenarios.remove(scenario)
 
-    def find_by_scenario(self, scenario: ScenarioBase) -> ScenarioBase:
-        repr_scenario = repr(scenario)
-        for scenario in self._scenarios:
-            if repr(scenario) == repr_scenario:
-                return scenario
-        raise KeyError(f"Scenario {scenario!r} not found!")
-
-    def find_by_class(self, cls_scenario) -> ScenarioBase:
-        for scenario in self._scenarios:
-            if scenario.__class__ is cls_scenario:
-                return scenario
-        raise KeyError(f"Scenario of class {cls_scenario.__name__} not found!")
-
-    def find_by_class_haus(self, cls_scenario, haus: "Haus") -> Optional[ScenarioBase]:
+    def iter_by_class_haus(self, cls_scenario, haus: "Haus") -> Iterator[ScenarioBase]:
         from zentral.config_base import Haus
 
         assert isinstance(haus, Haus)
@@ -78,15 +71,19 @@ class Scenarios:
             if scenario.__class__ is cls_scenario:
                 if scenario.haus_nummer is haus.config_haus.nummer:
                     scenario.decrement()
-                    return scenario
-        # raise KeyError(
-        #     f"Scenario of class {cls_scenario.__name__} and haus {haus.config_haus.nummer} not found!"
-        # )
-        return None
+                    yield scenario
 
 
 SCENARIOS = Scenarios()
 SCENARIO_CLASSES = []
+
+
+@dataclasses.dataclass
+class ScenarioClearScenarios(ScenarioBase):
+    pass
+
+
+SCENARIO_CLASSES.append(ScenarioClearScenarios)
 
 
 @dataclasses.dataclass
@@ -125,3 +122,14 @@ class ScenarioHausSpTemperatureIncrease(ScenarioBase):
 
 
 SCENARIO_CLASSES.append(ScenarioHausSpTemperatureIncrease)
+
+
+@dataclasses.dataclass
+class ScenarioHausSpDs18Broken(ScenarioBase):
+    haus_nummer: int = 13
+    ds18_index: DS18Index = DS18Index.UNTEN_A
+    ds18_ok_percent: int = 15
+    counter: int = 1
+
+
+SCENARIO_CLASSES.append(ScenarioHausSpDs18Broken)

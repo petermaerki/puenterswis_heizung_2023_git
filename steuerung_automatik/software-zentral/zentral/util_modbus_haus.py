@@ -65,12 +65,11 @@ class ModbusHaus:
         # haus.status_haus.modbus_history.success()
         modbus_iregs_all = ModbusIregsAll(rsp.registers)
 
-        scenario = SCENARIOS.find_by_class_haus(
+        for scenario in SCENARIOS.iter_by_class_haus(
             cls_scenario=ScenarioHausSpTemperatureIncrease,
             haus=self._haus,
-        )
-        if scenario is not None:
-            modbus_iregs_all.apply_scenario(scenario)
+        ):
+            modbus_iregs_all.apply_scenario_temperature_increase(scenario)
 
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all)
         haus.status_haus.hsm_dezentral.dispatch(ModbusSuccess(modbus_iregs_all=modbus_iregs_all))

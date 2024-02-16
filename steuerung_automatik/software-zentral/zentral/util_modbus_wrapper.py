@@ -1,7 +1,8 @@
-from typing import Any, TYPE_CHECKING, Union, List
+from typing import Any, TYPE_CHECKING, Iterator, Union, List
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
+from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
 from zentral.constants import ModbusExceptionIsError, ModbusExceptionRegisterCount
 from zentral.util_scenarios import (
     SCENARIOS,
@@ -9,6 +10,7 @@ from zentral.util_scenarios import (
     ScenarioHausModbusError,
     ScenarioHausModbusException,
     ScenarioHausModbusWrongRegisterCount,
+    ScenarioHausSpDs18Broken,
 )
 
 if TYPE_CHECKING:
@@ -39,14 +41,11 @@ class ModbusWrapper:
     async def close(self):
         await self._modbus_client.close()
 
-    def _find_by_class_slave(self, cls_scenario, slave: int) -> ScenarioBase | None:
+    def _iter_by_class_slave(self, cls_scenario, slave: int) -> Iterator[ScenarioBase]:
         haus = self._dict_modbus_server_id_2_haus.get(slave, None)
         if haus is None:
-            return None
-        return SCENARIOS.find_by_class_haus(
-            cls_scenario=cls_scenario,
-            haus=haus,
-        )
+            return
+        yield from SCENARIOS.iter_by_class_haus(cls_scenario=cls_scenario, haus=haus)
 
     def _assert_register_count(self, rsp: ModbusResponse, expected_register_count: int) -> None:
         register_count = len(rsp.registers)
@@ -60,7 +59,9 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        if self._find_by_class_slave(
+        assert address == EnumModbusRegisters.SETGET16BIT_ALL
+
+        for scenario in self._iter_by_class_slave(
             cls_scenario=ScenarioHausModbusException,
             slave=slave,
         ):
@@ -73,7 +74,7 @@ class ModbusWrapper:
             kwargs=kwargs,
         )
 
-        if self._find_by_class_slave(
+        for scenario in self._iter_by_class_slave(
             cls_scenario=ScenarioHausModbusError,
             slave=slave,
         ):
@@ -82,11 +83,14 @@ class ModbusWrapper:
         if rsp.isError():
             raise ModbusExceptionIsError("isError")
 
-        if self._find_by_class_slave(
-            cls_scenario=ScenarioHausModbusWrongRegisterCount,
-            slave=slave,
-        ):
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausModbusWrongRegisterCount, slave=slave):
             rsp.registers = rsp.registers[:-1]
+
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18Broken, slave=slave):
+            assert isinstance(scenario, ScenarioHausSpDs18Broken)
+            ds18_offset = IREGS_ALL.ds18_ok_percent.reg
+            reg_index = ds18_offset + scenario.ds18_index.index
+            rsp.registers[reg_index] = scenario.ds18_ok_percent
 
         self._assert_register_count(rsp=rsp, expected_register_count=count)
 
