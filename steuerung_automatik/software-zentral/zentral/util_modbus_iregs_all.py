@@ -3,7 +3,6 @@ from typing import List, TYPE_CHECKING
 
 
 from micropython.portable_modbus_registers import IREGS_ALL
-from zentral.util_constants_haus import DS18_PAIR_POSITIONS_HAUS
 
 
 from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair
@@ -48,7 +47,11 @@ class ModbusIregsAll:
         def get_DS18(i) -> DS18:
             ds18_temperature_cK = IREGS_ALL.ds18_temperature_cK.get_value(registers, i)
             ds18_ok_percent = IREGS_ALL.ds18_ok_percent.get_value(registers, i)
-            return DS18(i=i, temperature_C=ds18_temperature_cK / 100.0 - 273.15, ds18_ok_percent=ds18_ok_percent)
+            return DS18(
+                i=i,
+                temperature_C=ds18_temperature_cK / 100.0 - 273.15,
+                ds18_ok_percent=ds18_ok_percent,
+            )
 
         def get_DS18_Pair(i) -> DS18_Pair:
             return DS18_Pair(a=get_DS18(2 * i), b=get_DS18(2 * i + 1))
@@ -58,10 +61,9 @@ class ModbusIregsAll:
         # print(f"Hallo: {registers}")
 
     def get_ds18_pair(self, position: SpPosition) -> DS18_Pair:
-        i = DS18_PAIR_POSITIONS_HAUS[position]
-        return self.pairs_ds18[i]
+        return self.pairs_ds18[position.ds18_pair_index]
 
-    def apply_scenario(self, scenario) -> bool:
+    def apply_scenario_temperature_increase(self, scenario) -> bool:
         assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
 
         ds18_pair = self.get_ds18_pair(position=scenario.position)
