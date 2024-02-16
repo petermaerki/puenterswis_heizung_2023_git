@@ -13,6 +13,10 @@ from zentral.hsm_dezentral_signal import ModbusSuccess
 from zentral.util_influxdb import Grafana
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 from zentral.util_modbus_wrapper import ModbusWrapper
+from zentral.util_scenarios import (
+    SCENARIOS,
+    ScenarioHausSpTemperatureIncrease,
+)
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -60,6 +64,14 @@ class ModbusHaus:
         # haus.status_haus.modbus_success_iregs = response
         # haus.status_haus.modbus_history.success()
         modbus_iregs_all = ModbusIregsAll(rsp.registers)
+
+        scenario = SCENARIOS.find_by_class_haus(
+            cls_scenario=ScenarioHausSpTemperatureIncrease,
+            haus=self._haus,
+        )
+        if scenario is not None:
+            modbus_iregs_all.apply_scenario(scenario)
+
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all)
         haus.status_haus.hsm_dezentral.dispatch(ModbusSuccess(modbus_iregs_all=modbus_iregs_all))
         logger.debug(f"{haus.label}: Iregsall: {rsp.registers}")

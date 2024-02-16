@@ -3,9 +3,14 @@ from typing import List, TYPE_CHECKING
 
 
 from micropython.portable_modbus_registers import IREGS_ALL
+from zentral.util_constants_haus import DS18_PAIR_POSITIONS_HAUS
 
 
 from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair
+from zentral.util_scenarios import (
+    ScenarioHausSpTemperatureIncrease,
+    SpPosition,
+)
 
 if TYPE_CHECKING:
     pass
@@ -51,3 +56,13 @@ class ModbusIregsAll:
         self.pairs_ds18 = [get_DS18_Pair(i) for i in range(DS18_PAIR_COUNT)]
         # Hallo: [10000, 100, 1, 1200, 42, 0, 0, 0, 29359, 29365, 29378, 29346, 29352, 29359, 0, 0, 100, 100, 100, 100, 100, 100]
         # print(f"Hallo: {registers}")
+
+    def get_ds18_pair(self, position: SpPosition) -> DS18_Pair:
+        i = DS18_PAIR_POSITIONS_HAUS[position]
+        return self.pairs_ds18[i]
+
+    def apply_scenario(self, scenario) -> bool:
+        assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
+
+        ds18_pair = self.get_ds18_pair(position=scenario.position)
+        ds18_pair.increment_C(scenario.delta_C)

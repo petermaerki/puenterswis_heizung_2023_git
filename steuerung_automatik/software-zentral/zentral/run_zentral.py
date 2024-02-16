@@ -21,7 +21,7 @@ async def main():
     args = parser.parse_args()
     ContextClass = ContextMock if args.mocked else Context
 
-    async with ContextClass(config_bochs.config_etappe_bochs) as ctx:
+    async with ContextClass(config_bochs.create_config_bochs()) as ctx:
         await asyncio.create_task(ctx.modbus_communication.task_modbus())
 
     # await interactive_shell()

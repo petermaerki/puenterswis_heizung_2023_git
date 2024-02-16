@@ -59,3 +59,9 @@ class DS18_Pair:
         self.error_C = DS18_REDUNDANCY_WARNING_C
         if a_broken:
             self.temperature_C = self.b.temperature_C
+
+    def increment_C(self, delta_C: float) -> None:
+        """
+        This allows to mock the current reading
+        """
+        self.temperature_C += delta_C
