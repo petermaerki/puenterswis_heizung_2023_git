@@ -1,20 +1,37 @@
 import asyncio
 import logging
-from typing import Dict, List
-
-from influxdb_client import Point
+from typing import Dict, List, Union
+from hsm import hsm
+from influxdb_client import Point, DeleteApi
 from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
 from zentral.config_base import Haus
 
 from zentral.config_secrets import InfluxSecrets
+from zentral.util_constants_haus import SpPosition
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
 logger = logging.getLogger(__name__)
 
 
-class Grafana:
+class InfluxRecords:
+    def __init__(self, haus: Haus):
+        self._dict_tags = {
+            "position": haus.influx_tag,  # "haus_08", "zentral"
+            "etappe": haus.config_haus.bauetappe.name,  # "puent"
+            "haus": haus.config_haus.nummer,
+        }
+        self._records: List[Dict] = []
+
+    def add_fields(self, fields: Dict[str, Union[float, int]]):
+        self._records.append(
+            {"measurement": "Heizung", "tags": self._dict_tags, "fields": fields},
+        )
+
+
+class Influx:
     def __init__(self, etappe: str):
         secrets = InfluxSecrets(etappe=etappe)
+        self._secrets = secrets
         self._etappe = etappe
         self._client = InfluxDBClientAsync(url=secrets.url, token=secrets.token, org=secrets.org)
         self._bucket = secrets.bucket
@@ -23,12 +40,28 @@ class Grafana:
     async def close(self):
         await self._client.close()
 
-    async def write(self, haus: Haus, fields: Dict[str, float]):
+    async def delete_bucket(self) -> None:
+        # Delete all points from bucket
+        delete_api = DeleteApi(self._client)
+        await delete_api.delete(
+            start="2020-01-01T00:00:00Z",
+            stop="2060-01-01T00:00:00Z",
+            predicate="",
+            bucket=self._secrets.bucket,
+        )
+        logger.warning(f"Deleted Bucket {self._secrets.bucket}")
+
+    async def write_records(self, records: InfluxRecords):
+        success = await self._api.write(bucket=self._bucket, record=records._records)
+        if not success:
+            logger.error("Failed to write to influx")
+
+    async def write_obsolete(self, haus: Haus, fields: Dict[str, Union[float, int]]):
         # version = await self._client.version()
         # logger.info(f"InfluxDB: {version}")
 
         dict_tags = {
-            "position": haus.grafana_tag,  # "haus_08", "zentral"
+            "position": haus.influx_tag,  # "haus_08", "zentral"
             "etappe": self._etappe,  # "puent"
             "haus": haus.config_haus.nummer,
         }
@@ -58,16 +91,57 @@ class Grafana:
             logger.error("Failed to write to influx")
 
     async def send_modbus_iregs_all(self, haus: "Haus", modbus_iregs_all: "ModbusIregsAll") -> None:
-        fields: List[str:str] = {}
-        for i, tag in (
-            (1, "sp_oben"),
-            (2, "sp_mitte"),
-            (3, "sp_unten"),
-        ):
-            pair_ds18 = modbus_iregs_all.pairs_ds18[i]
-            fields[f"{tag}_temperature_C"] = pair_ds18.temperature_C
-            fields[f"{tag}_error_C"] = pair_ds18.error_C
-        await self.write(haus=haus, fields=fields)
+        r = InfluxRecords(haus=haus)
+        fields: Dict[str, float] = {}
+        for p in SpPosition:
+            pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
+            fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
+            fields[f"{p.tag}_error_C"] = pair_ds18.error_C
+        r.add_fields(fields=fields)
+        await self.write_records(records=r)
+
+    async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
+        offset_total = 0.8
+        anzahl_haeuser = len(haus.config_haus.bauetappe.dict_haeuser)
+        offset = haus.config_haus.haus_idx0 * offset_total / (anzahl_haeuser - 1)
+        state_value = state.value + offset
+        # print(haus.influx_tag, state_value)
+        r = InfluxRecords(haus=haus)
+        r.add_fields(
+            {
+                "hsm_state_value": state_value,
+                "modbus_ok_percent": haus.status_haus.hsm_dezentral.modbus_history.percent,
+            }
+        )
+        await self.write_records(records=r)
+
+
+class HsmInfluxLogger(hsm.HsmLoggerProtocol):
+    def __init__(self, haus: Haus, grafana: Influx):
+        self._haus = haus
+        self._grafana = grafana
+
+    def fn_log_debug(self, msg: str) -> None:
+        pass
+
+    def fn_log_info(self, msg: str) -> None:
+        pass
+
+    def fn_state_change(
+        self,
+        before: hsm.HsmState,
+        after: hsm.HsmState,
+        why: str,
+        list_entry_exit: List[str],
+    ) -> None:
+        if before == after:
+            return
+
+        async def asyncfunc():
+            await self._grafana.send_hsm_dezental(haus=self._haus, state=before)
+            await self._grafana.send_hsm_dezental(haus=self._haus, state=after)
+
+        asyncio.ensure_future(asyncfunc())
 
 
 async def main():

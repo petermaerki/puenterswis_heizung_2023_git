@@ -107,7 +107,10 @@ SCENARIO_CLASSES.append(ScenarioHausModbusWrongRegisterCount)
 @dataclasses.dataclass
 class ScenarioHausModbusException(ScenarioBase):
     haus_nummer: int = 13
-    counter: int = 1
+    counter: int = 60
+    """
+    After 50 exceptions, hsm dezentral will change to "error_lost"
+    """
 
 
 SCENARIO_CLASSES.append(ScenarioHausModbusException)
