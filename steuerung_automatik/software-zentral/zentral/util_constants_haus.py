@@ -14,6 +14,10 @@ class SpPosition(StrEnum):
             self.OBEN: 3,
         }[self]
 
+    @property
+    def tag(self) -> str:
+        return f"sp_{self.value}"
+
 
 class DS18Index(StrEnum):
     """

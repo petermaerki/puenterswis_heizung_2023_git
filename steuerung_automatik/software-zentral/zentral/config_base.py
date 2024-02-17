@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Union
 from enum import IntEnum
 
 from zentral.hsm_dezentral import HsmDezentral
@@ -9,7 +9,7 @@ class StatusHaus:
     def __init__(self, haus: "Haus"):
         self.hsm_dezentral = HsmDezentral(haus=haus)
 
-    def get_grafana_fields(self) -> Dict[str, float]:
+    def get_influx_fields(self) -> Dict[str, float]:
         return {}
 
     # modbus_success_s: Median = dataclasses.field(default_factory=lambda: Median(0.0))
@@ -40,6 +40,12 @@ class ConfigHaus:
     def modbus_server_id(self) -> int:
         return self.nummer + 100
 
+    @property
+    def haus_idx0(self) -> int:
+        idx0 = self.nummer - self.bauetappe.lowest_haus_nummer
+        assert idx0 >= 0
+        return idx0
+
     # def __hash__(self):
     #     return self.haus.nummer
 
@@ -48,7 +54,7 @@ class ConfigHaus:
 class Haus:
     config_haus: ConfigHaus = dataclasses.field(hash=True, compare=False)
     # status_haus: StatusHaus = dataclasses.field(default_factory=lambda: StatusHaus(), hash=False, compare=False)
-    status_haus: Optional[StatusHaus] = dataclasses.field(default=None, hash=False, compare=False)
+    status_haus: Union[StatusHaus, None] = dataclasses.field(default=None, hash=False, compare=False)
 
     def __post_init__(self):
         self.config_haus.bauetappe.append_haus(self)
@@ -62,7 +68,7 @@ class Haus:
         return f"Haus {self.config_haus.nummer}(modbus={self.config_haus.modbus_server_id})"
 
     @property
-    def grafana_tag(self) -> str:
+    def influx_tag(self) -> str:
         return f"haus_{self.config_haus.nummer:02d}"
 
 
@@ -72,26 +78,39 @@ class ConfigEtappe:
     name: str
     dict_haeuser: Dict[int, Haus] = dataclasses.field(default_factory=dict, repr=False)
     haus_enum: IntEnum | None = None
+    lowest_haus_nummer: int | None = None
 
     def append_haus(self, haus: Haus):
+        assert self.lowest_haus_nummer is None
         self.dict_haeuser[haus.config_haus.nummer] = haus
         self.haus_enum = IntEnum(
             "haus_enum",
             {f"HAUS_{h.config_haus.nummer}": h.config_haus.nummer for h in self.dict_haeuser.values()},
         )
 
+    def init(self) -> None:
+        assert self.lowest_haus_nummer is None
+
+        self.lowest_haus_nummer = 1000
+        for haus in self.dict_haeuser.values():
+            self.lowest_haus_nummer = min(self.lowest_haus_nummer, haus.config_haus.nummer)
+
     @property
-    def haeuser(self) -> Tuple[Haus]:
+    def haeuser(self) -> List[Haus]:
         return sorted(self.dict_haeuser.values())
 
     def get_haus_by_nummer(self, nummer: int) -> Haus:
-        for haus in self.haeuser:
-            if haus.config_haus.nummer == nummer:
-                return haus
-        raise AttributeError(f"Haus mit nummer {nummer} nicht gefunden")
+        assert self.lowest_haus_nummer is not None
+
+        try:
+            return self.dict_haeuser[nummer]
+        except KeyError as ex:
+            raise AttributeError(f"Haus mit nummer {nummer} nicht gefunden") from ex
 
     def get_haus_by_modbus_server_id(self, modbus_server_id: int) -> Haus:
-        for haus in self.haeuser:
+        assert self.lowest_haus_nummer is not None
+
+        for haus in self.dict_haeuser.values():
             if haus.config_haus.modbus_server_id == modbus_server_id:
                 return haus
         raise AttributeError(f"Haus mit modbus_server_id {modbus_server_id} nicht gefunden")

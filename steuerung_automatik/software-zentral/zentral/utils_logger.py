@@ -3,14 +3,15 @@
 import logging
 from typing import List
 
-from hsm.hsm import HsmLogger, HsmState
+from hsm.hsm import HsmLoggerProtocol, HsmState
+
 
 from zentral.constants import DIRECTORY_LOG
 
 logger = logging.getLogger(__name__)
 
 
-class HsmLogger(HsmLogger):
+class HsmLoggingLogger(HsmLoggerProtocol):
     def __init__(self, label: str):
         self._label = label
 

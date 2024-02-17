@@ -30,9 +30,12 @@ async def lifespan(app: FastAPI):
     cls_ctx = ContextMock if mocked else Context
 
     async with cls_ctx(config_bochs.create_config_bochs()) as ctx:
+        await ctx.init()
+
         globals.ctx = ctx
 
         asyncio.create_task(ctx.modbus_communication.task_modbus())
+        asyncio.create_task(ctx.task_hsm())
         yield
 
 

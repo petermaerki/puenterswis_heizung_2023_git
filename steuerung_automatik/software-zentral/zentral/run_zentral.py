@@ -22,11 +22,14 @@ async def main():
     ContextClass = ContextMock if args.mocked else Context
 
     async with ContextClass(config_bochs.create_config_bochs()) as ctx:
-        await asyncio.create_task(ctx.modbus_communication.task_modbus())
+        await ctx.init()
 
-    # await interactive_shell()
-    await asyncio.Future()  # Wait forever.
-    print("Done")
+        asyncio.create_task(ctx.modbus_communication.task_modbus())
+        asyncio.create_task(ctx.task_hsm())
+
+        # await interactive_shell()
+        await asyncio.Future()  # Wait forever.
+        print("Done")
 
 
 if __name__ == "__main__":

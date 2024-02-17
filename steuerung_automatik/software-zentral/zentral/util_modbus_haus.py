@@ -10,7 +10,7 @@ from zentral import hsm_dezentral_signal
 
 from zentral.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
 from zentral.hsm_dezentral_signal import ModbusSuccess
-from zentral.util_influxdb import Grafana
+from zentral.util_influx import Influx
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import (
@@ -47,7 +47,7 @@ class ModbusHaus:
         logger.debug(f"{haus.label}: SETGET16BIT_RELAIS_GPIO: {rsp.registers}")
         await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
 
-    async def handle_haus(self, haus: "Haus", grafana=Grafana) -> None:
+    async def handle_haus(self, haus: "Haus", grafana=Influx) -> None:
         try:
             rsp = await self._modbus.read_input_registers(
                 slave=haus.config_haus.modbus_server_id,
@@ -61,8 +61,6 @@ class ModbusHaus:
             await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             return
 
-        # haus.status_haus.modbus_success_iregs = response
-        # haus.status_haus.modbus_history.success()
         modbus_iregs_all = ModbusIregsAll(rsp.registers)
 
         for scenario in SCENARIOS.iter_by_class_haus(

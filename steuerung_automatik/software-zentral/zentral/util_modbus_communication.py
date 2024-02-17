@@ -4,6 +4,7 @@ import typing
 
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
+from zentral.util_influx import InfluxRecords
 
 from zentral.util_modbus_wrapper import ModbusWrapper
 
@@ -48,11 +49,12 @@ class ModbusCommunication:
 
         for haus in self._context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
-            await modbus_haus.handle_haus(haus, self._context.grafana)
+            await modbus_haus.handle_haus(haus, self._context.influx)
             await modbus_haus.handle_haus_relais(haus)
 
-            grafana_fields = haus.status_haus.get_grafana_fields()
-            await self._context.grafana.write(haus=haus, fields=grafana_fields)
+            r = InfluxRecords(haus=haus)
+            r.add_fields(haus.status_haus.get_influx_fields())
+            await self._context.influx.write_records(records=r)
 
             # await self.reboot_reset(haus=haus)
 
