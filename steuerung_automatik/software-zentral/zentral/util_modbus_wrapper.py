@@ -1,21 +1,22 @@
-from typing import Any, TYPE_CHECKING, Iterator, Union, List
+from typing import TYPE_CHECKING, Any, Iterator, List, Union
+
+from micropython.portable_modbus_registers import (IREGS_ALL,
+                                                   EnumModbusRegisters)
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
-from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
-from zentral.constants import ModbusExceptionIsError, ModbusExceptionRegisterCount
-from zentral.util_scenarios import (
-    SCENARIOS,
-    ScenarioBase,
-    ScenarioHausModbusError,
-    ScenarioHausModbusException,
-    ScenarioHausModbusWrongRegisterCount,
-    ScenarioHausSpDs18Broken,
-)
+
+from zentral.constants import (ModbusExceptionIsError,
+                               ModbusExceptionRegisterCount)
+from zentral.util_scenarios import (SCENARIOS, ScenarioBase,
+                                    ScenarioHausModbusError,
+                                    ScenarioHausModbusException,
+                                    ScenarioHausModbusWrongRegisterCount,
+                                    ScenarioHausSpDs18Broken)
 
 if TYPE_CHECKING:
-    from zentral.context_mock import ModbusMockClient
     from zentral.context import Context
+    from zentral.context_mock import ModbusMockClient
 
 
 class ModbusWrapper:
@@ -138,7 +139,7 @@ class ModbusWrapper:
     async def write_coils(
         self,
         address: int,
-        values: list[bool] | bool,
+        values,
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:

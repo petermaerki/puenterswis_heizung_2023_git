@@ -1,23 +1,17 @@
 from typing import Any, List
 
-
-from zentral.constants import (
-    MODBUS_ADDRESS_ADC,
-    MODBUS_ADDRESS_BELIMO,
-    MODBUS_ADDRESS_RELAIS,
-)
-from zentral.config_base import ConfigEtappe, Haus
-from pymodbus.pdu import ModbusResponse
-from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from micropython import util_constants
+from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from pymodbus.client import AsyncModbusSerialClient
-from zentral.util_modbus_communication import ModbusCommunication
+from pymodbus.pdu import ModbusResponse
+
+from zentral import (util_modbus_adc, util_modbus_mischventil,
+                     util_modbus_relais)
+from zentral.config_base import ConfigEtappe, Haus
+from zentral.constants import (MODBUS_ADDRESS_ADC, MODBUS_ADDRESS_BELIMO,
+                               MODBUS_ADDRESS_RELAIS)
 from zentral.context import Context
-
-from zentral import util_modbus_adc
-from zentral import util_modbus_mischventil
-from zentral import util_modbus_relais
-
+from zentral.util_modbus_communication import ModbusCommunication
 
 _DS_COUNT = 8
 
@@ -94,7 +88,7 @@ class ModbusMockClient:
     async def write_coils(
         self,
         address: int,
-        values: list[bool] | bool,
+        values,
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:

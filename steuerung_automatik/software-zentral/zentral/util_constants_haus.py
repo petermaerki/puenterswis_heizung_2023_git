@@ -1,7 +1,7 @@
-from enum import StrEnum, auto
+from enum import Enum, auto
 
 
-class SpPosition(StrEnum):
+class SpPosition(Enum):
     UNTEN = "unten"
     MITTE = "mitte"
     OBEN = "oben"
@@ -19,7 +19,7 @@ class SpPosition(StrEnum):
         return f"sp_{self.value}"
 
 
-class DS18Index(StrEnum):
+class DS18Index(Enum):
     """
     This corresponds to sensor numbering on the Dezentral BCB.
     """

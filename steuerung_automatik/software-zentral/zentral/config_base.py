@@ -1,6 +1,6 @@
 import dataclasses
-from typing import Dict, List, Union
 from enum import IntEnum
+from typing import Dict, List, Union
 
 from zentral.hsm_dezentral import HsmDezentral
 
@@ -77,8 +77,8 @@ class ConfigEtappe:
     tag: str
     name: str
     dict_haeuser: Dict[int, Haus] = dataclasses.field(default_factory=dict, repr=False)
-    haus_enum: IntEnum | None = None
-    lowest_haus_nummer: int | None = None
+    haus_enum  = None
+    lowest_haus_nummer = None
 
     def append_haus(self, haus: Haus):
         assert self.lowest_haus_nummer is None

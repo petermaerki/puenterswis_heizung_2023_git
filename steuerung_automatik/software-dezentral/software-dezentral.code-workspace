@@ -60,6 +60,9 @@
 				"module": "zentral.run_zentral",
 				"cwd": "${workspaceFolder:zero}",
 				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
+				},
 				"justMyCode": false
 			},
 			{
@@ -156,6 +159,9 @@
 			"${workspaceFolder:dezentral}"
 		],
 		"terminal.integrated.env.linux": {
+			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
+		},
+		"terminal.integrated.env.windows": {
 			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
 		},
 		"[python]": {
