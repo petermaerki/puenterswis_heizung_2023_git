@@ -1,0 +1,19 @@
+# https://www.shubhamdipt.com/blog/how-to-create-a-systemd-service-in-linux/
+# https://linuxhandbook.com/create-systemd-services/
+
+[Unit]
+Description=Heizung app
+
+[Service]
+Environment=PYTHONPATH=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral:/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-dezentral
+User=zero
+WorkingDirectory=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral
+ExecStart=python -m zentral.run_zentral
+Restart=always
+# RestartSec=5min 20s
+RestartSec=60
+# StandardOutput=syslog
+# StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

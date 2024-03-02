@@ -29,6 +29,7 @@ GID_ZERO = 1000
 
 STAT_RW = stat.S_IRUSR | stat.S_IWUSR
 STAT_RW_R_R = STAT_RW | stat.S_IRGRP | stat.S_IROTH
+STAT_RWX_RX_RX = STAT_RW_R_R | stat.S_IXGRP | stat.S_IXOTH
 STAT_RW_RW_R = STAT_RW_R_R | stat.S_IWGRP
 
 
@@ -148,7 +149,6 @@ def install_file(
     if mode is not None:
         assert isinstance(mode, int)
         filename_out.chmod(mode=mode)
-
 
 def copy_ssh() -> None:
     def copyssh_file(filename: pathlib.Path) -> None:

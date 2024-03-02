@@ -39,27 +39,27 @@ class ModbusRegisters:
         )
 
     def _set_reboot_reset(self, reg_type, address, val):
-        print(f"Modbus SETGET1BIT_REBOOT_RESET {val=}")
+        # print(f"Modbus SETGET1BIT_REBOOT_RESET {val=}")
         print("machine.reset()\n\n\n")
         machine.reset()
 
     def _set_reboot_watchdog(self, reg_type, address, val):
-        print(f"Modbus SETGET1BIT_REBOOT_WATCHDOG {val=}")
+        # print(f"Modbus SETGET1BIT_REBOOT_WATCHDOG {val=}")
         self._wdt_disable_feed_cb()
 
     def _get_relais_gpio(self, reg_type, address, val):
         assert len(val) == 1
         val[0] = self._relais_gpio_value
-        print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
+        # print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
 
     def _set_relais_gpio(self, reg_type, address, val):
-        print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
-        x = RelaisGpioBits(value=val[0])
-        self._hw.PIN_RELAIS.value(x.relais_valve_open)
-        self._hw.led_zentrale_blink = x.led_zentrale_blink
-        self._hw.led_zentrale_on = x.led_zentrale_on
+        # print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
+        bits = RelaisGpioBits(value=val[0])
+        self._hw.PIN_RELAIS.value(bits.relais_valve_open)
+        self._hw.led_zentrale_blink = bits.led_zentrale_blink
+        self._hw.led_zentrale_on = bits.led_zentrale_on
         if not self._hw.led_zentrale_blink:
-            self._hw.PIN_LED_ZENTRALE.value(x.led_zentrale_on)
+            self._hw.PIN_LED_ZENTRALE.value(bits.led_zentrale_on)
 
     @property
     def _relais_gpio_value(self) -> int:
@@ -67,7 +67,7 @@ class ModbusRegisters:
         v.relais = self._hw.PIN_RELAIS.value()
         v.button_zentrale = not self._hw.PIN_BUTTON_ZENTRALE.value()
         v.set_led_zentrale(
-            on=self._hw.PIN_LED_ZENTRALE.value(),
+            on=self._hw.led_zentrale_on,
             blink=self._hw.led_zentrale_blink,
         )
         return v.value
