@@ -4,6 +4,10 @@ stateDiagram-v2
     state error
     error --> error: Dummy
 
+    hardwaretest: hardwaretest
+    state hardwaretest
+    hardwaretest --> hardwaretest: Dummy
+
     initializeing: initializeing
     state initializeing
 

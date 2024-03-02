@@ -35,6 +35,7 @@ class DS18_Pair:
     b: DS18
     error_C: float = None
     temperature_C: float = DS18_FALLBACK_C
+    error_any = True
 
     def __post_init__(self):
         a_ok = self.a.is_ok
@@ -53,6 +54,7 @@ class DS18_Pair:
             if diff_C > abs(DS18_REDUNDANCY_ACCEPTABLE_DIFF_C):
                 self.error_C = diff_C
             self.temperature_C = self.a.temperature_C
+            self.error_any = False
             return
 
         # Exactly one sensor broken

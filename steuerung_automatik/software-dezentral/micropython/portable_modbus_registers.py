@@ -1,3 +1,63 @@
+class RelaisGpioBits:
+    """
+    RelaisGpio is a 16 bit register word.
+    This enum specifies the use of each bit
+    """
+
+    RELAIS_VALVE_OPEN = 0
+    BUTTON_ZENTRALE = 1
+    LED_ZENTRALE_ON = 2
+    LED_ZENTRALE_BLINK = 3
+
+    def __init__(self, value):
+        assert isinstance(value, int)
+        self.value = value
+
+    def _set(self, value: int, bit: int) -> None:
+        assert isinstance(bit, int)
+        assert value in (0, 1)
+        mask = 0x01 << bit
+        # Set bit to 0
+        self.value &= ~mask
+        # Set bit if needed
+        if value:
+            self.value |= mask
+
+    def _get(self, bit: int) -> bool:
+        return 0x01 & (self.value >> bit)
+
+    @property
+    def relais_valve_open(self) -> bool:
+        return self._get(self.RELAIS_VALVE_OPEN)
+
+    @relais_valve_open.setter
+    def relais_valve_open(self, value: bool) -> None:
+        self._set(value=value, bit=self.RELAIS_VALVE_OPEN)
+
+    @property
+    def button_zentrale(self) -> bool:
+        return self._get(self.BUTTON_ZENTRALE)
+
+    @button_zentrale.setter
+    def button_zentrale(self, value: bool) -> None:
+        self._set(value=value, bit=self.BUTTON_ZENTRALE)
+
+    @property
+    def led_zentrale_on(self) -> bool:
+        return self._get(self.LED_ZENTRALE_ON)
+
+    @property
+    def led_zentrale_blink(self) -> bool:
+        return self._get(self.LED_ZENTRALE_BLINK)
+
+    def set_led_zentrale(self, on, blink) -> None:
+        assert on in (0, 1)
+        assert blink in (0, 1)
+        assert not (on and blink), f"Only 'on' OR 'blink' is allowed: {on=} {blink=}"
+        self._set(value=on, bit=self.LED_ZENTRALE_ON)
+        self._set(value=blink, bit=self.LED_ZENTRALE_BLINK)
+
+
 class EnumModbusRegisters:
     SETGET1BIT_REBOOT_RESET = 0x20
     SETGET1BIT_REBOOT_WATCHDOG = 0x21

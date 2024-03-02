@@ -9,10 +9,10 @@ class SignalDezentralBase:
         return self.__class__.__name__
 
 
-class ModbusSuccess(SignalDezentralBase):
+class SignalModbusSuccess(SignalDezentralBase):
     def __init__(self, modbus_iregs_all: "ModbusIregsAll"):
         self.modbus_iregs_all: "ModbusIregsAll" = modbus_iregs_all
 
 
-class ModbusFailed(SignalDezentralBase):
+class SignalModbusFailed(SignalDezentralBase):
     pass

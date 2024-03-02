@@ -24,6 +24,17 @@ def create_config_bochs() -> ConfigEtappe:
             bauetappe=config,
         )
     )
+
+    for nummer in (14, 15, 16, 17, 18, 19, 20, 21):
+        Haus(
+            config_haus=ConfigHaus(
+                nummer=nummer,
+                addresse=f"Zelglistrasse x{nummer}",
+                bewohner="Hans und Peter Muster",
+                bauetappe=config,
+            )
+        )
+
     return config
 
 

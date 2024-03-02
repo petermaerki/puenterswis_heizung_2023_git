@@ -13,3 +13,4 @@ steuerung_automatik/software-zero/install/622_pc_image_build-password.txt
 steuerung_automatik/software-zero/keys/*/id_rsa
 steuerung_automatik/software-zentral/log/*
 steuerung_automatik/software-zentral/zentral/config_secrets.py
+steuerung_automatik/software-zero/config/raspi_os_config.py

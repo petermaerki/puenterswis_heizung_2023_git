@@ -5,7 +5,7 @@ Function codes: See https://en.wikipedia.org/wiki/Modbus
 import machine
 import util_constants
 from hardware import Hardware
-from portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
+from portable_modbus_registers import IREGS_ALL, EnumModbusRegisters, RelaisGpioBits
 from umodbus.asynchronous.serial import AsyncModbusRTU
 
 
@@ -48,14 +48,29 @@ class ModbusRegisters:
         self._wdt_disable_feed_cb()
 
     def _get_relais_gpio(self, reg_type, address, val):
-        value = self._hw.PIN_RELAIS.value()
-        val[0] = value
+        assert len(val) == 1
+        val[0] = self._relais_gpio_value
         print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
 
     def _set_relais_gpio(self, reg_type, address, val):
         print(f"Modbus SETGET16BIT_RELAIS_GPIO {val=}")
-        value = val[0]
-        self._hw.PIN_RELAIS.value(value)
+        x = RelaisGpioBits(value=val[0])
+        self._hw.PIN_RELAIS.value(x.relais_valve_open)
+        self._hw.led_zentrale_blink = x.led_zentrale_blink
+        self._hw.led_zentrale_on = x.led_zentrale_on
+        if not self._hw.led_zentrale_blink:
+            self._hw.PIN_LED_ZENTRALE.value(x.led_zentrale_on)
+
+    @property
+    def _relais_gpio_value(self) -> int:
+        v = RelaisGpioBits(0)
+        v.relais = self._hw.PIN_RELAIS.value()
+        v.button_zentrale = not self._hw.PIN_BUTTON_ZENTRALE.value()
+        v.set_led_zentrale(
+            on=self._hw.PIN_LED_ZENTRALE.value(),
+            blink=self._hw.led_zentrale_blink,
+        )
+        return v.value
 
     def _get_all(self, reg_type, address, val):
         # print(f"Modbus SETGET16BIT_ALL {val=}")
@@ -66,7 +81,7 @@ class ModbusRegisters:
         a.reset_cause.set_value(val, machine.reset_cause())
         a.uptime_s.set_value(val, self._hw.uptime_ms // 1000)
         a.errors_modbus.set_value(val, 42)
-        a.relais_gpio.set_value(val, self._hw.PIN_RELAIS.value())
+        a.relais_gpio.set_value(val, self._relais_gpio_value)
         assert len(self._hw.sensors_ds) == a.ds18_temperature_cK.count
         for i, ds in enumerate(self._hw.sensors_ds):
             a.ds18_ok_percent.set_value(val, ds.history.percent, i)

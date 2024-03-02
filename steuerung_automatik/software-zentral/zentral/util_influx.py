@@ -103,7 +103,7 @@ class Influx:
     async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
         offset_total = 0.8
         anzahl_haeuser = len(haus.config_haus.bauetappe.dict_haeuser)
-        offset = haus.config_haus.haus_idx0 * offset_total / (anzahl_haeuser - 1)
+        offset = haus.config_haus.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
         state_value = state.value + offset
         # print(haus.influx_tag, state_value)
         r = InfluxRecords(haus=haus)

@@ -21,9 +21,7 @@ GPIO_MODBUS_ADDRS = (
     "GPIO14",
     "GPIO15",
 )
-PIN_MODBUS_ADDR = [
-    machine.Pin(gpio, machine.Pin.PULL_DOWN) for gpio in GPIO_MODBUS_ADDRS
-]
+PIN_MODBUS_ADDR = [machine.Pin(gpio, machine.Pin.PULL_DOWN) for gpio in GPIO_MODBUS_ADDRS]
 
 GPIO_DS = (
     "GPIO29",
@@ -42,6 +40,7 @@ class Hardware:
 
     def __init__(self):
         self._ticks_boot_ms = time.ticks_ms()
+
         """
         If None, LIMIT_UPTIME_S has been reached.
         """
@@ -49,6 +48,18 @@ class Hardware:
         self.PIN_RELAIS.off()
         self.PIN_DS_OK_LED = machine.Pin(20, machine.Pin.OUT)
         self.PIN_DS_OK_LED.off()
+        self.PIN_BUTTON_ZENTRALE = machine.Pin(4, machine.Pin.IN)
+        self.PIN_LED_ZENTRALE = machine.Pin(6, machine.Pin.OUT)
+        self.PIN_DS_OK_LED.on()
+
+        self.led_zentrale_blink = False
+        self.led_zentrale_on = False
+
+        def cb_led_zentrale_blink(t):
+            if self.led_zentrale_blink:
+                self.PIN_LED_ZENTRALE.toggle()
+
+        machine.Timer(period=500, mode=machine.Timer.PERIODIC, callback=cb_led_zentrale_blink)
 
         # Make sure we release the modbus!
         machine.Pin(GPIO_MODBUS_DE, machine.Pin.OUT).off()
@@ -84,9 +95,7 @@ class Hardware:
         new_addr = self.dip_switch_addr
         changed = new_addr != self.modbus_server_addr
         if changed:
-            print(
-                f"Dip Switch changed from {self.modbus_server_addr} to {new_addr}: reset()"
-            )
+            print(f"Dip Switch changed from {self.modbus_server_addr} to {new_addr}: reset()")
         return changed
 
     @property

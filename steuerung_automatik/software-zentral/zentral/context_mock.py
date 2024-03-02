@@ -14,7 +14,6 @@ from pymodbus.client import AsyncModbusSerialClient
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.context import Context
 
-from zentral import util_modbus_adc
 from zentral import util_modbus_mischventil
 from zentral import util_modbus_relais
 

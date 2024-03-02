@@ -18,7 +18,7 @@ from zentral.constants import (
 from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_mischventil import Mischventil
 from zentral.util_modbus_relais import Relais
-from zentral.util_modbus_adc import Dac
+from zentral.util_modbus_dac import Dac
 
 if typing.TYPE_CHECKING:
     from context import Context
@@ -49,8 +49,9 @@ class ModbusCommunication:
 
         for haus in self._context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
-            await modbus_haus.handle_haus(haus, self._context.influx)
-            await modbus_haus.handle_haus_relais(haus)
+            success = await modbus_haus.handle_haus(haus, self._context.influx)
+            if success:
+                await modbus_haus.handle_haus_relais(haus)
 
             r = InfluxRecords(haus=haus)
             r.add_fields(haus.status_haus.get_influx_fields())
@@ -82,16 +83,17 @@ class ModbusCommunication:
 
             if True:
                 try:
+                    relais = self._context.hsm_zentral.relais
                     await self.r.set(
                         list_relays=(
-                            True,
-                            True,
                             False,
                             False,
                             False,
                             False,
                             False,
                             False,
+                            False,
+                            relais.relais_7_automatik,
                         )
                     )
                 except ModbusException as exc:
