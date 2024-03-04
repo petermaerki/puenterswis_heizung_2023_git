@@ -1,0 +1,39 @@
+solltemperatur_Tfv = 50.0
+Tszo = 60.0 # (Zuleitung Mischer von Zentralspeicher)
+Tfr = 40.0 # (Temperatur Rücklauf Fernleitung)
+
+steilheit_mischventil_pro_V = 0.25 # abgeschaetzt anhand Datenblatt
+steilheit_mischventil_C_pro_V_min = 0.5 # minimalwert damit Regler nicht instabil bei kleinen Temperaturdifferenzen
+faktor_langsamer = 0.5 # je hoeher dieser Wert desto agressiver die Regelung. Tyisch 0.5, max 1.0
+Tfv_toleranz_C = 1.5 # innerhalb dieser Toleranz erfolgt keine Korrektur mit dem Mischer
+stellwert_min_V = 1.5
+stellwert_max_V = 8.5
+
+oscillation_counter = 0
+loop_counter = 0
+
+modus automatik:
+	if mindestens ein Haus hat blaues Ventil offen und pumpe läuft
+		while True:
+			time.sleep_s(20.0)
+			loop_counter += 1
+			abweichung_C = solltemperatur_Tfv - Tfv
+			steilheit_mischventil_C_pro_V = (Tszo - Tfr) * steilheit_mischventil_pro_V # typisch z.B. 6C/V
+			steilheit_mischventil_C_pro_V = min(steilheit_mischventil_C_pro_V,steilheit_mischventil_C_pro_V_min)
+			if abs(abweichung_C) < Tfv_toleranz_C and loop_counter%30 != 0:
+				continue
+			stellwert_V = stellwert_V_vorher + abweichung_C / steilheit_mischventil_C_pro_V
+			stellwert_V = min(stellwert_V, stellwert_max_V)
+			stellwert_V = max(stellwert_V, stellwert_min_V)
+			if abs(stellwert_V - stellwert_V_vorher) > 0.1:
+				oscillation_counter += 1
+				if oscillation_counter > 200:
+					alarm "Mischventil Regler oszilliert"
+			else:
+				oscillation_counter = max(0, oscillation_counter - 1)
+			stellwert_V an DAC ausgeben
+	else:
+		stellwert_V belassen
+		
+modus manuell:
+	stellwert_V = 9.5V an DAC ausgeben
