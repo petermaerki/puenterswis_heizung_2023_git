@@ -7,7 +7,7 @@ from zentral.constants import MODBUS_ADDRESS_RELAIS
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 
-class Relais:
+class Gpio:
     COIL_ADDRESS = 0
     RELAIS_COUNT = 8
 
@@ -33,13 +33,13 @@ class Relais:
             print(response)
             await asyncio.sleep(0.5)
 
-    async def set(self, list_relays: tuple[bool]) -> None:
-        assert isinstance(list_relays, (list, tuple))
-        assert len(list_relays) == self.RELAIS_COUNT
+    async def set(self, list_gpio: tuple[bool]) -> None:
+        assert isinstance(list_gpio, (list, tuple))
+        assert len(list_gpio) == self.RELAIS_COUNT
         response = await self._modbus.write_coils(
             slave=self._modbus_address,
             address=self.COIL_ADDRESS,
-            values=list_relays,
+            values=list_gpio,
         )
         if response.isError():
             print("ERROR: pymodbus returned an error!")

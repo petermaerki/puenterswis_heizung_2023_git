@@ -15,7 +15,7 @@ from zentral.util_modbus_communication import ModbusCommunication
 from zentral.context import Context
 
 from zentral import util_modbus_mischventil
-from zentral import util_modbus_relais
+from zentral import util_modbus_gpio
 
 
 _DS_COUNT = 8
@@ -64,7 +64,7 @@ class ModbusMockClient:
         return rsp
 
     async def read_holding_registers(self, address: int, count: int = 1, slave: int = 0, **kwargs: Any) -> ModbusResponse:
-        if address == EnumModbusRegisters.SETGET16BIT_RELAIS_GPIO:
+        if address == EnumModbusRegisters.SETGET16BIT_GPIO:
             _haus = self._get_haus(slave=slave)
 
             rsp = ModbusResponse()
@@ -97,7 +97,7 @@ class ModbusMockClient:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        assert address == util_modbus_relais.Relais.COIL_ADDRESS
+        assert address == util_modbus_gpio.Gpio.COIL_ADDRESS
         assert slave == MODBUS_ADDRESS_RELAIS
         rsp = ModbusResponse()
         rsp.registers = []

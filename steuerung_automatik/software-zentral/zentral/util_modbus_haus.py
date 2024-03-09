@@ -30,17 +30,17 @@ class ModbusHaus:
         self._modbus = modbus
         self._haus = haus
 
-    async def handle_haus_relais(self, haus: "Haus") -> None:
+    async def handle_haus_gpio(self, haus: "Haus") -> None:
         hsm = haus.status_haus.hsm_dezentral
 
         if hsm.modbus_iregs_all is not None:
-            if hsm.relais_gpio.value == hsm.modbus_iregs_all.relais_gpio.value:
+            if hsm.relais_gpio.changed(hsm.modbus_iregs_all.relais_gpio):
                 return
 
         try:
             rsp = await self._modbus.write_registers(
                 slave=haus.config_haus.modbus_server_id,
-                address=EnumModbusRegisters.SETGET16BIT_RELAIS_GPIO,
+                address=EnumModbusRegisters.SETGET16BIT_GPIO,
                 values=[hsm.relais_gpio.value],
             )
 
@@ -53,7 +53,7 @@ class ModbusHaus:
         try:
             rsp = await self._modbus.read_holding_registers(
                 slave=haus.config_haus.modbus_server_id,
-                address=EnumModbusRegisters.SETGET16BIT_RELAIS_GPIO,
+                address=EnumModbusRegisters.SETGET16BIT_GPIO,
                 count=1,
             )
 
@@ -63,7 +63,7 @@ class ModbusHaus:
             await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             return
 
-        logger.debug(f"{haus.label}: SETGET16BIT_RELAIS_GPIO: {rsp.registers}")
+        logger.debug(f"{haus.label}: SETGET16BIT_GPIO: {rsp.registers}")
         await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
 
     async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:

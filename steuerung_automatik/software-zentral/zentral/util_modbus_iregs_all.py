@@ -2,7 +2,7 @@ import logging
 from typing import List, TYPE_CHECKING
 
 
-from micropython.portable_modbus_registers import IREGS_ALL, RelaisGpioBits
+from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
 
 from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair
@@ -28,7 +28,7 @@ class ModbusIregsAll:
         self.version_sw = IREGS_ALL.version_sw.get_value(registers)
         self.uptime_s = IREGS_ALL.uptime_s.get_value(registers)
         self.errors_modbus = IREGS_ALL.errors_modbus.get_value(registers)
-        self._relais_gpio = IREGS_ALL.relais_gpio.get_value(registers)
+        self._gpio = IREGS_ALL.relais_gpio.get_value(registers)
         # self.ds18_temperature_cK = get_multiple(IREGS_ALL.ds18_temperature_cK)
         # assert len(self.ds18_temperature_cK) == DS18_COUNT
         # self.ds18_ok_percent = get_multiple(IREGS_ALL.ds18_ok_percent)
@@ -44,7 +44,7 @@ class ModbusIregsAll:
         # self.pairs_ds18 = [DS18_Pair(a=self.ds18[2 * i], b=self.ds18[2 * i + 1]) for i in range(DS18_PAIR_COUNT)]
         # print("Hallo")
 
-        self.relais_gpio = RelaisGpioBits(self._relais_gpio)
+        self.relais_gpio = GpioBits(self._gpio)
 
         def get_DS18(i) -> DS18:
             ds18_temperature_cK = IREGS_ALL.ds18_temperature_cK.get_value(registers, i)

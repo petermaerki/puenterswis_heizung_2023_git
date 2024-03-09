@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from hsm import hsm
 
-from micropython.portable_modbus_registers import RelaisGpioBits
+from micropython.portable_modbus_registers import GpioBits
 from zentral.util_constants_haus import SpPosition
 
 from zentral.hsm_dezentral_signal import (
@@ -34,7 +34,7 @@ class HsmDezentral(hsm.HsmMixin):
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
         self.modbus_history = History2()
         self.modbus_iregs_all: "ModbusIregsAll" = None
-        self.relais_gpio = RelaisGpioBits(0)
+        self.relais_gpio = GpioBits(0)
         self._time_begin_s = 0.0
 
     @property

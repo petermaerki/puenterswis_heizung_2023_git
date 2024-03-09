@@ -1,4 +1,4 @@
-class RelaisGpioBits:
+class GpioBits:
     """
     RelaisGpio is a 16 bit register word.
     This enum specifies the use of each bit
@@ -26,9 +26,19 @@ class RelaisGpioBits:
     def _get(self, bit: int) -> bool:
         return 0x01 & (self.value >> bit)
 
+    def changed(self, other: "GpioBits") -> bool:
+        """
+        We compare the state in Zentral and Dezentral.
+        But we ignore the read only bits.
+        """
+        ignore_mask = 0x01 << self.BUTTON_ZENTRALE  # We ignore BUTTON_ZENTRALE
+        v1 = self.value & ~ignore_mask
+        v2 = other.value & ~ignore_mask
+        return v1 == v2
+
     @property
     def relais_valve_open(self) -> bool:
-        return self._get(self.RELAIS_VALVE_OPEN)
+        return self._get(bit=self.RELAIS_VALVE_OPEN)
 
     @relais_valve_open.setter
     def relais_valve_open(self, value: bool) -> None:
@@ -36,7 +46,7 @@ class RelaisGpioBits:
 
     @property
     def button_zentrale(self) -> bool:
-        return self._get(self.BUTTON_ZENTRALE)
+        return self._get(bit=self.BUTTON_ZENTRALE)
 
     @button_zentrale.setter
     def button_zentrale(self, value: bool) -> None:
@@ -44,11 +54,11 @@ class RelaisGpioBits:
 
     @property
     def led_zentrale_on(self) -> bool:
-        return self._get(self.LED_ZENTRALE_ON)
+        return self._get(bit=self.LED_ZENTRALE_ON)
 
     @property
     def led_zentrale_blink(self) -> bool:
-        return self._get(self.LED_ZENTRALE_BLINK)
+        return self._get(bit=self.LED_ZENTRALE_BLINK)
 
     def set_led_zentrale(self, on, blink) -> None:
         assert on in (0, 1)
@@ -61,7 +71,7 @@ class RelaisGpioBits:
 class EnumModbusRegisters:
     SETGET1BIT_REBOOT_RESET = 0x20
     SETGET1BIT_REBOOT_WATCHDOG = 0x21
-    SETGET16BIT_RELAIS_GPIO = 0x22
+    SETGET16BIT_GPIO = 0x22
     SETGET16BIT_ALL = 0x40
 
 
