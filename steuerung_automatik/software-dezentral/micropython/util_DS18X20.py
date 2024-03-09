@@ -26,9 +26,7 @@ class Ds:
         """
         These are the sensors we discovered on this 1wire pin.
         """
-        self._measurements_K = [
-            self.MEASUREMENT_FAILED_K
-        ] * self.MEASUREMENTS_MEDIAN_LEN
+        self._measurements_K = [self.MEASUREMENT_FAILED_K] * self.MEASUREMENTS_MEDIAN_LEN
         self._measurements_idx = 0
         self.history = History(length=100, percent_ok=90)
 
@@ -70,21 +68,27 @@ class Ds:
         Insert a measurement at the beginning of the list.
         Remove a measurement at the end of the list.
         """
-        self._measurements_K[self._measurements_idx] = self._read_temp_K()
         self._measurements_idx += 1
         self._measurements_idx %= self.MEASUREMENTS_MEDIAN_LEN
+        self._measurements_K[self._measurements_idx] = self._read_temp_K()
 
-    @property
-    def temp_cK(self) -> int:
+    def temp_cK(self, slow=True) -> int:
         """
         return the median
         Unit: cK / int
         0.0 C -> 27315 cK
         25.0 C -> 29815 cK
         """
-        s = sorted(self._measurements_K)
-        return round(100 * s[len(s) // 2])  # Median
+        if slow:
+            # Slow is used in Dezentral
+            # Use Median: Fault tolerant and slow
+            s = sorted(self._measurements_K)
+            return round(100 * s[len(s) // 2])
+
+        # Fast is used in Zentral
+        # Take last value: fast and sensile to sensor read faults.
+        return round(100 * self._measurements_K[self._measurements_idx])
 
     @property
-    def _read_temp_cC(self) -> float:
-        return self.temp_cK - self.TEMPERATURE_0C_cK
+    def _read_temp_cC_obsolete(self) -> float:
+        return self.temp_cK() - self.TEMPERATURE_0C_cK

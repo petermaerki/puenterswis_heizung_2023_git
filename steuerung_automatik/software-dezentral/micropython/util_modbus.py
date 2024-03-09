@@ -33,7 +33,12 @@ class ModbusRegisters:
             on_set_cb=self._set_gpios,
         )
         self._modbus.add_ireg(
-            address=EnumModbusRegisters.SETGET16BIT_ALL,
+            address=EnumModbusRegisters.SETGET16BIT_ALL_SLOW,
+            value=0,
+            on_get_cb=self._get_all,
+        )
+        self._modbus.add_ireg(
+            address=EnumModbusRegisters.SETGET16BIT_ALL_FAST,
             value=0,
             on_get_cb=self._get_all,
         )
@@ -73,8 +78,8 @@ class ModbusRegisters:
         return v.value
 
     def _get_all(self, reg_type, address, val):
-        # print(f"Modbus SETGET16BIT_ALL {val=}")
-        assert address == EnumModbusRegisters.SETGET16BIT_ALL
+        # print(f"Modbus SETGET16BIT_ALL_SLOW {val=}")
+        assert address in (EnumModbusRegisters.SETGET16BIT_ALL_SLOW, EnumModbusRegisters.SETGET16BIT_ALL_FAST)
         a = IREGS_ALL
         a.version_hw.set_value(val, util_constants.VERSION_HW)
         a.version_sw.set_value(val, util_constants.VERSION_SW)
@@ -83,8 +88,9 @@ class ModbusRegisters:
         a.errors_modbus.set_value(val, 42)
         a.relais_gpio.set_value(val, self._gpios)
         assert len(self._hw.sensors_ds) == a.ds18_temperature_cK.count
+        slow = address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
         for i, ds in enumerate(self._hw.sensors_ds):
             a.ds18_ok_percent.set_value(val, ds.history.percent, i)
-            a.ds18_temperature_cK.set_value(val, ds.temp_cK, i)
+            a.ds18_temperature_cK.set_value(val, ds.temp_cK(slow=slow), i)
 
         self._wdt_feed_cb()

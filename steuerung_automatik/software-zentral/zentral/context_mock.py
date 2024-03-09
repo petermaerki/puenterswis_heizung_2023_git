@@ -16,6 +16,7 @@ from zentral.context import Context
 
 from zentral import util_modbus_mischventil
 from zentral import util_modbus_gpio
+from zentral import util_modbus_dac
 
 
 _DS_COUNT = 8
@@ -39,7 +40,7 @@ class ModbusMockClient:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        assert address == EnumModbusRegisters.SETGET16BIT_ALL
+        assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
 
         _haus = self._get_haus(slave=slave)
 
@@ -82,7 +83,7 @@ class ModbusMockClient:
         assert False
 
     async def write_registers(self, address: int, values: List[int], slave: int = 0, **kwargs: Any) -> ModbusResponse:
-        assert address == util_modbus_adc.Dac.ADC_ADDRESS
+        assert address == util_modbus_dac.Dac.ADC_ADDRESS
         assert slave == MODBUS_ADDRESS_ADC
         assert len(values) == 8
 

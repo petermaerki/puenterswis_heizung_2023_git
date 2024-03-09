@@ -70,7 +70,7 @@ class ModbusHaus:
         try:
             rsp = await self._modbus.read_input_registers(
                 slave=haus.config_haus.modbus_server_id,
-                address=EnumModbusRegisters.SETGET16BIT_ALL,
+                address=EnumModbusRegisters.SETGET16BIT_ALL_SLOW,
                 count=IREGS_ALL.register_count,
             )
 

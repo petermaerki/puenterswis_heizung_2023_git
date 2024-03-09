@@ -65,8 +65,16 @@ class ModbusIregsAll:
     def get_ds18_pair(self, position: SpPosition) -> DS18_Pair:
         return self.pairs_ds18[position.ds18_pair_index]
 
-    def apply_scenario_temperature_increase(self, scenario) -> bool:
+    def apply_scenario_temperature_increase(self, scenario) -> None:
         assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
 
         ds18_pair = self.get_ds18_pair(position=scenario.position)
         ds18_pair.increment_C(scenario.delta_C)
+
+    @property
+    def debug_temperatureC(self) -> str:
+        return " ".join([f"{x.temperature_C:0.1f}C" for x in self.pairs_ds18])
+
+    @property
+    def debug2_temperatureC(self) -> str:
+        return " ".join([f"{x.a.temperature_C:0.1f}/{x.b.temperature_C:0.1f}C" for x in self.pairs_ds18])

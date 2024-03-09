@@ -61,7 +61,7 @@ class ModbusWrapper:
         slave: int = 0,
         **kwargs: Any,
     ) -> ModbusResponse:
-        assert address == EnumModbusRegisters.SETGET16BIT_ALL
+        assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
 
         for scenario in self._iter_by_class_slave(
             cls_scenario=ScenarioHausModbusException,
