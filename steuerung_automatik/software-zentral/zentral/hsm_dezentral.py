@@ -34,7 +34,7 @@ class HsmDezentral(hsm.HsmMixin):
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
         self.modbus_history = History2()
         self.modbus_iregs_all: "ModbusIregsAll" = None
-        self.relais_gpio = GpioBits(0)
+        self.dezentral_gpio = GpioBits(0)
         self._time_begin_s = 0.0
 
     @property
@@ -70,13 +70,14 @@ class HsmDezentral(hsm.HsmMixin):
         assert self.modbus_iregs_all is not None
 
         def failure() -> bool:
+            # print(self.modbus_iregs_all.debug_temperatureC_percent)
             for p in SpPosition:
                 pair_ds18 = self.modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
                 if pair_ds18.error_any:
                     return True
             return False
 
-        self.relais_gpio.set_led_zentrale(on=False, blink=failure())
+        self.dezentral_gpio.set_led_zentrale(on=False, blink=failure())
 
     @hsm.value(0)
     @hsm.init_state
@@ -117,8 +118,8 @@ class HsmDezentral(hsm.HsmMixin):
 
     def entry_error_hardwaretest(self, signal: SignalDezentralBase):
         self.timer_start()
-        self.relais_gpio.set_led_zentrale(on=True, blink=False)
-        self.relais_gpio.relais_valve_open = False
+        self.dezentral_gpio.set_led_zentrale(on=True, blink=False)
+        self.dezentral_gpio.relais_valve_open = False
         self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=False))
 
     def exit_error_hardwaretest(self, signal: SignalDezentralBase):
@@ -153,7 +154,7 @@ class HsmDezentral(hsm.HsmMixin):
         * Zentral: pause 10s
         """
         if self.timer_duration_s > 20.0:
-            self.relais_gpio.relais_valve_open = True
+            self.dezentral_gpio.relais_valve_open = True
             raise hsm.StateChangeException(self.state_error_hardwaretest_03)
         raise hsm.DontChangeStateException()
 

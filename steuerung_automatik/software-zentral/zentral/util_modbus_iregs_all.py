@@ -5,7 +5,8 @@ from typing import List, TYPE_CHECKING
 from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
 
-from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair
+from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair, DS18_MEASUREMENT_FAILED_cK, DS18_0C_cK
+
 from zentral.util_scenarios import (
     ScenarioHausSpTemperatureIncrease,
     SpPosition,
@@ -51,8 +52,9 @@ class ModbusIregsAll:
             ds18_ok_percent = IREGS_ALL.ds18_ok_percent.get_value(registers, i)
             return DS18(
                 i=i,
-                temperature_C=ds18_temperature_cK / 100.0 - 273.15,
+                temperature_C=(ds18_temperature_cK - DS18_0C_cK) / 100.0,
                 ds18_ok_percent=ds18_ok_percent,
+                is_ok=ds18_temperature_cK != DS18_MEASUREMENT_FAILED_cK,
             )
 
         def get_DS18_Pair(i) -> DS18_Pair:
@@ -78,3 +80,7 @@ class ModbusIregsAll:
     @property
     def debug2_temperatureC(self) -> str:
         return " ".join([f"{x.a.temperature_C:0.1f}/{x.b.temperature_C:0.1f}C" for x in self.pairs_ds18])
+
+    @property
+    def debug_temperatureC_percent(self) -> str:
+        return " ".join([f"{x.a.temperature_C:0.1f}/{x.b.temperature_C:0.1f}C({x.a.ds18_ok_percent}/{x.b.ds18_ok_percent}%)" for x in self.pairs_ds18])

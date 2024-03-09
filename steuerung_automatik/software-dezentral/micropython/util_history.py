@@ -1,4 +1,4 @@
-class History:
+class HistoryObsolete:
     SUCCESS = 1
     FAILED = 0
 
@@ -40,11 +40,7 @@ class History:
 
     @property
     def text_error_counter(self) -> str:
-        fail_rate = (
-            self._counter_success // self._counter_failed
-            if self._counter_failed > 0
-            else "-"
-        )
+        fail_rate = self._counter_success // self._counter_failed if self._counter_failed > 0 else "-"
         return f"{fail_rate} successful calls per error {self._counter_success}({self._counter_failed})"
 
     @property

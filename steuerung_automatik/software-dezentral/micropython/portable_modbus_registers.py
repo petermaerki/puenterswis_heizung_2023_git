@@ -64,6 +64,7 @@ class GpioBits:
         assert on in (0, 1)
         assert blink in (0, 1)
         assert not (on and blink), f"Only 'on' OR 'blink' is allowed: {on=} {blink=}"
+        # print(f"set_led_zentrale({on=} {blink=})")
         self._set(value=on, bit=self.LED_ZENTRALE_ON)
         self._set(value=blink, bit=self.LED_ZENTRALE_BLINK)
 

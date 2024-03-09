@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from typing import Dict, List, Union
+from aiohttp.client_exceptions import ClientConnectorError
 from hsm import hsm
 from influxdb_client import Point, DeleteApi
 from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
@@ -52,9 +53,12 @@ class Influx:
         logger.warning(f"Deleted Bucket {self._secrets.bucket}")
 
     async def write_records(self, records: InfluxRecords):
-        success = await self._api.write(bucket=self._bucket, record=records._records)
-        if not success:
-            logger.error("Failed to write to influx")
+        try:
+            success = await self._api.write(bucket=self._bucket, record=records._records)
+            if not success:
+                logger.error("Failed to write to influx")
+        except ClientConnectorError:
+            logger.exception("Failed to write to influx")
 
     async def write_obsolete(self, haus: Haus, fields: Dict[str, Union[float, int]]):
         # version = await self._client.version()

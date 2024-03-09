@@ -1,8 +1,9 @@
+import os
 import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from pymodbus import ModbusException
+from pymodbus.exceptions import ModbusException, ConnectionException
 
 from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
 
@@ -34,14 +35,14 @@ class ModbusHaus:
         hsm = haus.status_haus.hsm_dezentral
 
         if hsm.modbus_iregs_all is not None:
-            if hsm.relais_gpio.changed(hsm.modbus_iregs_all.relais_gpio):
+            if hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio):
                 return
 
         try:
             rsp = await self._modbus.write_registers(
                 slave=haus.config_haus.modbus_server_id,
                 address=EnumModbusRegisters.SETGET16BIT_GPIO,
-                values=[hsm.relais_gpio.value],
+                values=[hsm.dezentral_gpio.value],
             )
 
         except ModbusException as exc:
@@ -73,7 +74,9 @@ class ModbusHaus:
                 address=EnumModbusRegisters.SETGET16BIT_ALL_SLOW,
                 count=IREGS_ALL.register_count,
             )
-
+        except ConnectionException as exc:
+            logger.error(f"{haus.label}: {exc!r}")
+            os._exit(42)
         except ModbusException as exc:
             logger.error(f"{haus.label}: {exc!r}")
             haus.status_haus.hsm_dezentral.dispatch(hsm_dezentral_signal.SignalModbusFailed())

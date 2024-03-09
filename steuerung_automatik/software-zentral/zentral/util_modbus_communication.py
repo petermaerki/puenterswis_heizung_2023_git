@@ -68,7 +68,10 @@ class ModbusCommunication:
             # await asyncio.sleep(20.0)
 
             if True:
-                await self.a.set_dac()
+                try:
+                    await self.a.set_dac()
+                except ModbusException as exc:
+                    logger.error(f"exception in set_dac {exc}")
                 await asyncio.sleep(0.5)
 
             if True:

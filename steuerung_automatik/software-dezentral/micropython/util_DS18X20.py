@@ -2,8 +2,6 @@ import machine
 from onewire import OneWire, OneWireError
 from ds18x20 import DS18X20
 
-from util_history import History
-
 
 class Ds:
     """
@@ -12,9 +10,8 @@ class Ds:
     which may be connected to multiple DS18X20 temperature sensors.
     """
 
-    MEASUREMENTS_MEDIAN_LEN = const(8)
-    MEASUREMENT_FAILED_K = const(0)
-    TEMPERATURE_0C_K = const(273.15)
+    MEASUREMENTS_MEDIAN_LEN = const(10)
+    MEASUREMENT_FAILED_cK = const(0)
     TEMPERATURE_0C_cK = const(27315)
 
     def __init__(self, gpio: str):
@@ -26,9 +23,9 @@ class Ds:
         """
         These are the sensors we discovered on this 1wire pin.
         """
-        self._measurements_K = [self.MEASUREMENT_FAILED_K] * self.MEASUREMENTS_MEDIAN_LEN
+        self._measurements_cK = [self.MEASUREMENT_FAILED_cK] * self.MEASUREMENTS_MEDIAN_LEN
         self._measurements_idx = 0
-        self.history = History(length=100, percent_ok=90)
+        # self.history = History(length=100, percent_ok=90)
 
     def scan(self) -> None:
         """
@@ -41,15 +38,15 @@ class Ds:
         Tell all sensors on the 1wire pin to start measureing.
         """
         if len(self._addrs) == 0:
-            self.history.failed()
+            # self.history.failed()
             return
         try:
             self._ds.convert_temp()
         except OneWireError:
             self._addrs = []
-            self.history.failed()
+            # self.history.failed()
 
-    def _read_temp_K(self) -> float:
+    def _read_temp_cK(self) -> float:
         """
         Read all DS18 connected to this 1wire pin.
         Return after we get the first successful reading
@@ -57,11 +54,12 @@ class Ds:
         for addr in self._addrs:
             try:
                 temp_C = self._ds.read_temp(addr)
-                self.history.success()
-                return temp_C + self.TEMPERATURE_0C_K
+                # self.history.success()
+                return round(100 * temp_C) + self.TEMPERATURE_0C_cK
             except OneWireError:
-                self.history.failed()
-        return self.MEASUREMENT_FAILED_K
+                # self.history.failed()
+                pass
+        return self.MEASUREMENT_FAILED_cK
 
     def read_temp(self) -> None:
         """
@@ -70,7 +68,7 @@ class Ds:
         """
         self._measurements_idx += 1
         self._measurements_idx %= self.MEASUREMENTS_MEDIAN_LEN
-        self._measurements_K[self._measurements_idx] = self._read_temp_K()
+        self._measurements_cK[self._measurements_idx] = self._read_temp_cK()
 
     def temp_cK(self, slow=True) -> int:
         """
@@ -82,13 +80,21 @@ class Ds:
         if slow:
             # Slow is used in Dezentral
             # Use Median: Fault tolerant and slow
-            s = sorted(self._measurements_K)
-            return round(100 * s[len(s) // 2])
+            s = sorted(self._measurements_cK)
+            return s[len(s) // 2]
 
         # Fast is used in Zentral
         # Take last value: fast and sensile to sensor read faults.
-        return round(100 * self._measurements_K[self._measurements_idx])
+        return self._measurements_cK[self._measurements_idx]
 
     @property
-    def _read_temp_cC_obsolete(self) -> float:
-        return self.temp_cK() - self.TEMPERATURE_0C_cK
+    def percent(self) -> int:
+        """
+        return a number between 0 (all failed) and 100 (all success)
+        """
+        failed_count = self._measurements_cK.count(self.MEASUREMENT_FAILED_cK)
+        return (100 // self.MEASUREMENTS_MEDIAN_LEN) * (self.MEASUREMENTS_MEDIAN_LEN - failed_count)
+
+    @property
+    def ok(self) -> bool:
+        return self.temp_cK(slow=True) != self.MEASUREMENT_FAILED_cK

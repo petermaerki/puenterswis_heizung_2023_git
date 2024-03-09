@@ -90,7 +90,7 @@ class ModbusRegisters:
         assert len(self._hw.sensors_ds) == a.ds18_temperature_cK.count
         slow = address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
         for i, ds in enumerate(self._hw.sensors_ds):
-            a.ds18_ok_percent.set_value(val, ds.history.percent, i)
+            a.ds18_ok_percent.set_value(val, ds.percent, i)
             a.ds18_temperature_cK.set_value(val, ds.temp_cK(slow=slow), i)
 
         self._wdt_feed_cb()

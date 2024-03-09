@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 DS18_COUNT = 8
 DS18_PAIR_COUNT = DS18_COUNT // 2
 DS18_OK_PERCENT = 90
+DS18_MEASUREMENT_FAILED_cK = 0
+DS18_0C_cK = 27315
 
 DS18_REDUNDANCY_ACCEPTABLE_DIFF_C = 5.0
 DS18_REDUNDANCY_WARNING_C = 1.0
@@ -23,10 +25,7 @@ class DS18:
     0: Never seen
     100: Always seen
     """
-
-    @property
-    def is_ok(self) -> bool:
-        return self.ds18_ok_percent > DS18_OK_PERCENT
+    is_ok: bool
 
 
 @dataclasses.dataclass()

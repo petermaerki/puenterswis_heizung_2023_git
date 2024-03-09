@@ -80,13 +80,14 @@ class Hardware:
     def handle_ds_ok_led(self) -> None:
         """
         The 'DS OK' LED should be on when all temperature sensors
-        in use work find.
+        in use work fine.
         """
         # The first two sensors are not in use
         DS_NOT_IN_USE = 2
         ds_ok = True
         for ds in self.sensors_ds[DS_NOT_IN_USE:]:
-            if not ds.history.last_ok:
+            # if not ds.history.last_ok:
+            if not ds.ok:
                 ds_ok = False
         self.PIN_DS_OK_LED.value(ds_ok)
 

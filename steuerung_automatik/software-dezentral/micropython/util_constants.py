@@ -4,7 +4,7 @@ def to_version(version):
 
 
 VERSION_HW = to_version((1, 0, 0))
-VERSION_SW = to_version((0, 1, 0))
+VERSION_SW = to_version((0, 1, 1))
 
 DEVELOPMENT = True
 

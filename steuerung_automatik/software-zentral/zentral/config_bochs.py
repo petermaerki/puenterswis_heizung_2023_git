@@ -5,35 +5,32 @@ from zentral.config_base import ConfigEtappe, ConfigHaus, Haus
 from zentral.constants import ETAPPE_TAG_PUENT, ETAPPE_TAG_BOCHS
 
 
+ONLY_13 = False
+
+
 def create_config_bochs() -> ConfigEtappe:
     config = ConfigEtappe(tag=ETAPPE_TAG_BOCHS, name="Bochseln")
 
-    Haus(
-        config_haus=ConfigHaus(
-            nummer=12,
-            addresse="Zelglistrasse 47",
-            bewohner="Nicole S.",
-            bauetappe=config,
-        )
-    )
-    Haus(
-        config_haus=ConfigHaus(
-            nummer=13,
-            addresse="Zelglistrasse 49",
-            bewohner="Peter Märki und Sonja Rota",
-            bauetappe=config,
-        )
-    )
-
-    for nummer in (14, 15, 16, 17, 18, 19, 20, 21):
+    if ONLY_13:
         Haus(
             config_haus=ConfigHaus(
-                nummer=nummer,
-                addresse=f"Zelglistrasse x{nummer}",
-                bewohner="Hans und Peter Muster",
+                nummer=13,
+                addresse="Zelglistrasse 49",
+                bewohner="Peter Märki und Sonja Rota",
                 bauetappe=config,
             )
         )
+
+    else:
+        for nummer in range(1, 28):
+            Haus(
+                config_haus=ConfigHaus(
+                    nummer=nummer,
+                    addresse=f"Zelglistrasse x{nummer}",
+                    bewohner="Hans und Peter Muster",
+                    bauetappe=config,
+                )
+            )
 
     return config
 
