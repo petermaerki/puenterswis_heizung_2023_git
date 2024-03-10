@@ -1,0 +1,4 @@
+Peter Maerki 2024-03-10_00_15_38
+
+C7 bei allen Leiterplatten ausgeloetet.
+Vertraegt sich nicht mit Waveshare Devices welche nur aktiv 1 machen und das 0 passiv mit dem Biasing Network.

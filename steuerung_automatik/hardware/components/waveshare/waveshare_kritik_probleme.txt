@@ -1,0 +1,14 @@
+Peter Maerki 2024-03-09_23_24_33
+
+Waveshare allgemein: A und B angeschrieben. Pfui. Sollte D+ und D- sein!
+
+SKU_24271_RS485_HUB_8CH: nur Beschriftung A und B: pfui. + und - waeren eindeutig.
+
+SKU_26211_analog_0_10V_output_8CH
+macht nur aktiv 1 und passiv 0(mit dem Biasing Networt). Das ist nicht nach der Modbus Spezifikation!
+TXD und RXD LED vertauscht: TXD leuchtet beim Empfangen von Frames.
+
+SKU_25739_8-ch_relais_B
+sendet seine antwort zu schnell, wartet keine 3.5 char.
+nur aktiv 1 (0 passiv).
+
