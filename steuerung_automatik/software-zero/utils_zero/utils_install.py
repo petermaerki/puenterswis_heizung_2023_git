@@ -53,12 +53,14 @@ def ask():
             return default
         return user_input
 
-    hostname = input_default(
-        f"Hostname ({','.join(ZEROES)}): ", raspi_os_config.hostname
-    )
+    hostname = input_default(f"Hostname ({','.join(ZEROES)}): ", raspi_os_config.hostname)
     assert hostname in ZEROES
-    wlan_ssid = input_default("WLAN ssid: ", raspi_os_config.wlan_ssid)
-    wlan_pw = input_default("WLAN pw: ", raspi_os_config.wlan_pw)
+    if False:
+        wlan_ssid = input_default("WLAN ssid: ", raspi_os_config.wlan_ssid)
+        wlan_pw = input_default("WLAN pw: ", raspi_os_config.wlan_pw)
+    else:
+        wlan_ssid = "dummy_ssid"
+        wlan_pw = "dummy_pwd"
 
     FILENAME_CONFIG.write_text(
         f"""
@@ -115,9 +117,7 @@ def install_wlan() -> None:
     )
 
     if False:
-        filename_wpa_supplicant = pathlib.Path(
-            "/etc/wpa_supplicant/wpa_supplicant.conf"
-        )
+        filename_wpa_supplicant = pathlib.Path("/etc/wpa_supplicant/wpa_supplicant.conf")
         wpa_supplicant = f"""
     ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
     update_config=1
@@ -131,9 +131,7 @@ def install_wlan() -> None:
         filename_wpa_supplicant.write_text(wpa_supplicant)
 
 
-def install_file(
-    rootfspath: str, mode: str = None, uid: str = None, gid: str = None
-) -> None:
+def install_file(rootfspath: str, mode: str = None, uid: str = None, gid: str = None) -> None:
     assert isinstance(rootfspath, str)
     assert rootfspath.startswith("/")
     payload = (DIRECTORY_ROOTFS / rootfspath[1:]).read_text()
@@ -150,6 +148,7 @@ def install_file(
         assert isinstance(mode, int)
         filename_out.chmod(mode=mode)
 
+
 def copy_ssh() -> None:
     def copyssh_file(filename: pathlib.Path) -> None:
         text = filename.read_text()
@@ -163,9 +162,7 @@ def copy_ssh() -> None:
         if filename_new.exists():
             print(f"{filename_new}: exists: Skip asking for content!")
             return
-        print(
-            f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA_ASC}' and terminate with <ctrl-d>!"
-        )
+        print(f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA_ASC}' and terminate with <ctrl-d>!")
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))
         os.chown(filename_new, uid=UID_ZERO, gid=GID_ZERO)
@@ -197,9 +194,5 @@ def copy_bashrc() -> None:
 
 def create_softlink_zerosoftware():
     DIRECTORY_ZEROSOFTWARE_LINK.unlink(missing_ok=True)
-    DIRECTORY_ZEROSOFTWARE_LINK.symlink_to(
-        DIRECTORY_ZEROSOFTWARE, target_is_directory=True
-    )
-    os.chown(
-        DIRECTORY_ZEROSOFTWARE_LINK, uid=UID_ZERO, gid=GID_ZERO, follow_symlinks=False
-    )
+    DIRECTORY_ZEROSOFTWARE_LINK.symlink_to(DIRECTORY_ZEROSOFTWARE, target_is_directory=True)
+    os.chown(DIRECTORY_ZEROSOFTWARE_LINK, uid=UID_ZERO, gid=GID_ZERO, follow_symlinks=False)

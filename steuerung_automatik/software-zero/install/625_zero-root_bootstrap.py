@@ -26,7 +26,7 @@ def main():
     utils_install.ask()
 
     utils_install.install_hostname()
-    utils_install.install_wlan()
+    # utils_install.install_wlan()
 
     utils_install.create_softlink_zerosoftware()
 
