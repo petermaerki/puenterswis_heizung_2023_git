@@ -58,8 +58,11 @@
 				"type": "debugpy",
 				"request": "launch",
 				"module": "zentral.run_zentral",
-				"cwd": "${workspaceFolder:zero}",
+				"cwd": "${workspaceFolder:zentral}",
 				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
+				},
 				"justMyCode": false
 			},
 			{
@@ -67,7 +70,7 @@
 				"type": "debugpy",
 				"request": "launch",
 				"module": "zentral.run_zentral",
-				"cwd": "${workspaceFolder:zero}",
+				"cwd": "${workspaceFolder:zentral}",
 				"args": [
 					"--mocked"
 				],

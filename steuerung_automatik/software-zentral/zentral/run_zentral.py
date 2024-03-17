@@ -10,8 +10,6 @@ from zentral.context_mock import ContextMock
 from zentral.utils_logger import initialize_logger
 
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -36,3 +34,6 @@ if __name__ == "__main__":
     initialize_logger()
 
     asyncio.run(main(), debug=False)
+else:
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)

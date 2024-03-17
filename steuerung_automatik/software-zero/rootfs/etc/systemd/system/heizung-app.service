@@ -7,6 +7,7 @@ Description=Heizung app
 [Service]
 Environment=PYTHONPATH=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral:/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-dezentral
 User=zero
+Group=zero
 WorkingDirectory=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral
 ExecStart=python -m zentral.run_zentral
 Restart=always
