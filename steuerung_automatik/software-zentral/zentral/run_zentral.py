@@ -7,7 +7,7 @@ from zentral import config_bochs
 
 from zentral.context import Context
 from zentral.context_mock import ContextMock
-from zentral.utils_logger import initialize_logger
+from zentral.util_logger import initialize_logger
 
 
 logger = logging.getLogger(__name__)

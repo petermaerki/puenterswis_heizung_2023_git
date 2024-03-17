@@ -5,7 +5,7 @@ from zentral.hsm_zentral import HsmZentral
 from zentral.util_influx import Influx, HsmInfluxLogger
 
 from zentral.util_modbus_communication import ModbusCommunication
-from zentral.utils_logger import HsmLoggingLogger
+from zentral.util_logger import HsmLoggingLogger
 
 
 class Context:

@@ -14,7 +14,7 @@ from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
 
 # from zentral.context import Context
 # from zentral.context_mock import ContextMock
-from zentral.utils_logger import initialize_logger
+from zentral.util_logger import initialize_logger
 
 
 logging.basicConfig()

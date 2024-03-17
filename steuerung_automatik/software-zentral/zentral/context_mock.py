@@ -30,7 +30,7 @@ class ModbusMockClient:
     def _get_haus(self, slave: int) -> Haus:
         return self._context.config_etappe.get_haus_by_modbus_server_id(modbus_server_id=slave)
 
-    async def close(self):
+    def close(self):
         pass
 
     async def read_input_registers(

@@ -3,11 +3,13 @@ import asyncio
 import os
 
 from fastapi import Depends, FastAPI
+from fastapi.responses import RedirectResponse
+
 
 from zentral import config_bochs
 from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
 from zentral.context_mock import Context, ContextMock
-from zentral.utils_logger import initialize_logger
+from zentral.util_logger import initialize_logger
 
 
 initialize_logger()
@@ -62,6 +64,11 @@ for cls_scenario in SCENARIO_CLASSES:
 
     path = f"/scenario/{cls_scenario.__name__}"
     app.add_api_route(path=path, name=cls_scenario.__name__, endpoint=f, methods=["GET"])
+
+
+@app.get("/")
+async def redirect_root():
+    return RedirectResponse("/docs#")
 
 
 # def main():

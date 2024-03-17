@@ -14,7 +14,7 @@ from zentral.hsm_dezentral_signal import (
 )
 from zentral.hsm_zentral_signal import SignalHardwaretestEnd, SignalHardwaretestBegin
 from zentral.util_history2 import History2
-from zentral.utils_logger import HsmLoggingLogger
+from zentral.util_logger import HsmLoggingLogger
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus

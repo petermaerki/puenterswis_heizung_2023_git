@@ -4,7 +4,7 @@ import typing
 from hsm import hsm
 
 from program.hsm_signal import LegionellenLadungSignal, SignalBase
-from program.utils_logger import ZeroLogger
+from program.util_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
@@ -32,11 +32,7 @@ class HsmLegionellen(hsm.HsmMixin):
             # Bei einem Software Neustart geht momentan die letzte Zeit vergessen.
             # Einfache Loesung.
             self._legionellen_last_killed_s = self.ctx.time_s
-        if (
-            self.ctx.time_s
-            > self._legionellen_last_killed_s
-            + self.ctx.konstanten.legionellen_intervall_s
-        ):
+        if self.ctx.time_s > self._legionellen_last_killed_s + self.ctx.konstanten.legionellen_intervall_s:
             raise hsm.StateChangeException(
                 self.state_ausstehend,
                 why="Zeit ist abgelaufen",
@@ -58,10 +54,7 @@ class HsmLegionellen(hsm.HsmMixin):
         if self.ctx.hsm_pumpe.is_state(self.ctx.hsm_pumpe.state_ein):
             self._legionellen_pumpenzeit_summe_s += signal.time_s - self._last_time_s
             self._last_time_s = signal.time_s
-            if (
-                self._legionellen_pumpenzeit_summe_s
-                > self.ctx.kontstanten.legionellen_zwangsladezeit_s
-            ):
+            if self._legionellen_pumpenzeit_summe_s > self.ctx.kontstanten.legionellen_zwangsladezeit_s:
                 raise hsm.StateChangeException(
                     self.state_ok,
                     why="Legionellen sind gekillt",
