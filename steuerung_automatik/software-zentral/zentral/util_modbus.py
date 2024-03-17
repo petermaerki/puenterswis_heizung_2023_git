@@ -1,7 +1,10 @@
+import logging
+
 from mp.util_serial import find_serial_port, FindArguments, SerialPortNotFoundException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus import Framer
 
+logger = logging.getLogger(__name__)
 
 modbus_time_1char_ms = 11 / 9600
 
@@ -32,7 +35,11 @@ def get_modbus_client() -> AsyncModbusSerialClient:
 
     class MyAsyncModbusSerialClient(AsyncModbusSerialClient):
         def close(self, reconnect: bool = False) -> None:
+            logger.warning(f"MyAsyncModbusSerialClient: close({reconnect=})")
             if reconnect is True:
+                self.framer.resetFrame()
+                self.recv_buffer = b""
+                self.sent_buffer = b""
                 return
             super().close(reconnect=False)
 
@@ -72,7 +79,7 @@ def get_modbus_client() -> AsyncModbusSerialClient:
         parity="N",
         stopbits=1,
         timeout=0.1,  # :param timeout: Timeout for a request, in seconds.
-        retries=1,  # :param retries: Max number of retries per request.
+        retries=0,  # :param retries: Max number of retries per request.
         retry_on_empty=0,  # :param retry_on_empty: Retry on empty response.
         broadcast_enable=False,  # :param broadcast_enable: True to treat id 0 as broadcast address.
         reconnect_delay=0.3,  # :param reconnect_delay: Minimum delay in seconds.milliseconds before reconnecting.

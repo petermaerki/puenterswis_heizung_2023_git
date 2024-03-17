@@ -78,8 +78,8 @@ def initialize_logger() -> None:
         filename=DIRECTORY_LOG / "logger.txt",
         filemode="w",
         format="%(asctime)s %(filename)s:%(lineno)s - %(levelname)s - %(message)s",
-        level=logging.DEBUG,
-        # level=logging.INFO,
+        # level=logging.DEBUG,
+        level=logging.INFO,
     )
 
     ch = logging.StreamHandler()
