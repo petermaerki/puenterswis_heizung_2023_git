@@ -59,6 +59,8 @@ class Influx:
                 logger.error("Failed to write to influx")
         except ClientConnectorError:
             logger.exception("Failed to write to influx")
+        except TimeoutError:
+            logger.exception("Failed to write to influx")
 
     async def write_obsolete(self, haus: Haus, fields: Dict[str, Union[float, int]]):
         # version = await self._client.version()
