@@ -4,7 +4,7 @@ import typing
 from hsm import hsm
 
 from program.hsm_signal import SignalBase
-from program.utils_logger import ZeroLogger
+from program.util_logger import ZeroLogger
 
 if typing.TYPE_CHECKING:
     from program.context import Context
@@ -26,9 +26,7 @@ class HsmJahreszeit(hsm.HsmMixin):
         TRANSITION state_sommer gestern wenig energie verbraucht
         """
         # Todo if gestern weniger als 70 kWh und brenner sind aus: wechsel auf sommer
-        if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (
-            self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
-        ):
+        if self.ctx.sensoren.energie_gestern_kWh < 70.0 and not (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
             raise hsm.StateChangeException(
                 self.state_sommer,
                 why="Gestern wenig Energie verbraucht",
@@ -41,9 +39,7 @@ class HsmJahreszeit(hsm.HsmMixin):
         """
         # Todo if gestern mehr als 80 kWh und mindestens ein
         # Kesselbrennt:  wechsel auf winter
-        if self.ctx.sensoren.energie_gestern_kWh > 80.0 and (
-            self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on
-        ):
+        if self.ctx.sensoren.energie_gestern_kWh > 80.0 and (self.ctx.sensoren.brenner_1_on or self.ctx.sensoren.brenner_1_on):
             raise hsm.StateChangeException(
                 self.state_winter,
                 why="Gestern viel Energie verbraucht",

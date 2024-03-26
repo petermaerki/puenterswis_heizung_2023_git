@@ -2,8 +2,8 @@ import logging
 import pathlib
 
 from program.context import Context
-from program.hsm_signal import  TimeSignal
-from program.utils_logger import initialize_logger
+from program.hsm_signal import TimeSignal
+from program.util_logger import initialize_logger
 
 DIRECTORY_THIS_FILE = pathlib.Path(__file__).parent
 
@@ -20,7 +20,7 @@ def main():
     ctx.dispatch(TimeSignal())
     logger.info("Neu eine Anforderung")
     ctx.sensoren.anforderung = True
-    ctx. time_s += 5.0
+    ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
     logger.info("Anforderung wieder weg")
     ctx.sensoren.anforderung = False

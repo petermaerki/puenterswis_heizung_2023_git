@@ -40,7 +40,7 @@ class ModbusWrapper:
 
     async def close(self):
         assert self._modbus_client is not None
-        await self._modbus_client.close()
+        self._modbus_client.close()
         self._modbus_client = None
 
     def _iter_by_class_slave(self, cls_scenario, slave: int) -> Iterator[ScenarioBase]:

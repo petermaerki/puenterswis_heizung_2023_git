@@ -2,19 +2,16 @@
 # https://linuxhandbook.com/create-systemd-services/
 
 [Unit]
-Description=Heizung app
+Description=SSH tunnel to www.maerki.com
 
 [Service]
-Environment=
 User=zero
 Group=zero
-WorkingDirectory=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral
-ExecStart=/bin/bash run_zentral.sh
+WorkingDirectory=/home/zero
+ExecStart=ssh -o TCPKeepAlive=no -o ServerAliveInterval=15 -nNT -R 8852:localhost:22 www-data@www.maerki.com
 Restart=always
 # RestartSec=5min 20s
 RestartSec=60
-# StandardOutput=syslog
-# StandardError=syslog
 
 [Install]
 WantedBy=multi-user.target
