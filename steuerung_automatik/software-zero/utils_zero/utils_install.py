@@ -9,7 +9,7 @@ import sys
 import textwrap
 
 from config import raspi_os_config
-from utils_common.utils_constants import ID_RSA, ID_RSA_ASC, ID_RSA_PUB
+from utils_common.utils_constants import ID_RSA, ID_RSA_PUB
 from utils_common.utils_install import run
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
@@ -63,10 +63,14 @@ def ask():
         wlan_pw = "dummy_pwd"
 
     FILENAME_CONFIG.write_text(
+        #         f"""
+        # hostname = "{hostname}"
+        # wlan_ssid = "{wlan_ssid}"
+        # wlan_pw = "{wlan_pw}"
+        # """
+        #     )
         f"""
 hostname = "{hostname}"
-wlan_ssid = "{wlan_ssid}"
-wlan_pw = "{wlan_pw}"
 """
     )
 
@@ -159,10 +163,10 @@ def copy_ssh() -> None:
 
     def copyssh_ask_user() -> None:
         filename_new = DIRECTORY_SSH / ID_RSA
-        if filename_new.exists():
-            print(f"{filename_new}: exists: Skip asking for content!")
-            return
-        print(f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA_ASC}' and terminate with <ctrl-d>!")
+        # if filename_new.exists():
+        #     print(f"{filename_new}: exists: Skip asking for content!")
+        #     return
+        print(f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!")
         lines = sys.stdin.readlines()
         filename_new.write_text("".join(lines))
         os.chown(filename_new, uid=UID_ZERO, gid=GID_ZERO)
@@ -173,6 +177,7 @@ def copy_ssh() -> None:
 
     DIRECTORY_KEYS = DIRECTORY_ZEROSOFTWARE / "keys"
     copyssh_file(DIRECTORY_KEYS / "authorized_keys")
+    copyssh_file(DIRECTORY_KEYS / "known_hosts")
     copyssh_file(DIRECTORY_KEYS / raspi_os_config.hostname / ID_RSA_PUB)
     copyssh_ask_user()
 

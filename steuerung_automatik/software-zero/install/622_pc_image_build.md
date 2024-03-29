@@ -1,6 +1,6 @@
 # Installation SDCARD
 
-Goal: Create a SD card, connect via usb-ethernet and configure
+Goal: Create configured SD card, ssh via ethernet
 
 ## Background: Image
 
@@ -30,3 +30,12 @@ Select: Pi OS Lite (64-bit)
 * Services
   * `check` Enable SSH
     * `check` Use password authentication
+
+
+## Boot Rasperry
+
+```bash
+watch ping -c 1 zero-virgin.local
+
+ssh zero@zero-virgin.local
+```

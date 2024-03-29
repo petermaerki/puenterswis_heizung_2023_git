@@ -116,3 +116,4 @@ fi
 export PYTHONPATH="/home/zero/software-zero"
 PATH="/home/zero/software-zero/install:$PATH"
 
+source /home/zero/venv_app/bin/activate

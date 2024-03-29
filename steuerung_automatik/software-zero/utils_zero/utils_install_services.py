@@ -7,7 +7,8 @@ from utils_zero.utils_install import (
     assert_su,
     install_file,
 )
-from utils_zero.utils_constants import ZERO_NAME, ZEROES
+from utils_zero.utils_constants import ZEROES
+from config import raspi_os_config
 
 
 def service_stems(zero_name: str = None) -> Iterator[str]:
@@ -35,8 +36,8 @@ def install_services():
     for service_stem in service_stems():
         run(["systemctl", "disable", service_stem])
 
-    for service_stem in service_stems(zero_name=ZERO_NAME):
+    for service_stem in service_stems(zero_name=raspi_os_config.hostname):
         run(["systemctl", "enable", service_stem])
 
-    for service_stem in service_stems(zero_name=ZERO_NAME):
+    for service_stem in service_stems(zero_name=raspi_os_config.hostname):
         run(["systemctl", "restart", service_stem])
