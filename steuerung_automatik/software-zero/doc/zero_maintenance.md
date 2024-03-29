@@ -2,26 +2,37 @@
 
 ## Ssh
 
+pc-linux:
 ```bash
 ssh zero@zero-virgin.local
 ```
 
+zero:
+```bash
+ssh www-insecure@www.maerki.com
+```
+
+
 ## Available services
 
+zero:
 ```bash
 systemctl | grep heizung
   heizung-app.service
-  heizung-ssh-tunnel_zero-virgin.service
+  heizung-ssh-tunnel.service
 ```
 
 ### service status
 
+zero:
 ```bash
 systemctl status heizung-app.service
+systemctl status heizung-ssh-tunnel.service
 ```
 
 ### service journal
 
+zero:
 ```bash
 journalctl --no-tail --follow --unit heizung-app.service
 ```
