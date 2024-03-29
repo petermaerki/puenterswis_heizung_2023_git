@@ -34,7 +34,7 @@ class ConfigHaus:
     nummer: int = dataclasses.field(hash=True, compare=True)
     addresse: str = dataclasses.field(hash=False, compare=False)
     bewohner: str = dataclasses.field(hash=False, compare=False)
-    bauetappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
+    etappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
 
     @property
     def modbus_server_id(self) -> int:
@@ -42,7 +42,7 @@ class ConfigHaus:
 
     @property
     def haus_idx0(self) -> int:
-        idx0 = self.nummer - self.bauetappe.lowest_haus_nummer
+        idx0 = self.nummer - self.etappe.lowest_haus_nummer
         assert idx0 >= 0
         return idx0
 
@@ -57,7 +57,7 @@ class Haus:
     status_haus: Union[StatusHaus, None] = dataclasses.field(default=None, hash=False, compare=False)
 
     def __post_init__(self):
-        self.config_haus.bauetappe.append_haus(self)
+        self.config_haus.etappe.append_haus(self)
         self.status_haus = StatusHaus(self)
 
     def __hash__(self):

@@ -14,8 +14,9 @@ from utils_common.utils_install import run
 from utils_zero.utils_constants import (
     DIRECTORY_ROOTFS,
     DIRECTORY_SSH,
-    DIRECTORY_ZEROSOFTWARE,
-    DIRECTORY_ZEROSOFTWARE_LINK,
+    DIRECTORY_SOFTWARE_ZERO,
+    DIRECTORY_SOFTWARE_ZERO_LINK,
+    DIRECTORY_SOFTWARE_ZENTRAL,
     FILENAME_BASHRC_ROOT,
     FILENAME_BASHRC_ZERO,
     FILENAME_CONFIG,
@@ -162,24 +163,33 @@ def copy_ssh() -> None:
         filename_new.chmod(mode=STAT_RW_R_R)
 
     def copyssh_ask_user() -> None:
-        filename_new = DIRECTORY_SSH / ID_RSA
         # if filename_new.exists():
         #     print(f"{filename_new}: exists: Skip asking for content!")
         #     return
         print(f"Please paste 'keys/{raspi_os_config.hostname}/{ID_RSA}' and terminate with <ctrl-d>!")
         lines = sys.stdin.readlines()
-        filename_new.write_text("".join(lines))
-        os.chown(filename_new, uid=UID_ZERO, gid=GID_ZERO)
-        filename_new.chmod(mode=STAT_RW)
+        filename = DIRECTORY_SSH / ID_RSA
+        filename.write_text("".join(lines))
+        os.chown(filename, uid=UID_ZERO, gid=GID_ZERO)
+        filename.chmod(mode=STAT_RW)
 
     DIRECTORY_SSH.mkdir(exist_ok=True)
     shutil.chown(DIRECTORY_SSH, "zero", "zero")
 
-    DIRECTORY_KEYS = DIRECTORY_ZEROSOFTWARE / "keys"
+    DIRECTORY_KEYS = DIRECTORY_SOFTWARE_ZERO / "keys"
     copyssh_file(DIRECTORY_KEYS / "authorized_keys")
     copyssh_file(DIRECTORY_KEYS / "known_hosts")
     copyssh_file(DIRECTORY_KEYS / raspi_os_config.hostname / ID_RSA_PUB)
     copyssh_ask_user()
+
+
+def copy_influxdb_secrets() -> None:
+    print("Please paste 'software-zentral/zentral/config_secrets.py' and terminate with <ctrl-d>!")
+    lines = sys.stdin.readlines()
+    filename = DIRECTORY_SOFTWARE_ZENTRAL / "zentral/config_secrets.py"
+    filename.write_text("".join(lines))
+    os.chown(filename, uid=UID_ZERO, gid=GID_ZERO)
+    filename.chmod(mode=STAT_RW_R_R)
 
 
 def copy_bashrc() -> None:
@@ -198,6 +208,6 @@ def copy_bashrc() -> None:
 
 
 def create_softlink_zerosoftware():
-    DIRECTORY_ZEROSOFTWARE_LINK.unlink(missing_ok=True)
-    DIRECTORY_ZEROSOFTWARE_LINK.symlink_to(DIRECTORY_ZEROSOFTWARE, target_is_directory=True)
-    os.chown(DIRECTORY_ZEROSOFTWARE_LINK, uid=UID_ZERO, gid=GID_ZERO, follow_symlinks=False)
+    DIRECTORY_SOFTWARE_ZERO_LINK.unlink(missing_ok=True)
+    DIRECTORY_SOFTWARE_ZERO_LINK.symlink_to(DIRECTORY_SOFTWARE_ZERO, target_is_directory=True)
+    os.chown(DIRECTORY_SOFTWARE_ZERO_LINK, uid=UID_ZERO, gid=GID_ZERO, follow_symlinks=False)

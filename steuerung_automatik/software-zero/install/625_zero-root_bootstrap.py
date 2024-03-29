@@ -32,6 +32,7 @@ def main():
 
     utils_install.copy_bashrc()
     utils_install.copy_ssh()
+    utils_install.copy_influxdb_secrets()
 
     utils_install_services.install_services()
 

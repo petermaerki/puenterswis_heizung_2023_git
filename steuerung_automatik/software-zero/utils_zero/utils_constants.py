@@ -16,15 +16,13 @@ FILENAME_BASHRC_ZERO = DIRECTORY_HOME_ZERO / ".bashrc"
 FILENAME_BASHRC_ROOT = DIRECTORY_HOME_ROOT / ".bashrc"
 
 # software-zero
-DIRECTORY_ZEROSOFTWARE = (
-    DIRECTORY_HOME_ZERO
-    / "puenterswis_heizung_2023_git/steuerung_automatik/software-zero"
-)
-DIRECTORY_ZEROSOFTWARE_LINK = DIRECTORY_HOME_ZERO / "software-zero"
+DIRECTORY_SOFTWARE_ZERO = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/steuerung_automatik/software-zero"
+DIRECTORY_SOFTWARE_ZERO_LINK = DIRECTORY_HOME_ZERO / "software-zero"
+DIRECTORY_SOFTWARE_ZENTRAL = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/steuerung_automatik/software-zentral"
 
 ZERO_NAME = socket.gethostname()
 assert ZERO_NAME in ZEROES
 
-DIRECTORY_CONFIG = DIRECTORY_ZEROSOFTWARE / "config"
+DIRECTORY_CONFIG = DIRECTORY_SOFTWARE_ZERO / "config"
 FILENAME_CONFIG = DIRECTORY_CONFIG / "raspi_os_config.py"
 assert FILENAME_CONFIG.exists()

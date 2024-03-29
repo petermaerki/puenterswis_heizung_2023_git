@@ -18,7 +18,7 @@ class InfluxRecords:
     def __init__(self, haus: Haus):
         self._dict_tags = {
             "position": haus.influx_tag,  # "haus_08", "zentral"
-            "etappe": haus.config_haus.bauetappe.name,  # "puent"
+            "etappe": haus.config_haus.etappe.name,  # "puent"
             "haus": haus.config_haus.nummer,
         }
         self._records: List[Dict] = []
@@ -31,7 +31,7 @@ class InfluxRecords:
 
 class Influx:
     def __init__(self, etappe: str):
-        secrets = InfluxSecrets(etappe=etappe)
+        secrets = InfluxSecrets()
         self._secrets = secrets
         self._etappe = etappe
         self._client = InfluxDBClientAsync(url=secrets.url, token=secrets.token, org=secrets.org)
@@ -101,14 +101,16 @@ class Influx:
         fields: Dict[str, float] = {}
         for p in SpPosition:
             pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
-            fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
             fields[f"{p.tag}_error_C"] = pair_ds18.error_C
+            if pair_ds18.error_any:
+                continue
+            fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
         r.add_fields(fields=fields)
         await self.write_records(records=r)
 
     async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
         offset_total = 0.8
-        anzahl_haeuser = len(haus.config_haus.bauetappe.dict_haeuser)
+        anzahl_haeuser = len(haus.config_haus.etappe.dict_haeuser)
         offset = haus.config_haus.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
         state_value = state.value + offset
         # print(haus.influx_tag, state_value)
@@ -151,7 +153,7 @@ class HsmInfluxLogger(hsm.HsmLoggerProtocol):
 
 
 async def main():
-    secrets = InfluxSecrets("Puenterswis")
+    secrets = InfluxSecrets()
 
     async with InfluxDBClientAsync(
         url=secrets.url,

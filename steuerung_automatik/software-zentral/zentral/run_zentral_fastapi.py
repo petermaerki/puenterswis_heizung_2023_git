@@ -6,11 +6,11 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 
 
-from zentral import config_bochs
+from config import raspi_os_config
+from zentral import config_etappe
 from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
 from zentral.context_mock import Context, ContextMock
 from zentral.util_logger import initialize_logger
-
 
 initialize_logger()
 
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     mocked = os.environ.get("HEIZUNG2023_MOCKED", "0") != "0"
     cls_ctx = ContextMock if mocked else Context
 
-    async with cls_ctx(config_bochs.create_config_bochs()) as ctx:
+    async with cls_ctx(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
         await ctx.init()
 
         globals.ctx = ctx
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # if True:
-#     config_etappe = config_bochs.create_config_bochs()
+#     config_etappe = config_etappe.create_config_etappe()
 #     type_haus_enum = config_etappe.haus_enum
 #     for cls_scenario in SCENARIO_CLASSES:
 #         if "haus_nummer" in cls_scenario.__annotations__:

@@ -14,7 +14,10 @@ ID_RSA_ASC = "id_rsa.asc"
 ID_RSA_PUB = "id_rsa.pub"
 
 # Zeroes
-ZEROES = ("zero-virgin", "zero-puent", "zero-bochs")
+ZERO_VIRGIN = "zero-virgin"
+ZERO_BOCHS = "zero-bochs"
+ZERO_PUENT = "zero-puent"
+ZEROES = (ZERO_VIRGIN, ZERO_BOCHS, ZERO_PUENT)
 ZEROES_DIR = (pathlib.Path(DIRECTORY_KEYS / zero_name) for zero_name in ZEROES)
 
 DICT_SSH_TUNNEL_PORT = {

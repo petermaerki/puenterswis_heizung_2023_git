@@ -61,7 +61,7 @@
 				"cwd": "${workspaceFolder:zentral}",
 				"console": "integratedTerminal",
 				"env": {
-					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
 				},
 				"justMyCode": false
 			},
@@ -92,7 +92,7 @@
 				],
 				"env": {
 					"HEIZUNG2023_MOCKED": "0",
-					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}",
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
 					"PYDEVD_DISABLE_FILE_VALIDATION": "1"
 				},
 				"console": "integratedTerminal",
@@ -155,14 +155,16 @@
 		"python.testing.pytestEnabled": true,
 		"python.autoComplete.extraPaths": [
 			"${workspaceFolder:zentral}",
-			"${workspaceFolder:dezentral}"
+			"${workspaceFolder:dezentral}",
+			"${workspaceFolder:zero}"
 		],
 		"python.analysis.extraPaths": [
 			"${workspaceFolder:zentral}",
-			"${workspaceFolder:dezentral}"
+			"${workspaceFolder:dezentral}",
+			"${workspaceFolder:zero}"
 		],
 		"terminal.integrated.env.linux": {
-			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}"
+			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}"
 		},
 		"[python]": {
 			"editor.formatOnSave": true,

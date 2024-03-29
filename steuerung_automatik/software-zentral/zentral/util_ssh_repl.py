@@ -10,7 +10,7 @@ import logging
 import asyncssh
 from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
 
-# from zentral import config_bochs
+# from zentral import config_etappe
 
 # from zentral.context import Context
 # from zentral.context_mock import ContextMock
