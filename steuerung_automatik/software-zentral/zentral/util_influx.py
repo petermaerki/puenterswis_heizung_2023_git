@@ -18,7 +18,7 @@ class InfluxRecords:
     def __init__(self, haus: Haus):
         self._dict_tags = {
             "position": haus.influx_tag,  # "haus_08", "zentral"
-            "etappe": haus.config_haus.etappe.name,  # "puent"
+            "etappe": haus.config_haus.etappe.tag,  # "puent"
             "haus": haus.config_haus.nummer,
         }
         self._records: List[Dict] = []
