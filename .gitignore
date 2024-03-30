@@ -2,7 +2,7 @@
 /**/*.FCBak*
 /**/*.bgcode*
 /**/*.stl*
-/**/*_gitignore
+/**/*_gitignore*
 
 steuerung_automatik/hardware/pcb_kicad/*-backups/*
 steuerung_automatik/hardware/pcb_kicad/*.bak
