@@ -6,7 +6,7 @@ from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
 
 from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair, DS18_MEASUREMENT_FAILED_cK, DS18_0C_cK
-
+from zentral.util_sp_ladung import SpTemperatur, LadungMinimum
 from zentral.util_scenarios import (
     ScenarioHausSpTemperatureIncrease,
     SpPosition,
@@ -84,3 +84,19 @@ class ModbusIregsAll:
     @property
     def debug_temperatureC_percent(self) -> str:
         return " ".join([f"{x.a.temperature_C:0.1f}/{x.b.temperature_C:0.1f}C({x.a.ds18_ok_percent}/{x.b.ds18_ok_percent}%)" for x in self.pairs_ds18])
+
+    def ladung_minimum(self, temperatur_aussen_C=-8.0) -> LadungMinimum:
+        temperature_unten = self.pairs_ds18[SpPosition.UNTEN.ds18_pair_index]
+        temperature_mitte = self.pairs_ds18[SpPosition.MITTE.ds18_pair_index]
+        temperature_oben = self.pairs_ds18[SpPosition.OBEN.ds18_pair_index]
+
+        error = temperature_unten.error_any or temperature_mitte.error_any or temperature_oben.error_any
+        if error:
+            return None
+
+        sp_temperature = SpTemperatur(
+            unten_C=temperature_unten.temperature_C,
+            mitte_C=temperature_mitte.temperature_C,
+            oben_C=temperature_oben.temperature_C,
+        )
+        return LadungMinimum(sp_temperature, temperatur_aussen_C=temperatur_aussen_C)

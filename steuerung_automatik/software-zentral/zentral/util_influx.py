@@ -97,7 +97,6 @@ class Influx:
             logger.error("Failed to write to influx")
 
     async def send_modbus_iregs_all(self, haus: "Haus", modbus_iregs_all: "ModbusIregsAll") -> None:
-        r = InfluxRecords(haus=haus)
         fields: Dict[str, float] = {}
         for p in SpPosition:
             pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
@@ -105,6 +104,14 @@ class Influx:
             if pair_ds18.error_any:
                 continue
             fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
+
+        ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
+        if ladung_minimum is not None:
+            fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
+            fields["ladung_heizung_prozent"] = ladung_minimum.ladung_heizung.ladung_prozent
+            fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
+
+        r = InfluxRecords(haus=haus)
         r.add_fields(fields=fields)
         await self.write_records(records=r)
 
