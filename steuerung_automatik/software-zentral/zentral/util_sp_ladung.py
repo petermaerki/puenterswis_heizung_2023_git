@@ -1,5 +1,5 @@
 import dataclasses
-from util_transition import linear_transition
+from zentral.util_transition import linear_transition
 
 
 @dataclasses.dataclass

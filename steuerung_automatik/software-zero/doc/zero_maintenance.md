@@ -1,5 +1,12 @@
 # Important commands for the maintenance of the rasperry pi
 
+## Peter Automation: Update software
+
+windows:
+```bash
+ssh zero@zero-bochs.local '(cd puenterswis_heizung_2023_git; git pull; sudo systemctl restart heizung-app.service)'
+```
+
 ## Ssh
 
 pc-linux:
