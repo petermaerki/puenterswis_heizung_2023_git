@@ -22,28 +22,12 @@ class ModbusIregsAll:
     def __init__(self, registers: List[float]):
         assert IREGS_ALL.register_count == len(registers)
 
-        # def get_multiple(ireg: Ireg):
-        #     return [ireg.get_value(registers, i=i) for i in range(ireg.count)]
-
         self.version_hw = IREGS_ALL.version_hw.get_value(registers)
         self.version_sw = IREGS_ALL.version_sw.get_value(registers)
         self.uptime_s = IREGS_ALL.uptime_s.get_value(registers)
+        self.reset_cause = IREGS_ALL.reset_cause.get_value(registers)
         self.errors_modbus = IREGS_ALL.errors_modbus.get_value(registers)
         self._gpio = IREGS_ALL.relais_gpio.get_value(registers)
-        # self.ds18_temperature_cK = get_multiple(IREGS_ALL.ds18_temperature_cK)
-        # assert len(self.ds18_temperature_cK) == DS18_COUNT
-        # self.ds18_ok_percent = get_multiple(IREGS_ALL.ds18_ok_percent)
-        # assert len(self.ds18_ok_percent) == DS18_COUNT
-
-        # def get_DS18(i) -> DS18:
-        #     ds18_temperature_cK = IREGS_ALL.ds18_temperature_cK.get_value(registers, i)
-        #     ds18_ok_percent = IREGS_ALL.ds18_ok_percent.get_value(registers, i)
-        #     return DS18(i=i, temperature_K=100.0 * ds18_temperature_cK, ds18_ok_percent=ds18_ok_percent)
-
-        # self.ds18 = [get_DS18(i) for i in range(DS18_COUNT)]
-
-        # self.pairs_ds18 = [DS18_Pair(a=self.ds18[2 * i], b=self.ds18[2 * i + 1]) for i in range(DS18_PAIR_COUNT)]
-        # print("Hallo")
 
         self.relais_gpio = GpioBits(self._gpio)
 

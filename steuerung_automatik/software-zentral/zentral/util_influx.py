@@ -98,6 +98,9 @@ class Influx:
 
     async def send_modbus_iregs_all(self, haus: "Haus", modbus_iregs_all: "ModbusIregsAll") -> None:
         fields: Dict[str, float] = {}
+
+        fields[f"uptime_s"] = modbus_iregs_all.uptime_s
+
         for p in SpPosition:
             pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
             fields[f"{p.tag}_error_C"] = pair_ds18.error_C

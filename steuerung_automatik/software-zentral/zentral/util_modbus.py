@@ -35,7 +35,7 @@ def get_modbus_client() -> AsyncModbusSerialClient:
 
     class MyAsyncModbusSerialClient(AsyncModbusSerialClient):
         def close(self, reconnect: bool = False) -> None:
-            logger.warning(f"MyAsyncModbusSerialClient: close({reconnect=})")
+            logger.debug(f"MyAsyncModbusSerialClient: close({reconnect=})")
             if reconnect is True:
                 self.framer.resetFrame()
                 self.recv_buffer = b""

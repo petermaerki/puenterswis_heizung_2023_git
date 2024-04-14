@@ -12,7 +12,7 @@ from zentral import hsm_dezentral_signal
 from zentral.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
-from zentral.util_modbus_iregs_all import ModbusIregsAll
+from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import (
     SCENARIOS,
@@ -83,26 +83,28 @@ class ModbusHaus:
             await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             return False
 
-        modbus_iregs_all = ModbusIregsAll(rsp.registers)
+        modbus_iregs_all2 = ModbusIregsAll2(rsp.registers)
 
         for scenario in SCENARIOS.iter_by_class_haus(
             cls_scenario=ScenarioHausSpTemperatureIncrease,
             haus=self._haus,
         ):
-            modbus_iregs_all.apply_scenario_temperature_increase(scenario)
+            modbus_iregs_all2.apply_scenario_temperature_increase(scenario)
 
-        await grafana.send_modbus_iregs_all(haus, modbus_iregs_all)
-        haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all))
-        logger.debug(f"{haus.label}: Iregsall: {rsp.registers}")
+        logger.info(f"{haus.label}: modbus: {modbus_iregs_all2.debug_dict_text}")
+
+        await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2)
+        haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))
+
         await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
         return True
 
     async def reboot_reset(self, haus: "Haus") -> None:
         try:
-            await self._modbus.write_coil(
+            await self._modbus.write_coils(
                 slave=haus.config_haus.modbus_server_id,
                 address=EnumModbusRegisters.SETGET1BIT_REBOOT_WATCHDOG,
-                value=True,
+                values=[True],
             )
         except ModbusException as exc:
             logger.error(f"{haus.label}: {exc!r}")

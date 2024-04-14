@@ -57,7 +57,7 @@ class ModbusCommunication:
             r.add_fields(haus.status_haus.get_influx_fields())
             await self._context.influx.write_records(records=r)
 
-            # await self.reboot_reset(haus=haus)
+            # await modbus_haus.reboot_reset(haus=haus)
 
     async def task_modbus(self):
         while True:

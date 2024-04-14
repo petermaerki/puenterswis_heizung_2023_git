@@ -94,3 +94,5 @@ def initialize_logger() -> None:
 
     # add ch to logger
     logging.getLogger().addHandler(ch)
+
+    logging.getLogger('pymodbus.logging').setLevel(logging.INFO)

@@ -3,10 +3,10 @@ def to_version(version):
     return 10_000 * version[0] + 100 * version[1] + version[2]
 
 
-VERSION_HW = to_version((1, 0, 0))
-VERSION_SW = to_version((0, 1, 1))
-
 DEVELOPMENT = True
+
+VERSION_HW = to_version((1, 0, 0))
+VERSION_SW = to_version((0, 1, 1+(50 if DEVELOPMENT else 0)))
 
 DAY_MS = 24 * 60 * 60 * 1000
 WEEK_MS = 7 * DAY_MS
