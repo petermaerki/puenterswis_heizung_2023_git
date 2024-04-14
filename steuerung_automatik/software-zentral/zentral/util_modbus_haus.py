@@ -17,6 +17,7 @@ from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import (
     SCENARIOS,
     ScenarioHausSpTemperatureIncrease,
+    ScenarioHausPicoRebootReset,
 )
 
 if TYPE_CHECKING:
@@ -92,6 +93,12 @@ class ModbusHaus:
             modbus_iregs_all2.apply_scenario_temperature_increase(scenario)
 
         logger.info(f"{haus.label}: modbus: {modbus_iregs_all2.debug_dict_text}")
+
+        for scenario in SCENARIOS.iter_by_class_haus(
+            cls_scenario=ScenarioHausPicoRebootReset,
+            haus=self._haus,
+        ):
+            await self.reboot_reset(haus=haus)
 
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2)
         haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))

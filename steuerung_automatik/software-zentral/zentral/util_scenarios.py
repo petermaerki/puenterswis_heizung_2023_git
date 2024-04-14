@@ -96,6 +96,17 @@ SCENARIO_CLASSES.append(ScenarioHausModbusError)
 
 
 @dataclasses.dataclass
+class ScenarioHausPicoRebootReset(ScenarioBase):
+    haus_nummer: int = 13
+    counter: int = 1
+    """
+    """
+
+
+SCENARIO_CLASSES.append(ScenarioHausPicoRebootReset)
+
+
+@dataclasses.dataclass
 class ScenarioHausModbusWrongRegisterCount(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
