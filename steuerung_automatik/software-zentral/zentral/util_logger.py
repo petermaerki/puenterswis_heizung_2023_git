@@ -1,6 +1,7 @@
 # https://realpython.com/python-logging/
 
 import logging
+from logging.handlers import RotatingFileHandler
 from typing import List
 
 from hsm.hsm import HsmLoggerProtocol, HsmState
@@ -75,24 +76,31 @@ class ColorFormatter(logging.Formatter):
 
 def initialize_logger() -> None:
     logging.basicConfig(
-        filename=DIRECTORY_LOG / "logger.txt",
-        filemode="w",
+        # filename=DIRECTORY_LOG / "logger.txt",
+        # filemode="w",
         format="%(asctime)s %(filename)s:%(lineno)s - %(levelname)s - %(message)s",
         # level=logging.DEBUG,
         level=logging.INFO,
     )
 
+    # create formatter
+    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s")
+
+    rth = RotatingFileHandler(
+        DIRECTORY_LOG / "logger.txt",
+        mode="a",
+        maxBytes=100_000_000,
+        backupCount=5,
+    )
+    rth.setLevel(logging.INFO)
+    rth.setFormatter(formatter)
+
     ch = logging.StreamHandler()
     # ch.setLevel(level=logging.DEBUG)
     ch.setLevel(level=logging.INFO)
 
-    # create formatter
-    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s")
-
-    # add formatter to ch
     ch.setFormatter(formatter)
 
-    # add ch to logger
     logging.getLogger().addHandler(ch)
 
-    logging.getLogger('pymodbus.logging').setLevel(logging.INFO)
+    logging.getLogger("pymodbus.logging").setLevel(logging.INFO)

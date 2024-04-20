@@ -21,8 +21,6 @@ MODBUS_ADDRESS_RELAIS = 1
 MODBUS_ADDRESS_ADC = 2
 MODBUS_ADDRESS_BELIMO = 3
 
-TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.1
-
 ETAPPE_TAG_VIRGIN = "virgin"
 ETAPPE_TAG_BOCHS = "bochs"
 ETAPPE_TAG_PUENT = "puent"
@@ -30,8 +28,18 @@ ETAPPE_TAGS = (ETAPPE_TAG_VIRGIN, ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT)
 
 
 class ModbusExceptionIsError(ModbusException):
+    """
+    Raised on Modbus communication error.
+    """
+
     pass
 
 
 class ModbusExceptionRegisterCount(ModbusException):
+    """
+    This exception could be raised:
+    * If wrong package arrived (unlikly as the checksum will fail too)
+    * Due to programming errors (probably).
+    """
+
     pass

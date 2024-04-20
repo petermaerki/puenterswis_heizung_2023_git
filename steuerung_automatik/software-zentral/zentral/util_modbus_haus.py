@@ -1,15 +1,12 @@
-import os
-import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from pymodbus.exceptions import ModbusException, ConnectionException
+from pymodbus.exceptions import ModbusException
 
 from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
 
 from zentral import hsm_dezentral_signal
 
-from zentral.constants import TIMEOUT_AFTER_MODBUS_TRANSFER_S
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
 from zentral.util_modbus_gpio import ModbusIregsAll2
@@ -46,9 +43,7 @@ class ModbusHaus:
                 values=[hsm.dezentral_gpio.value],
             )
 
-        except ModbusException as exc:
-            logger.error(f"{haus.label}: {exc!r}")
-            await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
+        except ModbusException:
             return
 
         return
@@ -59,29 +54,22 @@ class ModbusHaus:
                 count=1,
             )
 
-        except ModbusException as exc:
-            logger.error(f"{haus.label}: {exc!r}")
+        except ModbusException:
             haus.status_haus.hsm_dezentral.dispatch(hsm_dezentral_signal.SignalModbusFailed())
-            await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             return
 
         logger.debug(f"{haus.label}: SETGET16BIT_GPIO: {rsp.registers}")
-        await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
 
     async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
         try:
             rsp = await self._modbus.read_input_registers(
                 slave=haus.config_haus.modbus_server_id,
+                slave_label=haus.label,
                 address=EnumModbusRegisters.SETGET16BIT_ALL_SLOW,
                 count=IREGS_ALL.register_count,
             )
-        except ConnectionException as exc:
-            logger.error(f"{haus.label}: {exc!r}")
-            os._exit(42)
-        except ModbusException as exc:
-            logger.error(f"{haus.label}: {exc!r}")
+        except ModbusException:
             haus.status_haus.hsm_dezentral.dispatch(hsm_dezentral_signal.SignalModbusFailed())
-            await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             return False
 
         modbus_iregs_all2 = ModbusIregsAll2(rsp.registers)
@@ -92,7 +80,7 @@ class ModbusHaus:
         ):
             modbus_iregs_all2.apply_scenario_temperature_increase(scenario)
 
-        logger.info(f"{haus.label}: modbus: {modbus_iregs_all2.debug_dict_text}")
+        logger.debug(f"{haus.label}: modbus: {modbus_iregs_all2.debug_dict_text}")
 
         for scenario in SCENARIOS.iter_by_class_haus(
             cls_scenario=ScenarioHausPicoRebootReset,
@@ -103,20 +91,15 @@ class ModbusHaus:
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2)
         haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))
 
-        await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
         return True
 
     async def reboot_reset(self, haus: "Haus") -> None:
         try:
             await self._modbus.write_coils(
                 slave=haus.config_haus.modbus_server_id,
+                slave_label=haus.label,
                 address=EnumModbusRegisters.SETGET1BIT_REBOOT_WATCHDOG,
                 values=[True],
             )
-        except ModbusException as exc:
-            logger.error(f"{haus.label}: {exc!r}")
+        except ModbusException:
             haus.status_haus.hsm_dezentral.dispatch(hsm_dezentral_signal.SignalModbusFailed())
-            await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
-            return
-
-        await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)

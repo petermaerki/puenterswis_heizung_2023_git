@@ -1,5 +1,18 @@
-from typing import Any, TYPE_CHECKING, Iterator, Union, List
-from pymodbus import ModbusException
+"""
+This class implements:
+* DONE: A common interface for hardware-modbus and mock-modbus.
+* NOT_IMPLEMENTED: Logging of the modbus calls on bit level
+* DONE: Unified error handling
+* Unified error recovery
+* DONE: Modbus calls in two asyncio tasks must not interleave
+"""
+
+from typing import TYPE_CHECKING, Iterator, Union, List
+from contextlib import asynccontextmanager
+import asyncio
+import logging
+
+from pymodbus.exceptions import ModbusException, ConnectionException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
 from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
@@ -9,6 +22,7 @@ from zentral.util_scenarios import (
     ScenarioBase,
     ScenarioHausModbusError,
     ScenarioHausModbusException,
+    ScenarioHausModbusSystemExit,
     ScenarioHausModbusWrongRegisterCount,
     ScenarioHausSpDs18Broken,
 )
@@ -16,6 +30,11 @@ from zentral.util_scenarios import (
 if TYPE_CHECKING:
     from zentral.context_mock import ModbusMockClient
     from zentral.context import Context
+
+
+TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.1
+TIMEOUT_AFTER_MODBUS_ERROR_S = 0.2
+logger = logging.getLogger(__name__)
 
 
 class ModbusWrapper:
@@ -35,6 +54,8 @@ class ModbusWrapper:
 
         self._dict_modbus_server_id_2_haus = {h.config_haus.modbus_server_id: h for h in self._context.config_etappe.haeuser}
 
+        self._lock = asyncio.Lock()
+
     async def connect(self):
         await self._modbus_client.connect()
 
@@ -43,10 +64,33 @@ class ModbusWrapper:
         self._modbus_client.close()
         self._modbus_client = None
 
+    @asynccontextmanager
+    async def serialize_modbus_calls(self, slave_label: int):
+        """
+        Make sure the modbus call do not interleave.
+        Specially the sleep at the end must block the start of the next
+        modbus call.
+        """
+        async with self._lock:
+            try:
+                yield
+                await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
+            except ConnectionException as e:
+                logger.error(f"{slave_label}: Call SystemExit: {e!r}")
+                raise SystemExit(e)
+            except ModbusException as e:
+                if "No response received" in e.message:
+                    logger.error(f"{slave_label}: No response: {e!r}")
+                    raise
+                logger.error(f"{slave_label}: {e!r}")
+                await asyncio.sleep(TIMEOUT_AFTER_MODBUS_ERROR_S)
+                raise
+
     def _iter_by_class_slave(self, cls_scenario, slave: int) -> Iterator[ScenarioBase]:
         haus = self._dict_modbus_server_id_2_haus.get(slave, None)
         if haus is None:
             return
+
         yield from SCENARIOS.iter_by_class_haus(cls_scenario=cls_scenario, haus=haus)
 
     def _assert_register_count(self, rsp: ModbusResponse, expected_register_count: int) -> None:
@@ -57,9 +101,9 @@ class ModbusWrapper:
     async def read_input_registers(
         self,
         address: int,
-        count: int = 1,
-        slave: int = 0,
-        **kwargs: Any,
+        count: int,
+        slave: int,
+        slave_label: str,
     ) -> ModbusResponse:
         assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
 
@@ -69,12 +113,19 @@ class ModbusWrapper:
         ):
             raise ModbusException("ScenarioHausModbusException")
 
-        rsp = await self._modbus_client.read_input_registers(
-            address=address,
-            count=count,
+        for scenario in self._iter_by_class_slave(
+            cls_scenario=ScenarioHausModbusSystemExit,
             slave=slave,
-            kwargs=kwargs,
-        )
+        ):
+            raise SystemExit(f"ScenarioHausModbusSystemExit({slave_label})")
+
+        async with self.serialize_modbus_calls(slave_label=slave_label):
+            rsp = await self._modbus_client.read_input_registers(
+                address=address,
+                count=count,
+                slave=slave,
+                kwargs={},
+            )
 
         for scenario in self._iter_by_class_slave(
             cls_scenario=ScenarioHausModbusError,
@@ -101,16 +152,17 @@ class ModbusWrapper:
     async def read_holding_registers(
         self,
         address: int,
-        count: int = 1,
-        slave: int = 0,
-        **kwargs: Any,
+        count: int,
+        slave: int,
+        slave_label: str,
     ) -> ModbusResponse:
-        rsp = await self._modbus_client.read_holding_registers(
-            address=address,
-            count=count,
-            slave=slave,
-            kwargs=kwargs,
-        )
+        async with self.serialize_modbus_calls(slave_label=slave_label):
+            rsp = await self._modbus_client.read_holding_registers(
+                address=address,
+                count=count,
+                slave=slave,
+                kwargs={},
+            )
         if rsp.isError():
             raise ModbusExceptionIsError("isError")
 
@@ -122,15 +174,18 @@ class ModbusWrapper:
         self,
         address: int,
         values: List[int],
-        slave: int = 0,
-        **kwargs: Any,
+        slave: int,
+        slave_label: str,
     ) -> ModbusResponse:
-        rsp = await self._modbus_client.write_registers(
-            address=address,
-            values=values,
-            slave=slave,
-            kwargs=kwargs,
-        )
+        assert isinstance(values, (list, tuple))
+
+        async with self.serialize_modbus_calls(slave_label=slave_label):
+            rsp = await self._modbus_client.write_registers(
+                address=address,
+                values=values,
+                slave=slave,
+                kwargs={},
+            )
         if rsp.isError():
             raise ModbusExceptionIsError("isError")
 
@@ -140,16 +195,19 @@ class ModbusWrapper:
     async def write_coils(
         self,
         address: int,
-        values: list[bool] | bool,
-        slave: int = 0,
-        **kwargs: Any,
+        values: List[bool],
+        slave: int,
+        slave_label: str,
     ) -> ModbusResponse:
-        rsp = await self._modbus_client.write_coils(
-            address=address,
-            values=values,
-            slave=slave,
-            kwargs=kwargs,
-        )
+        assert isinstance(values, (list, tuple))
+
+        async with self.serialize_modbus_calls(slave_label=slave_label):
+            rsp = await self._modbus_client.write_coils(
+                address=address,
+                values=values,
+                slave=slave,
+                kwargs={},
+            )
         if rsp.isError():
             raise ModbusExceptionIsError("isError")
 

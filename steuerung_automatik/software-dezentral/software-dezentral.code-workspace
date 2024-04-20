@@ -85,10 +85,10 @@
 				"cwd": "${workspaceFolder:zentral}",
 				"args": [
 					"zentral.run_zentral_fastapi:app",
-					"--reload",
+					// "--reload",
 					"--workers=1",
-					"--port=8000",
-					"--reload-dir=${workspaceFolder:repo}"
+					"--port=8000"
+					// "--reload-dir=${workspaceFolder:repo}"
 				],
 				"env": {
 					"HEIZUNG2023_MOCKED": "0",

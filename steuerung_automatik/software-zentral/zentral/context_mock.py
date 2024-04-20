@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 
 from zentral.constants import (
@@ -36,9 +36,8 @@ class ModbusMockClient:
     async def read_input_registers(
         self,
         address: int,
-        count: int = 1,
-        slave: int = 0,
-        **kwargs: Any,
+        count: int,
+        slave: int,
     ) -> ModbusResponse:
         assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
 
@@ -64,13 +63,14 @@ class ModbusMockClient:
         rsp.registers = registers
         return rsp
 
-    async def read_holding_registers(self, address: int, count: int = 1, slave: int = 0, **kwargs: Any) -> ModbusResponse:
+    async def read_holding_registers(self, address: int, count: int, slave: int) -> ModbusResponse:
         if address == EnumModbusRegisters.SETGET16BIT_GPIO:
             _haus = self._get_haus(slave=slave)
 
             rsp = ModbusResponse()
             rsp.registers = [1]
             return rsp
+
         if slave == MODBUS_ADDRESS_BELIMO:
             if address == util_modbus_mischventil.EnumRegisters.RELATIVE_POSITION:
                 rsp = ModbusResponse()
@@ -82,7 +82,8 @@ class ModbusMockClient:
                 return rsp
         assert False
 
-    async def write_registers(self, address: int, values: List[int], slave: int = 0, **kwargs: Any) -> ModbusResponse:
+    async def write_registers(self, address: int, values: List[int], slave: int) -> ModbusResponse:
+        assert isinstance(values, (list, tuple))
         assert address == util_modbus_dac.Dac.ADC_ADDRESS
         assert slave == MODBUS_ADDRESS_ADC
         assert len(values) == 8
@@ -94,12 +95,13 @@ class ModbusMockClient:
     async def write_coils(
         self,
         address: int,
-        values: list[bool] | bool,
-        slave: int = 0,
-        **kwargs: Any,
+        values: List[bool],
+        slave: int,
     ) -> ModbusResponse:
+        assert isinstance(values, (list, tuple))
         assert address == util_modbus_gpio.Gpio.COIL_ADDRESS
         assert slave == MODBUS_ADDRESS_RELAIS
+
         rsp = ModbusResponse()
         rsp.registers = []
         return rsp

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import typing
 
 from pymodbus import ModbusException
@@ -19,6 +20,7 @@ from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_mischventil import Mischventil
 from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_dac import Dac
+from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusSystemExit
 
 if typing.TYPE_CHECKING:
     from context import Context
@@ -59,30 +61,27 @@ class ModbusCommunication:
 
             # await modbus_haus.reboot_reset(haus=haus)
 
-    async def task_modbus(self):
+    async def _task_modbus(self):
         while True:
             await self.modbus_haueser_loop()
-            _haus = self._context.config_etappe.haeuser[0].status_haus
-            # print(haus.modbus_history.text_history)
-            await asyncio.sleep(0.5)
-            # await asyncio.sleep(20.0)
 
             if True:
                 try:
                     await self.a.set_dac()
-                except ModbusException as exc:
-                    logger.error(f"exception in set_dac {exc}")
-                await asyncio.sleep(0.5)
+                except ModbusException:
+                    pass
 
             if True:
+                if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
+                    raise SystemExit(f"ScenarioMischventilModbusSystemExit({self.m._modbus_label})")
+
                 try:
                     relative_position = await self.m.relative_position
                     logger.debug(f"mischventil: {relative_position}")
                     absolute_power_kW = await self.m.absolute_power_kW
                     logger.debug(f"mischventil: {absolute_power_kW}")
-                except ModbusException as exc:
-                    logger.error(f"exception in mischventil {exc}")
-                await asyncio.sleep(0.5)
+                except ModbusException:
+                    pass
 
             if True:
                 try:
@@ -99,6 +98,17 @@ class ModbusCommunication:
                             relais.relais_7_automatik,
                         )
                     )
-                except ModbusException as exc:
-                    logger.error(f"exception in relais {exc}")
-                await asyncio.sleep(0.5)
+                except ModbusException:
+                    pass
+
+            await asyncio.sleep(5.0)
+
+    async def task_modbus(self):
+        try:
+            await self._task_modbus()
+        except Exception as e:
+            logger.warning(f"Terminating app: Unexpected {e!r}")
+            os._exit(43)
+        except SystemExit as e:
+            logger.warning(f"Terminating app: {e!r}")
+            os._exit(42)

@@ -39,6 +39,7 @@ class Mischventil:
         assert isinstance(modbus, ModbusWrapper)
         self._modbus = modbus
         self._modbus_address = modbus_address
+        self._modbus_label = f"Mischventil(modbus={self._modbus_address})"
 
     @property
     async def setpoint(self) -> float:
@@ -88,7 +89,12 @@ class Mischventil:
         return await self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
 
     async def _read_16bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(slave=self._modbus_address, address=address, count=1)
+        response = await self._modbus.read_holding_registers(
+            slave=self._modbus_address,
+            slave_label=self._modbus_label,
+            address=address,
+            count=1,
+        )
         return response.registers[0] * factor
 
     async def _write_16bit(self, address: int, value: float, factor: float) -> None:
@@ -97,7 +103,12 @@ class Mischventil:
         await self._modbus.write_registers(slave=MODBUS_ADDRESS_BELIMO, address=address, values=[value_raw])
 
     async def _read_32bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(slave=self._modbus_address, address=address, count=2)
+        response = await self._modbus.read_holding_registers(
+            slave=self._modbus_address,
+            slave_label=self._modbus_label,
+            address=address,
+            count=2,
+        )
         assert not response.isError()
 
         decoder = BinaryPayloadDecoder.fromRegisters(

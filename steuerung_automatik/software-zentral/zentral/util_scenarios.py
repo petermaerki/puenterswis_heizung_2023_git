@@ -63,6 +63,16 @@ class Scenarios:
         logger.info(f"Scenario: Remove {scenario!r}")
         self._scenarios.remove(scenario)
 
+    def remove_if_present(self, cls_scenario) -> bool:
+        """
+        Return True if the scenario was present
+        """
+        for scenario in self._scenarios:
+            if scenario.__class__ is cls_scenario:
+                self._scenarios.remove(scenario)
+                return True
+        return False
+
     def iter_by_class_haus(self, cls_scenario, haus: "Haus") -> Iterator[ScenarioBase]:
         from zentral.config_base import Haus
 
@@ -125,6 +135,22 @@ class ScenarioHausModbusException(ScenarioBase):
 
 
 SCENARIO_CLASSES.append(ScenarioHausModbusException)
+
+
+@dataclasses.dataclass
+class ScenarioHausModbusSystemExit(ScenarioBase):
+    haus_nummer: int = 13
+
+
+SCENARIO_CLASSES.append(ScenarioHausModbusSystemExit)
+
+
+@dataclasses.dataclass
+class ScenarioMischventilModbusSystemExit(ScenarioBase):
+    pass
+
+
+SCENARIO_CLASSES.append(ScenarioMischventilModbusSystemExit)
 
 
 @dataclasses.dataclass

@@ -19,6 +19,7 @@ class Gpio:
         assert isinstance(modbus, ModbusWrapper)
         self._modbus = modbus
         self._modbus_address = modbus_address
+        self._modbus_label = f"Gpio(modbus={self._modbus_address})"
 
     async def relais_set_obsolete(self):
         for coils in ([1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 1]):
@@ -42,6 +43,7 @@ class Gpio:
         assert len(list_gpio) == self.RELAIS_COUNT
         response = await self._modbus.write_coils(
             slave=self._modbus_address,
+            slave_label=self._modbus_label,
             address=self.COIL_ADDRESS,
             values=list_gpio,
         )
