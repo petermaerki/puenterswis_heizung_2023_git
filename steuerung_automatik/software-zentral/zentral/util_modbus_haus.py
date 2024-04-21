@@ -39,6 +39,7 @@ class ModbusHaus:
         try:
             rsp = await self._modbus.write_registers(
                 slave=haus.config_haus.modbus_server_id,
+                slave_label=haus.label,
                 address=EnumModbusRegisters.SETGET16BIT_GPIO,
                 values=[hsm.dezentral_gpio.value],
             )

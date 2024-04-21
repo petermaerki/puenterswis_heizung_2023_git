@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import typing
@@ -55,9 +54,10 @@ class ModbusCommunication:
             if success:
                 await modbus_haus.handle_haus_gpio(haus)
 
-            r = InfluxRecords(haus=haus)
-            r.add_fields(haus.status_haus.get_influx_fields())
-            await self._context.influx.write_records(records=r)
+            if False:
+                r = InfluxRecords(haus=haus)
+                r.add_fields(fields=haus.status_haus.get_influx_fields())
+                await self._context.influx.write_records(records=r)
 
             # await modbus_haus.reboot_reset(haus=haus)
 
@@ -101,14 +101,16 @@ class ModbusCommunication:
                 except ModbusException:
                     pass
 
-            await asyncio.sleep(5.0)
+            # await asyncio.sleep(5.0)
 
     async def task_modbus(self):
         try:
             await self._task_modbus()
         except Exception as e:
             logger.warning(f"Terminating app: Unexpected {e!r}")
+            await self._context.close_and_flush_influx()
             os._exit(43)
         except SystemExit as e:
             logger.warning(f"Terminating app: {e!r}")
+            await self._context.close_and_flush_influx()
             os._exit(42)

@@ -20,6 +20,9 @@ class Context:
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
 
+    async def close_and_flush_influx(self) -> None:
+        await self.influx.close_and_flush()
+
     async def init(self) -> None:
         if False:
             await self.influx.delete_bucket()
@@ -58,5 +61,5 @@ class Context:
 
     async def __aexit__(self, *exc):
         await self.modbus_communication.close()
-        await self.influx.close()
+        await self.influx.close_and_flush()
         return False

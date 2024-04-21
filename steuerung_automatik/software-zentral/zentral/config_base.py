@@ -3,11 +3,14 @@ from typing import Dict, List, Union
 from enum import IntEnum
 
 from zentral.hsm_dezentral import HsmDezentral
+from zentral.util_uploadinterval import UploadInterval
 
 
 class StatusHaus:
     def __init__(self, haus: "Haus"):
         self.hsm_dezentral = HsmDezentral(haus=haus)
+        self.interval_haus_temperatures = UploadInterval(interval_s=1 * 60)
+        self.interval_haus_hsm = UploadInterval(interval_s=1 * 30)
 
     def get_influx_fields(self) -> Dict[str, float]:
         return {}

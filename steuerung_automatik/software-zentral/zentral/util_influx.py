@@ -1,10 +1,10 @@
 import asyncio
 import logging
+import time
 from typing import Dict, List, Union
-from aiohttp.client_exceptions import ClientConnectorError
 from hsm import hsm
-from influxdb_client import Point, DeleteApi
-from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+from influxdb_client import Point, DeleteApi, WriteOptions
+from influxdb_client.client.influxdb_client import InfluxDBClient
 from zentral.config_base import Haus
 
 from zentral.config_secrets import InfluxSecrets
@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class InfluxRecords:
+    """
+    Add timestamp:
+    See https://influxdb-client.readthedocs.io/en/latest/api.html#influxdb_client.WriteApi.write
+    See https://powersj.io/posts/influxdb-client-python-write-api-deep-dive/#dictionary
+    See https://docs.influxdata.com/influxdb/cloud/reference/syntax/line-protocol/#timestamp
+    See https://docs.influxdata.com/influxdb/cloud/reference/glossary/#unix-timestamp
+    """
+
     def __init__(self, haus: Haus):
         self._dict_tags = {
             "position": haus.influx_tag,  # "haus_08", "zentral"
@@ -25,7 +33,12 @@ class InfluxRecords:
 
     def add_fields(self, fields: Dict[str, Union[float, int]]):
         self._records.append(
-            {"measurement": "Heizung", "tags": self._dict_tags, "fields": fields},
+            {
+                "measurement": "Heizung",
+                "tags": self._dict_tags,
+                "fields": fields,
+                "time": time.time_ns(),
+            }
         )
 
 
@@ -34,72 +47,53 @@ class Influx:
         secrets = InfluxSecrets()
         self._secrets = secrets
         self._etappe = etappe
-        self._client = InfluxDBClientAsync(url=secrets.url, token=secrets.token, org=secrets.org)
+        self._client = InfluxDBClient(url=secrets.url, token=secrets.token, org=secrets.org)
         self._bucket = secrets.bucket
+        write_options = WriteOptions(
+            batch_size=500,  # [1] the number of data point to collect in batch
+            flush_interval=10_000,  # [ms] flush data at least in this interval (milliseconds)
+            jitter_interval=2_000,  # [ms] this is primarily to avoid large write spikes for users running a large number of client instances ie, a jitter of 5s and flush duration 10s means flushes will happen every 10-15s (milliseconds)
+            retry_interval=5_000,  # [ms] the time to wait before retry unsuccessful write (milliseconds)
+            max_retries=5,  # the number of max retries when write fails, 0 means retry is disabled
+            max_retry_delay=30_000,  # [ms] the maximum delay between each retry attempt in milliseconds
+            max_close_wait=30_000,  # [ms] the maximum time to wait for writes to be flushed if close() is called
+            exponential_base=2,  # base for the exponential retry delay
+        )
+        self._api = self._client.write_api(write_options=write_options)
         self._api = self._client.write_api()
+        # self.interval_haus_temperatures = UploadInterval(interval_s=1 * 60)
 
-    async def close(self):
-        await self._client.close()
+    async def close_and_flush(self):
+        self._client.close()
 
     async def delete_bucket(self) -> None:
         # Delete all points from bucket
         delete_api = DeleteApi(self._client)
-        await delete_api.delete(
+        predicate = "etappe=virgin"
+        # predicate="",
+        delete_api.delete(
             start="2020-01-01T00:00:00Z",
             stop="2060-01-01T00:00:00Z",
-            predicate="",
+            predicate=predicate,
             bucket=self._secrets.bucket,
         )
-        logger.warning(f"Deleted Bucket {self._secrets.bucket}")
+        logger.warning(f"Deleted Bucket {self._secrets.bucket}, prediacte '{predicate}'")
 
     async def write_records(self, records: InfluxRecords):
         try:
-            success = await self._api.write(bucket=self._bucket, record=records._records)
-            if not success:
-                logger.error("Failed to write to influx")
-        except ClientConnectorError:
-            logger.exception("Failed to write to influx")
-        except TimeoutError:
-            logger.exception("Failed to write to influx")
-
-    async def write_obsolete(self, haus: Haus, fields: Dict[str, Union[float, int]]):
-        # version = await self._client.version()
-        # logger.info(f"InfluxDB: {version}")
-
-        dict_tags = {
-            "position": haus.influx_tag,  # "haus_08", "zentral"
-            "etappe": self._etappe,  # "puent"
-            "haus": haus.config_haus.nummer,
-        }
-
-        # Fields für Dezentral
-        # sp_oben_temperatureC
-        # sp_open_errorC
-        # sp_mitte_temperatureC
-        # sp_mitte_errorC
-        # sp_unten_temperatureC
-        # sp_unten_errorC
-        # ventil_open
-
-        # Fields fuer Zentral
-        # Tbv1_C
-        # energy_valve_open
-
-        # records = [
-        #     {"measurement": "haus-08-sp_oben", "tags": {"location": location}, "fields": {"temperature_C": 25.3}, "time": 1},
-        #     {"measurement": "haus-08-sp_unten", "tags": {"location": location}, "fields": {"temperature_C": 21.3}, "time": 1},
-        # ]
-        records = [
-            {"measurement": "Heizung", "tags": dict_tags, "fields": fields},
-        ]
-        success = await self._api.write(bucket=self._bucket, record=records)
-        if not success:
-            logger.error("Failed to write to influx")
+            self._api.write(bucket=self._bucket, record=records._records)
+        except Exception as e:
+            logger.exception("Failed to write to influx", e)
+        # TODO: Test the error handling!
+        # except ClientConnectorError:
+        #     logger.exception("Failed to write to influx")
+        # except TimeoutError:
+        #     logger.exception("Failed to write to influx")
 
     async def send_modbus_iregs_all(self, haus: "Haus", modbus_iregs_all: "ModbusIregsAll") -> None:
         fields: Dict[str, float] = {}
 
-        fields[f"uptime_s"] = modbus_iregs_all.uptime_s
+        fields["uptime_s"] = modbus_iregs_all.uptime_s
 
         for p in SpPosition:
             pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
@@ -114,9 +108,10 @@ class Influx:
             fields["ladung_heizung_prozent"] = ladung_minimum.ladung_heizung.ladung_prozent
             fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
 
-        r = InfluxRecords(haus=haus)
-        r.add_fields(fields=fields)
-        await self.write_records(records=r)
+        if haus.status_haus.interval_haus_temperatures.time_over:
+            r = InfluxRecords(haus=haus)
+            r.add_fields(fields=fields)
+            await self.write_records(records=r)
 
     async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
         offset_total = 0.8
@@ -124,14 +119,15 @@ class Influx:
         offset = haus.config_haus.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
         state_value = state.value + offset
         # print(haus.influx_tag, state_value)
-        r = InfluxRecords(haus=haus)
-        r.add_fields(
-            {
-                "hsm_state_value": state_value,
-                "modbus_ok_percent": haus.status_haus.hsm_dezentral.modbus_history.percent,
-            }
-        )
-        await self.write_records(records=r)
+        if haus.status_haus.interval_haus_hsm.time_over:
+            r = InfluxRecords(haus=haus)
+            r.add_fields(
+                fields={
+                    "hsm_state_value": state_value,
+                    "modbus_ok_percent": haus.status_haus.hsm_dezentral.modbus_history.percent,
+                }
+            )
+            await self.write_records(records=r)
 
 
 class HsmInfluxLogger(hsm.HsmLoggerProtocol):

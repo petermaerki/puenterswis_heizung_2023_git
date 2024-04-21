@@ -32,8 +32,9 @@ if TYPE_CHECKING:
     from zentral.context import Context
 
 
-TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.1
-TIMEOUT_AFTER_MODBUS_ERROR_S = 0.2
+TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.005
+TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S = 0.005
+TIMEOUT_AFTER_MODBUS_ERROR_S = 0.010
 logger = logging.getLogger(__name__)
 
 
@@ -80,7 +81,8 @@ class ModbusWrapper:
                 raise SystemExit(e)
             except ModbusException as e:
                 if "No response received" in e.message:
-                    logger.error(f"{slave_label}: No response: {e!r}")
+                    logger.debug(f"{slave_label}: No response: {e!r}")
+                    await asyncio.sleep(TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S)
                     raise
                 logger.error(f"{slave_label}: {e!r}")
                 await asyncio.sleep(TIMEOUT_AFTER_MODBUS_ERROR_S)

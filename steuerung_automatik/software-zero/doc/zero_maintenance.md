@@ -41,7 +41,7 @@ systemctl status heizung-ssh-tunnel.service
 
 zero:
 ```bash
-journalctl --no-tail --follow --unit heizung-app.service
+journalctl --lines=100 --follow --unit heizung-app.service
 ```
 
 ### service journal
