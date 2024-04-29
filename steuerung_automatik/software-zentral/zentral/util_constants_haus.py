@@ -1,4 +1,21 @@
-from enum import StrEnum, auto
+from enum import Enum, StrEnum, auto
+
+
+def ensure_enum(enum_type: Enum, name: str | Enum) -> Enum:
+    """
+    A enum value is expected.
+    However, if a string was given, it will be converted into the enum name.
+    If the string is not a valid enum name, a exception will show all valid values.
+    """
+    if isinstance(name, enum_type):
+        return name
+    assert isinstance(name, str)
+    try:
+        return enum_type[name]
+    except KeyError:
+        valid_values = sorted([e.name for e in enum_type])
+        valid_values_text = " ".join(valid_values)
+        raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}")
 
 
 class SpPosition(StrEnum):
@@ -17,6 +34,9 @@ class SpPosition(StrEnum):
     @property
     def tag(self) -> str:
         return f"sp_{self.value}"
+
+    def __repr__(self) -> str:
+        return f"'{self.name}'"
 
 
 class DS18Index(StrEnum):
@@ -45,6 +65,9 @@ class DS18Index(StrEnum):
             self.OBEN_A: 6,
             self.OBEN_B: 7,
         }[self]
+
+    def __repr__(self) -> str:
+        return f"'{self.name}'"
 
 
 assert DS18Index.UNTEN_A.index == SpPosition.UNTEN.ds18_pair_index * 2

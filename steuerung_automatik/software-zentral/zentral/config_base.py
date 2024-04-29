@@ -102,6 +102,10 @@ class ConfigEtappe:
     def haeuser(self) -> List[Haus]:
         return sorted(self.dict_haeuser.values())
 
+    @property
+    def hausnummern(self) -> List[int]:
+        return sorted([haus.config_haus.nummer for haus in self.dict_haeuser.values()])
+
     def get_haus_by_nummer(self, nummer: int) -> Haus:
         assert self.lowest_haus_nummer is not None
 

@@ -43,10 +43,9 @@ class InfluxRecords:
 
 
 class Influx:
-    def __init__(self, etappe: str):
+    def __init__(self):
         secrets = InfluxSecrets()
         self._secrets = secrets
-        self._etappe = etappe
         self._client = InfluxDBClient(url=secrets.url, token=secrets.token, org=secrets.org)
         self._bucket = secrets.bucket
         write_options = WriteOptions(
@@ -66,11 +65,12 @@ class Influx:
     async def close_and_flush(self):
         self._client.close()
 
-    async def delete_bucket(self) -> None:
+    async def delete_bucket_virgin(self) -> None:
+        await self.delete_bucket(predicate="etappe=virgin")
+
+    async def delete_bucket(self, predicate) -> None:
         # Delete all points from bucket
         delete_api = DeleteApi(self._client)
-        predicate = "etappe=virgin"
-        # predicate="",
         delete_api.delete(
             start="2020-01-01T00:00:00Z",
             stop="2060-01-01T00:00:00Z",

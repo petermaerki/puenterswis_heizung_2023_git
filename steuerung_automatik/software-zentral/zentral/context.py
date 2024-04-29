@@ -1,4 +1,5 @@
 import asyncio
+from zentral import util_ssh_repl
 from zentral.config_base import ConfigEtappe
 from zentral.constants import DIRECTORY_LOG
 from zentral.hsm_zentral import HsmZentral
@@ -6,6 +7,7 @@ from zentral.util_influx import Influx, HsmInfluxLogger
 
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_logger import HsmLoggingLogger
+from zentral.util_scenarios import ssh_repl_update_scenarios
 
 
 class Context:
@@ -15,7 +17,7 @@ class Context:
         self.hsm_zentral = HsmZentral(hsm_logger=HsmLoggingLogger("HsmZentral"))
         self.hsm_zentral.init()
         self.hsm_zentral.write_mermaid_md(DIRECTORY_LOG / f"statemachine_{self.hsm_zentral.__class__.__name__}.md")
-        self.influx = Influx(etappe=self.config_etappe.tag)
+        self.influx = Influx()
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
@@ -24,9 +26,6 @@ class Context:
         await self.influx.close_and_flush()
 
     async def init(self) -> None:
-        if False:
-            await self.influx.delete_bucket()
-
         self.config_etappe.init()
 
         for haus in self.config_etappe.haeuser:
@@ -43,6 +42,14 @@ class Context:
         self.hsm_zentral.start()
         for haus in self.config_etappe.haeuser:
             haus.status_haus.hsm_dezentral.start()
+
+    async def create_ssh_repl(self) -> None:
+        repl_globals = dict(
+            ctx=self,
+        )
+        hausnummern = self.config_etappe.hausnummern
+        ssh_repl_update_scenarios(repl_globals=repl_globals, hausnummern=hausnummern)
+        await util_ssh_repl.create(repl_globals=repl_globals, hausnummern=hausnummern)
 
     async def task_hsm(self) -> None:
         if True:

@@ -78,13 +78,13 @@ def initialize_logger() -> None:
     logging.basicConfig(
         # filename=DIRECTORY_LOG / "logger.txt",
         # filemode="w",
-        format="%(asctime)s %(filename)s:%(lineno)s - %(levelname)s - %(message)s",
+        format="%(asctime)s %(filename)s:%(lineno)s - %(name)s - %(levelname)s - %(message)s",
         # level=logging.DEBUG,
         level=logging.INFO,
     )
 
     # create formatter
-    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s")
+    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(name)s - %(levelname)s - %(message)s")
 
     rth = RotatingFileHandler(
         DIRECTORY_LOG / "logger.txt",
@@ -104,3 +104,4 @@ def initialize_logger() -> None:
     logging.getLogger().addHandler(ch)
 
     logging.getLogger("pymodbus.logging").setLevel(logging.INFO)
+    logging.getLogger("asyncssh").setLevel(logging.WARNING)

@@ -17,30 +17,60 @@
   * found
 """
 
+import io
 import abc
+import sys
+import time
+import inspect
 import dataclasses
-from typing import Iterator, List, TYPE_CHECKING
+from typing import Any, Dict, Iterator, List, TYPE_CHECKING
 import logging
 
-from zentral.util_constants_haus import DS18Index, SpPosition
+from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
 
 logger = logging.getLogger(__name__)
 
+_FUNC_SCENARIO_ADD = "scenario_add"
+
 
 class ScenarioBase(abc.ABC):
     def decrement(self) -> None:
-        if not hasattr(self, "counter"):
-            return
+        if hasattr(self, "counter"):
+            self.counter -= 1
+            if self.counter <= 0:
+                self.destroy()
 
-        self.counter -= 1
-        if self.counter <= 0:
+        if hasattr(self, "duration_s"):
+            now_s = time.monotonic()
+            if not hasattr(self, "end_s"):
+                self.end_s = now_s + self.duration_s
+                return
+            remaining_s = self.end_s - now_s
+            if remaining_s > 0.0:
+                self.duration_s = remaining_s
+                return
             self.destroy()
 
     def destroy(self) -> None:
         SCENARIOS.remove(self)
+
+    @property
+    def repl_example(self) -> str:
+        return f"{_FUNC_SCENARIO_ADD}({self!r})"
+
+    def assert_valid_hausnummer(self, hausnummern: List[int]) -> None:
+        if not hasattr(self, "haus_nummer"):
+            return
+        if self.haus_nummer not in hausnummern:
+            raise ValueError(f"haus_nummer {self.haus_nummer} is not valid. Use one of: {hausnummern}")
+
+    def fix_haus_nummer(self, haus_nummer: int) -> None:
+        if not hasattr(self, "haus_nummer"):
+            return
+        self.haus_nummer = haus_nummer
 
 
 class Scenarios:
@@ -80,8 +110,31 @@ class Scenarios:
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
                 if scenario.haus_nummer is haus.config_haus.nummer:
+                    logger.info(f"Scenario: Apply {scenario!r}")
                     scenario.decrement()
                     yield scenario
+
+
+def ssh_repl_scenarios_history_add(f: io.TextIOBase, hausnummern: List[int]) -> None:
+    examples = []
+    for scenario_cls in SCENARIO_CLASSES:
+        scenario: ScenarioBase = scenario_cls()
+        scenario.fix_haus_nummer(hausnummern[0])
+        examples.append(scenario.repl_example)
+
+    for example in examples:
+        f.write(f"#\n+{example}\n")
+
+
+def ssh_repl_update_scenarios(repl_globals: Dict[str, Any], hausnummern: List[int]) -> None:
+    def scenario_add(scenario: ScenarioBase) -> None:
+        scenario.assert_valid_hausnummer(hausnummern=hausnummern)
+        SCENARIOS.add(scenario)
+
+    repl_globals[_FUNC_SCENARIO_ADD] = scenario_add
+
+    for cls_scenario in SCENARIO_CLASSES:
+        repl_globals[cls_scenario.__name__] = cls_scenario
 
 
 SCENARIOS = Scenarios()
@@ -93,16 +146,10 @@ class ScenarioClearScenarios(ScenarioBase):
     pass
 
 
-SCENARIO_CLASSES.append(ScenarioClearScenarios)
-
-
 @dataclasses.dataclass
 class ScenarioHausModbusError(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
-
-
-SCENARIO_CLASSES.append(ScenarioHausModbusError)
 
 
 @dataclasses.dataclass
@@ -113,16 +160,10 @@ class ScenarioHausPicoRebootReset(ScenarioBase):
     """
 
 
-SCENARIO_CLASSES.append(ScenarioHausPicoRebootReset)
-
-
 @dataclasses.dataclass
 class ScenarioHausModbusWrongRegisterCount(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
-
-
-SCENARIO_CLASSES.append(ScenarioHausModbusWrongRegisterCount)
 
 
 @dataclasses.dataclass
@@ -130,11 +171,8 @@ class ScenarioHausModbusException(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 60
     """
-    After 50 exceptions, hsm dezentral will change to "error_lost"
+    After 60 exceptions, hsm dezentral will change to "error_lost"
     """
-
-
-SCENARIO_CLASSES.append(ScenarioHausModbusException)
 
 
 @dataclasses.dataclass
@@ -142,15 +180,9 @@ class ScenarioHausModbusSystemExit(ScenarioBase):
     haus_nummer: int = 13
 
 
-SCENARIO_CLASSES.append(ScenarioHausModbusSystemExit)
-
-
 @dataclasses.dataclass
 class ScenarioMischventilModbusSystemExit(ScenarioBase):
     pass
-
-
-SCENARIO_CLASSES.append(ScenarioMischventilModbusSystemExit)
 
 
 @dataclasses.dataclass
@@ -158,10 +190,10 @@ class ScenarioHausSpTemperatureIncrease(ScenarioBase):
     haus_nummer: int = 13
     position: SpPosition = SpPosition.OBEN
     delta_C: float = 5.0
-    counter: int = 1
+    duration_s: float = 20.0
 
-
-SCENARIO_CLASSES.append(ScenarioHausSpTemperatureIncrease)
+    def __post_init__(self):
+        self.position = ensure_enum(SpPosition, self.position)
 
 
 @dataclasses.dataclass
@@ -169,7 +201,24 @@ class ScenarioHausSpDs18Broken(ScenarioBase):
     haus_nummer: int = 13
     ds18_index: DS18Index = DS18Index.UNTEN_A
     ds18_ok_percent: int = 15
-    counter: int = 1
+    duration_s: float = 20.0
+
+    def __post_init__(self):
+        self.ds18_index = ensure_enum(DS18Index, self.ds18_index)
 
 
-SCENARIO_CLASSES.append(ScenarioHausSpDs18Broken)
+def register_scenarios() -> None:
+    for name, scenario_cls in inspect.getmembers(sys.modules[__name__]):
+        if not name.startswith("Scenario"):
+            continue
+        if not inspect.isclass(scenario_cls):
+            continue
+        if not issubclass(scenario_cls, ScenarioBase):
+            continue
+        if scenario_cls is ScenarioBase:
+            continue
+
+        SCENARIO_CLASSES.append(scenario_cls)
+
+
+register_scenarios()

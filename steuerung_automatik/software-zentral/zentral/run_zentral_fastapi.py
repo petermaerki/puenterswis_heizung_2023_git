@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 
     async with cls_ctx(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
         await ctx.init()
+        await ctx.create_ssh_repl()
 
         globals.ctx = ctx
 

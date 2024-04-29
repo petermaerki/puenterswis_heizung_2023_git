@@ -1,4 +1,5 @@
-from typing import List
+import asyncio
+from typing import Any, List
 
 
 from zentral.constants import (
@@ -21,6 +22,8 @@ from zentral import util_modbus_dac
 
 _DS_COUNT = 8
 
+MOCK_DURATION_S = 0.1
+
 
 class ModbusMockClient:
     def __init__(self, context: "ContextMock"):
@@ -38,8 +41,11 @@ class ModbusMockClient:
         address: int,
         count: int,
         slave: int,
+        **kwargs: Any,
     ) -> ModbusResponse:
         assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
+
+        await asyncio.sleep(MOCK_DURATION_S)
 
         _haus = self._get_haus(slave=slave)
 
@@ -63,7 +69,15 @@ class ModbusMockClient:
         rsp.registers = registers
         return rsp
 
-    async def read_holding_registers(self, address: int, count: int, slave: int) -> ModbusResponse:
+    async def read_holding_registers(
+        self,
+        address: int,
+        count: int,
+        slave: int,
+        **kwargs: Any,
+    ) -> ModbusResponse:
+        await asyncio.sleep(MOCK_DURATION_S)
+
         if address == EnumModbusRegisters.SETGET16BIT_GPIO:
             _haus = self._get_haus(slave=slave)
 
@@ -82,11 +96,19 @@ class ModbusMockClient:
                 return rsp
         assert False
 
-    async def write_registers(self, address: int, values: List[int], slave: int) -> ModbusResponse:
+    async def write_registers(
+        self,
+        address: int,
+        values: List[int],
+        slave: int,
+        **kwargs: Any,
+    ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
         assert address == util_modbus_dac.Dac.ADC_ADDRESS
         assert slave == MODBUS_ADDRESS_ADC
         assert len(values) == 8
+
+        await asyncio.sleep(MOCK_DURATION_S)
 
         rsp = ModbusResponse()
         rsp.registers = []
@@ -97,6 +119,7 @@ class ModbusMockClient:
         address: int,
         values: List[bool],
         slave: int,
+        **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
         assert address == util_modbus_gpio.Gpio.COIL_ADDRESS

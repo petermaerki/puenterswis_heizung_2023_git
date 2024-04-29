@@ -21,11 +21,11 @@ async def main():
 
     async with ContextClass(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
         await ctx.init()
+        await ctx.create_ssh_repl()
 
         asyncio.create_task(ctx.modbus_communication.task_modbus())
         asyncio.create_task(ctx.task_hsm())
 
-        # await interactive_shell()
         await asyncio.Future()  # Wait forever.
         print("Done")
 
@@ -34,6 +34,3 @@ if __name__ == "__main__":
     initialize_logger()
 
     asyncio.run(main(), debug=False)
-else:
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)

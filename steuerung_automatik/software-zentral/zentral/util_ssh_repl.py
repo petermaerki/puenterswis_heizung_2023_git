@@ -1,95 +1,79 @@
+#!/usr/bin/env python
+"""
+Serve a ptpython console using both telnet and ssh.
+
+Thanks to Vincent Michel for this!
+https://gist.github.com/vxgmichel/7685685b3e5ead04ada4a3ba75a48eef
+"""
+
 import asyncio
-
 import logging
+import pathlib
+from typing import List
 
-# https://asyncssh.readthedocs.io/en/latest/
-# https://github.com/prompt-toolkit/ptpython/blob/master/examples/asyncio-ssh-python-embed.py
-# https://github.com/prompt-toolkit/python-prompt-toolkit/issues/934
-# https://github.com/prompt-toolkit/ptpython
-# ssh-keygen -f ~/.ssh/id_rsa
 import asyncssh
-from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
+from prompt_toolkit import print_formatted_text
+from prompt_toolkit.contrib.ssh.server import (
+    PromptToolkitSSHServer,
+    PromptToolkitSSHSession,
+)
+from ptpython import repl
 
-# from zentral import config_etappe
-
-# from zentral.context import Context
-# from zentral.context_mock import ContextMock
-from zentral.util_logger import initialize_logger
-
-
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
+from zentral.util_scenarios import ssh_repl_scenarios_history_add
 
 
-# async def interactive_shell() -> None:
-#     """
-#     Coroutine that starts a Python REPL from which we can access the global
-#     counter variable.
-#     """
-#     print(
-#         'You should be able to read and update the "counter[0]" variable from this shell.'
-#     )
-#     try:
-#         await embed(globals=globals(), return_asyncio_coroutine=True, patch_stdout=True)
-#     except EOFError:
-#         # Stop the loop when quitting the repl. (Ctrl-D press.)
-#         loop.stop()
+logger = logging.getLogger(__name__)
+
+HISTORY_FEED = ""
 
 
-class MySSHServer(asyncssh.SSHServer):
-    """
-    Server without authentication, running `ReplSSHServerSession`.
-    """
+async def create(repl_globals: dict, hausnummern: List[int], ssh_port: int = 8022) -> None:
+    def read_key(filename: str = "~/.ssh/id_rsa") -> str:
+        path = pathlib.Path(filename).expanduser()
+        if not path.exists():
+            raise Exception(f"{filename}: Does not exist!")
+        return str(path)
 
-    def __init__(self, get_namespace):
-        print(f"Connected {get_namespace()}")
-        self.get_namespace = get_namespace
-        # os.environ["PROMPT_TOOLKIT_NO_CPR"] = "1"
+    def get_history_filename() -> str:
+        filename = "~/prompt_toolkit_history.txt"
+        path = pathlib.Path(filename).expanduser()
+        with path.open("w", encoding="utf-8") as f:
+            ssh_repl_scenarios_history_add(f, hausnummern=hausnummern)
+        return str(path)
 
-    def begin_auth(self, username):
-        # No authentication.
-        print("No authentication")
-        return False
+    async def interact(connection: PromptToolkitSSHSession) -> None:
+        global_dict = {
+            # **globals(),
+            **repl_globals,
+            "print": print_formatted_text,
+            "logger": logger,
+        }
 
-    def session_requested(self):
-        print("session_requested")
-        print(f"{ReplSSHServerSession=}")
-        session = ReplSSHServerSession(self.get_namespace)
-        print(f"{session=}")
-        return session
+        def configure(python_repl: repl.PythonRepl) -> None:
+            python_repl.confirm_exit = False
 
-        # def session_requested(self):
-        # return ReplSSHServerSession(self.get_namespace)
-
-
-async def main():
-    if True:
-        port = 8222
-        # Namespace exposed in the REPL.
-        environ = {"hello": "world"}
-
-        # Start SSH server.
-        def create_server() -> MySSHServer:
-            return MySSHServer(lambda: environ)
-
-        print("Listening on :%i" % port)
-        print('To connect, do "ssh localhost -p %i"' % port)
-
-        await asyncssh.create_server(
-            create_server,
-            "",
-            port,
-            server_host_keys=["~/.ssh/id_rsa"],
-            # server_host_keys=["/etc/ssh/ssh_host_dsa_key"],
+        await repl.embed(
+            return_asyncio_coroutine=True,
+            configure=configure,
+            globals=global_dict,
+            history_filename=get_history_filename(),
         )
-        # await asyncio.Future()  # Wait forever.
 
-    # await interactive_shell()
-    await asyncio.Future()  # Wait forever.
-    print("Done")
+    ssh_server = PromptToolkitSSHServer(interact=interact, enable_cpr=False)
+
+    def server_factory() -> PromptToolkitSSHServer:
+        logger.info("Connection to ssh_repl!")
+        return ssh_server
+
+    await asyncssh.create_server(server_factory=server_factory, host="", port=ssh_port, server_host_keys=[read_key()])
+    logger.info(f"Access repl using: ssh -p {ssh_port} localhost")
+
+
+async def main() -> None:
+    await create(repl_globals={})
+    while True:
+        await asyncio.sleep(60)
 
 
 if __name__ == "__main__":
-    initialize_logger()
-
-    asyncio.run(main(), debug=True)
+    asyncio.run(main())

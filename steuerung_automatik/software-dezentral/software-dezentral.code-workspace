@@ -54,6 +54,18 @@
 				"justMyCode": false
 			},
 			{
+				"name": "influx drop virgin data",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "zentral.util_influx_drop_virgin_data",
+				"cwd": "${workspaceFolder:zentral}",
+				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
+				},
+				"justMyCode": false
+			},
+			{
 				"name": "run_zentral",
 				"type": "debugpy",
 				"request": "launch",

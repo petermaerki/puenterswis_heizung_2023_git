@@ -104,6 +104,7 @@ class ModbusCommunication:
             # await asyncio.sleep(5.0)
 
     async def task_modbus(self):
+        await self._task_modbus()
         try:
             await self._task_modbus()
         except Exception as e:
