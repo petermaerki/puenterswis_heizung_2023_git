@@ -34,7 +34,7 @@ class GpioBits:
         ignore_mask = 0x01 << self.BUTTON_ZENTRALE  # We ignore BUTTON_ZENTRALE
         v1 = self.value & ~ignore_mask
         v2 = other.value & ~ignore_mask
-        return v1 == v2
+        return v1 != v2
 
     @property
     def relais_valve_open(self) -> bool:

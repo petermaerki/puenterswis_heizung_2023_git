@@ -6,7 +6,7 @@ def to_version(version):
 DEVELOPMENT = False
 
 VERSION_HW = to_version((1, 0, 0))
-VERSION_SW = to_version((0, 1, 2 + (50 if DEVELOPMENT else 0)))
+VERSION_SW = to_version((0, 1, 3 + (50 if DEVELOPMENT else 0)))
 
 DAY_MS = 24 * 60 * 60 * 1000
 WEEK_MS = 7 * DAY_MS

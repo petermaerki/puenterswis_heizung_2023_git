@@ -69,7 +69,7 @@ class ModbusRegisters:
     @property
     def _gpios(self) -> int:
         v = GpioBits(0)
-        v.relais = self._hw.PIN_RELAIS.value()
+        v.relais_valve_open = self._hw.PIN_RELAIS.value()
         v.button_zentrale = not self._hw.PIN_BUTTON_ZENTRALE.value()
         v.set_led_zentrale(
             on=self._hw.led_zentrale_on,
