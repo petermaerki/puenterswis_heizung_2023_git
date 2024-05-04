@@ -1,5 +1,7 @@
 import time
 
+from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy
+
 
 class UploadInterval:
     def __init__(self, interval_s: int):
@@ -11,6 +13,9 @@ class UploadInterval:
         """
         Returns True every 'interval_s'
         """
+        if SCENARIOS.is_present(ScenarioInfluxWriteCrazy):
+            return True
+
         now_s = time.monotonic()
         if now_s < self._next_time_s:
             return False

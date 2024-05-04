@@ -2,6 +2,7 @@ import dataclasses
 from typing import Dict, List, Union
 from enum import IntEnum
 
+from zentral.constants import HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
 from zentral.util_uploadinterval import UploadInterval
 
@@ -10,7 +11,6 @@ class StatusHaus:
     def __init__(self, haus: "Haus"):
         self.hsm_dezentral = HsmDezentral(haus=haus)
         self.interval_haus_temperatures = UploadInterval(interval_s=1 * 60)
-        self.interval_haus_hsm = UploadInterval(interval_s=1 * 30)
 
     def get_influx_fields(self) -> Dict[str, float]:
         return {}
@@ -82,6 +82,7 @@ class ConfigEtappe:
     dict_haeuser: Dict[int, Haus] = dataclasses.field(default_factory=dict, repr=False)
     haus_enum: IntEnum | None = None
     lowest_haus_nummer: int | None = None
+    hsm_mode: HsmZentralStartupMode = HsmZentralStartupMode.AutoSimple
 
     def append_haus(self, haus: Haus):
         assert self.lowest_haus_nummer is None

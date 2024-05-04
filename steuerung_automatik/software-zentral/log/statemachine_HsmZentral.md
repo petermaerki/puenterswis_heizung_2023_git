@@ -8,20 +8,27 @@ stateDiagram-v2
     state hardwaretest
     hardwaretest --> hardwaretest: Dummy
 
-    initializeing: initializeing
-    state initializeing
+    initializing: initializing
+    state initializing
 
     ok: ok
     state ok {
-        ok_auto: auto
-        state ok_auto
-        ok_auto --> ok_auto: Dummy
+        ok_drehschalterauto: drehschalterauto
+        state ok_drehschalterauto {
+            ok_drehschalterauto_manuell: manuell
+            state ok_drehschalterauto_manuell
 
-        ok_manual: manual
-        state ok_manual
-        [*] --> ok_manual
+            ok_drehschalterauto_regeln: regeln
+            state ok_drehschalterauto_regeln
+            ok_drehschalterauto_regeln --> ok_drehschalterauto_regeln: Dummy
+            [*] --> ok_drehschalterauto_manuell
+        }
+
+        ok_drehschaltermanuell: drehschaltermanuell
+        state ok_drehschaltermanuell
+        [*] --> ok_drehschaltermanuell
     }
-    [*] --> initializeing
+    [*] --> initializing
 
     %% Transitions
 ```

@@ -69,7 +69,8 @@ class ModbusIregsAll:
     def debug_temperatureC_percent(self) -> str:
         return " ".join([f"{x.a.temperature_C:0.1f}/{x.b.temperature_C:0.1f}C({x.a.ds18_ok_percent}/{x.b.ds18_ok_percent}%)" for x in self.pairs_ds18])
 
-    def ladung_minimum(self, temperatur_aussen_C=-8.0) -> LadungMinimum:
+    @property
+    def sp_temperatur(self) -> SpTemperatur:
         temperature_unten = self.pairs_ds18[SpPosition.UNTEN.ds18_pair_index]
         temperature_mitte = self.pairs_ds18[SpPosition.MITTE.ds18_pair_index]
         temperature_oben = self.pairs_ds18[SpPosition.OBEN.ds18_pair_index]
@@ -78,9 +79,14 @@ class ModbusIregsAll:
         if error:
             return None
 
-        sp_temperature = SpTemperatur(
+        return SpTemperatur(
             unten_C=temperature_unten.temperature_C,
             mitte_C=temperature_mitte.temperature_C,
             oben_C=temperature_oben.temperature_C,
         )
+
+    def ladung_minimum(self, temperatur_aussen_C=-8.0) -> LadungMinimum:
+        sp_temperature = self.sp_temperatur
+        if sp_temperature is None:
+            return None
         return LadungMinimum(sp_temperature, temperatur_aussen_C=temperatur_aussen_C)

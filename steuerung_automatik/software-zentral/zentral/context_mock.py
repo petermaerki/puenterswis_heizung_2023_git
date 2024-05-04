@@ -3,7 +3,7 @@ from typing import Any, List
 
 
 from zentral.constants import (
-    MODBUS_ADDRESS_ADC,
+    MODBUS_ADDRESS_DAC,
     MODBUS_ADDRESS_BELIMO,
     MODBUS_ADDRESS_RELAIS,
 )
@@ -104,8 +104,8 @@ class ModbusMockClient:
         **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
-        assert address == util_modbus_dac.Dac.ADC_ADDRESS
-        assert slave == MODBUS_ADDRESS_ADC
+        assert address == util_modbus_dac.Dac.DAC_ADDRESS
+        assert slave == MODBUS_ADDRESS_DAC
         assert len(values) == 8
 
         await asyncio.sleep(MOCK_DURATION_S)

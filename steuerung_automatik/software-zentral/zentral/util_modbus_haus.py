@@ -7,6 +7,7 @@ from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
 
 from zentral import hsm_dezentral_signal
 
+from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
 from zentral.util_modbus_gpio import ModbusIregsAll2
@@ -32,34 +33,28 @@ class ModbusHaus:
     async def handle_haus_gpio(self, haus: "Haus") -> None:
         hsm = haus.status_haus.hsm_dezentral
 
-        if hsm.modbus_iregs_all is not None:
-            if hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio):
+        if hsm.modbus_iregs_all is None:
+            return
+
+        if hsm.modbus_iregs_all.version_sw >= DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:
+            # Remove above 'if' and this comment when all dezental are updated with this version.
+            changed = hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio)
+            if False:
+                text1 = f"local {hsm.dezentral_gpio.value} <-> remote {hsm.modbus_iregs_all.relais_gpio.value}"
+                text2 = "  changed" if changed else "  unchanged"
+                print(f"{haus.label:19} relais_valve_open={hsm.dezentral_gpio.relais_valve_open} ({text1}) {text2}")
+            if not changed:
                 return
 
         try:
-            rsp = await self._modbus.write_registers(
+            _rsp = await self._modbus.write_registers(
                 slave=haus.config_haus.modbus_server_id,
                 slave_label=haus.label,
                 address=EnumModbusRegisters.SETGET16BIT_GPIO,
                 values=[hsm.dezentral_gpio.value],
             )
-
-        except ModbusException:
-            return
-
-        return
-        try:
-            rsp = await self._modbus.read_holding_registers(
-                slave=haus.config_haus.modbus_server_id,
-                address=EnumModbusRegisters.SETGET16BIT_GPIO,
-                count=1,
-            )
-
-        except ModbusException:
-            haus.status_haus.hsm_dezentral.dispatch(hsm_dezentral_signal.SignalModbusFailed())
-            return
-
-        logger.debug(f"{haus.label}: SETGET16BIT_GPIO: {rsp.registers}")
+        except ModbusException as e:
+            logger.warning(f"{haus.label}: TODO {e}")
 
     async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
         try:
@@ -74,6 +69,7 @@ class ModbusHaus:
             return False
 
         modbus_iregs_all2 = ModbusIregsAll2(rsp.registers)
+        # print(f"registers from MODBUS {rsp.registers} -> {modbus_iregs_all2.relais_gpio.value}")
 
         for scenario in SCENARIOS.iter_by_class_haus(
             cls_scenario=ScenarioHausSpTemperatureIncrease,

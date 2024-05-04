@@ -103,6 +103,21 @@ class Scenarios:
                 return True
         return False
 
+    @property
+    def is_empty(self) -> bool:
+        return len(self._scenarios) == 0
+
+    def is_present(self, cls_scenario) -> bool:
+        """
+        Return True if the scenario was present
+        """
+        for scenario in self._scenarios:
+            if scenario.__class__ is cls_scenario:
+                logger.info(f"Scenario: Apply {scenario!r}")
+                scenario.decrement()
+                return True
+        return False
+
     def iter_by_class_haus(self, cls_scenario, haus: "Haus") -> Iterator[ScenarioBase]:
         from zentral.config_base import Haus
 
@@ -176,8 +191,18 @@ class ScenarioHausModbusException(ScenarioBase):
 
 
 @dataclasses.dataclass
+class ScenarioZentralDrehschalterManuell(ScenarioBase):
+    duration_s: float = 10 * 60.0
+
+
+@dataclasses.dataclass
 class ScenarioHausModbusSystemExit(ScenarioBase):
     haus_nummer: int = 13
+
+
+@dataclasses.dataclass
+class ScenarioInfluxWriteCrazy(ScenarioBase):
+    duration_s: float = 10 * 60.0
 
 
 @dataclasses.dataclass
@@ -188,7 +213,7 @@ class ScenarioMischventilModbusSystemExit(ScenarioBase):
 @dataclasses.dataclass
 class ScenarioHausSpTemperatureIncrease(ScenarioBase):
     haus_nummer: int = 13
-    position: SpPosition = SpPosition.OBEN
+    position: SpPosition = SpPosition.MITTE
     delta_C: float = 5.0
     duration_s: float = 20.0
 

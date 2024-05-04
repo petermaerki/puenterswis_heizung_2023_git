@@ -1,15 +1,19 @@
 import asyncio
 import logging
 import time
-from typing import Dict, List, Union
+from typing import Dict, List, Union, TYPE_CHECKING
 from hsm import hsm
 from influxdb_client import Point, DeleteApi, WriteOptions
 from influxdb_client.client.influxdb_client import InfluxDBClient
 from zentral.config_base import Haus
 
 from zentral.config_secrets import InfluxSecrets
+from zentral.constants import ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
 from zentral.util_modbus_iregs_all import ModbusIregsAll
+
+if TYPE_CHECKING:
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +27,16 @@ class InfluxRecords:
     See https://docs.influxdata.com/influxdb/cloud/reference/glossary/#unix-timestamp
     """
 
-    def __init__(self, haus: Haus):
+    def __init__(self, haus: Haus = None, ctx: "Context" = None):
+        assert (haus is not None) != (ctx is not None)
+        etappe = ctx.config_etappe if haus is None else haus.config_haus.etappe
+        influx_tag = "zentral" if haus is None else haus.influx_tag
         self._dict_tags = {
-            "position": haus.influx_tag,  # "haus_08", "zentral"
-            "etappe": haus.config_haus.etappe.tag,  # "puent"
-            "haus": haus.config_haus.nummer,
+            "position": influx_tag,  # "haus_08", "zentral"
+            "etappe": etappe.tag,  # "puent"
         }
+        if haus is not None:
+            self._dict_tags["haus"] = haus.config_haus.nummer
         self._records: List[Dict] = []
 
     def add_fields(self, fields: Dict[str, Union[float, int]]):
@@ -66,7 +74,7 @@ class Influx:
         self._client.close()
 
     async def delete_bucket_virgin(self) -> None:
-        await self.delete_bucket(predicate="etappe=virgin")
+        await self.delete_bucket(predicate=f"etappe={ETAPPE_TAG_VIRGIN}")
 
     async def delete_bucket(self, predicate) -> None:
         # Delete all points from bucket
@@ -119,21 +127,36 @@ class Influx:
         offset = haus.config_haus.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
         state_value = state.value + offset
         # print(haus.influx_tag, state_value)
-        if haus.status_haus.interval_haus_hsm.time_over:
-            r = InfluxRecords(haus=haus)
-            r.add_fields(
-                fields={
-                    "hsm_state_value": state_value,
-                    "modbus_ok_percent": haus.status_haus.hsm_dezentral.modbus_history.percent,
-                }
-            )
-            await self.write_records(records=r)
+        r = InfluxRecords(haus=haus)
+        hsm_dezentral = haus.status_haus.hsm_dezentral
+        fields = {
+            "hsm_state_value": state_value,
+            "modbus_ok_percent": hsm_dezentral.modbus_history.percent,
+        }
+        try:
+            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
+        except AttributeError:
+            pass
+        r.add_fields(fields=fields)
+        await self.write_records(records=r)
+
+    async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:
+        r = InfluxRecords(ctx=ctx)
+        r.add_fields(
+            fields={
+                "hsm_zentral_state_value": state.value,
+                "hsm_zentral_relais_6_pumpe_ein": int(ctx.hsm_zentral.relais.relais_6_pumpe_ein),
+            }
+        )
+        await self.write_records(records=r)
 
 
-class HsmInfluxLogger(hsm.HsmLoggerProtocol):
-    def __init__(self, haus: Haus, grafana: Influx):
+class HsmDezentralInfluxLogger(hsm.HsmLoggerProtocol):
+    def __init__(self, influx: Influx, haus: Haus):
+        assert isinstance(influx, Influx)
+        assert isinstance(haus, Haus)
+        self._influx = influx
         self._haus = haus
-        self._grafana = grafana
 
     def fn_log_debug(self, msg: str) -> None:
         pass
@@ -152,8 +175,37 @@ class HsmInfluxLogger(hsm.HsmLoggerProtocol):
             return
 
         async def asyncfunc():
-            await self._grafana.send_hsm_dezental(haus=self._haus, state=before)
-            await self._grafana.send_hsm_dezental(haus=self._haus, state=after)
+            await self._influx.send_hsm_dezental(haus=self._haus, state=before)
+            await self._influx.send_hsm_dezental(haus=self._haus, state=after)
+
+        asyncio.ensure_future(asyncfunc())
+
+
+class HsmZentralInfluxLogger(hsm.HsmLoggerProtocol):
+    def __init__(self, influx: Influx, ctx: "Context"):
+        assert isinstance(influx, Influx)
+        self._influx = influx
+        self._ctx = ctx
+
+    def fn_log_debug(self, msg: str) -> None:
+        pass
+
+    def fn_log_info(self, msg: str) -> None:
+        pass
+
+    def fn_state_change(
+        self,
+        before: hsm.HsmState,
+        after: hsm.HsmState,
+        why: str,
+        list_entry_exit: List[str],
+    ) -> None:
+        if before == after:
+            return
+
+        async def asyncfunc():
+            await self._influx.send_hsm_zentral(ctx=self._ctx, state=before)
+            await self._influx.send_hsm_zentral(ctx=self._ctx, state=after)
 
         asyncio.ensure_future(asyncfunc())
 

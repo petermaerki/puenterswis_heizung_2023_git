@@ -20,10 +20,7 @@ class LadungBase:
     SP_UNTEN_WASSER_KG = SP_WASSER_KG * ANTEIL_WASSER_UNTEN
     SP_MITTE_WASSER_KG = SP_WASSER_KG * ANTEIL_WASSER_MITTE
     SP_OBEN_WASSER_KG = SP_WASSER_KG * ANTEIL_WASSER_OBEN
-    assert (
-        abs(SP_UNTEN_WASSER_KG + SP_MITTE_WASSER_KG + SP_OBEN_WASSER_KG - SP_WASSER_KG)
-        < 0.1
-    )
+    assert abs(SP_UNTEN_WASSER_KG + SP_MITTE_WASSER_KG + SP_OBEN_WASSER_KG - SP_WASSER_KG) < 0.1
 
     # Fuer die definition der Ladung 100%
     UNTEN_100_PROZENT_C = 45.0
@@ -75,23 +72,11 @@ class LadungHeizung(LadungBase):
 
     def _energie_J(self, sp_temperatur: SpTemperatur) -> float:
         if sp_temperatur.mitte_C > self.heiz_temperatur_min_C:
-            energie_u_J = (
-                (sp_temperatur.unten_C - self.heiz_temperatur_min_C)
-                * self.SP_UNTEN_WASSER_KG
-                * self.KAPAZITAET_WASSER_J_kg_K
-            )
-            energie_m_J = (
-                (sp_temperatur.mitte_C - self.heiz_temperatur_min_C)
-                * self.SP_MITTE_WASSER_KG
-                * self.KAPAZITAET_WASSER_J_kg_K
-            )
+            energie_u_J = (sp_temperatur.unten_C - self.heiz_temperatur_min_C) * self.SP_UNTEN_WASSER_KG * self.KAPAZITAET_WASSER_J_kg_K
+            energie_m_J = (sp_temperatur.mitte_C - self.heiz_temperatur_min_C) * self.SP_MITTE_WASSER_KG * self.KAPAZITAET_WASSER_J_kg_K
             return max(energie_u_J, 0) + max(energie_m_J, 0)
 
-        return (
-            (sp_temperatur.mitte_C - self.heiz_temperatur_min_C)
-            * (self.SP_UNTEN_WASSER_KG + self.SP_MITTE_WASSER_KG)
-            * self.KAPAZITAET_WASSER_J_kg_K
-        )
+        return (sp_temperatur.mitte_C - self.heiz_temperatur_min_C) * (self.SP_UNTEN_WASSER_KG + self.SP_MITTE_WASSER_KG) * self.KAPAZITAET_WASSER_J_kg_K
 
     @property
     def ladung_prozent(self) -> float:
@@ -108,37 +93,16 @@ class LadungHeizung(LadungBase):
 
 def _baden_energie_J(sp_temperatur: SpTemperatur) -> float:
     if sp_temperatur.oben_C > LadungBase.DUSCH_TEMPERATUR_MIN_C:
-        energie_u_J = (
-            (sp_temperatur.unten_C - LadungBase.DUSCH_TEMPERATUR_MIN_C)
-            * LadungBase.SP_UNTEN_WASSER_KG
-            * LadungBase.KAPAZITAET_WASSER_J_kg_K
-        )
-        energie_m_J = (
-            (sp_temperatur.mitte_C - LadungBase.DUSCH_TEMPERATUR_MIN_C)
-            * LadungBase.SP_MITTE_WASSER_KG
-            * LadungBase.KAPAZITAET_WASSER_J_kg_K
-        )
-        energie_o_J = (
-            (sp_temperatur.oben_C - LadungBase.DUSCH_TEMPERATUR_MIN_C)
-            * LadungBase.SP_OBEN_WASSER_KG
-            * LadungBase.KAPAZITAET_WASSER_J_kg_K
-        )
+        energie_u_J = (sp_temperatur.unten_C - LadungBase.DUSCH_TEMPERATUR_MIN_C) * LadungBase.SP_UNTEN_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
+        energie_m_J = (sp_temperatur.mitte_C - LadungBase.DUSCH_TEMPERATUR_MIN_C) * LadungBase.SP_MITTE_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
+        energie_o_J = (sp_temperatur.oben_C - LadungBase.DUSCH_TEMPERATUR_MIN_C) * LadungBase.SP_OBEN_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
         return max(energie_u_J, 0) + max(energie_m_J, 0) + max(energie_o_J, 0)
 
     # Fuer kontinuierlichen Uebergang nur obere Temperatur und gesamtes Wasser
-    return (
-        (sp_temperatur.oben_C - LadungBase.DUSCH_TEMPERATUR_MIN_C)
-        * (
-            LadungBase.SP_UNTEN_WASSER_KG
-            + LadungBase.SP_MITTE_WASSER_KG
-            + LadungBase.SP_OBEN_WASSER_KG
-        )
-        * LadungBase.KAPAZITAET_WASSER_J_kg_K
-    )
+    return (sp_temperatur.oben_C - LadungBase.DUSCH_TEMPERATUR_MIN_C) * (LadungBase.SP_UNTEN_WASSER_KG + LadungBase.SP_MITTE_WASSER_KG + LadungBase.SP_OBEN_WASSER_KG) * LadungBase.KAPAZITAET_WASSER_J_kg_K
 
 
 class LadungBaden(LadungBase):
-
     MAXIMALE_ENERGIE_BADEN_J = _baden_energie_J(
         SpTemperatur(
             LadungBase.UNTEN_100_PROZENT_C,
@@ -148,9 +112,7 @@ class LadungBaden(LadungBase):
     )
 
     LADUNG_BADEN_0_PROZENT = _baden_energie_J(
-        SpTemperatur(
-            0.0, 40.0, 50.0
-        )  # es braucht diese Energie um eine Badewanne zu fuellen
+        SpTemperatur(0.0, 40.0, 50.0)  # es braucht diese Energie um eine Badewanne zu fuellen
     )
 
     @property
@@ -159,15 +121,12 @@ class LadungBaden(LadungBase):
 
     @property
     def ladung_prozent(self) -> float:
-        return (
-            (self.energie_J - self.LADUNG_BADEN_0_PROZENT)
-            / (self.MAXIMALE_ENERGIE_BADEN_J - self.LADUNG_BADEN_0_PROZENT)
-            * 100.0
-        )
+        return (self.energie_J - self.LADUNG_BADEN_0_PROZENT) / (self.MAXIMALE_ENERGIE_BADEN_J - self.LADUNG_BADEN_0_PROZENT) * 100.0
 
 
 class LadungMinimum(LadungBase):
     def __init__(self, sp_temperatur: SpTemperatur, temperatur_aussen_C: float):
+        self.sp_temperatur = sp_temperatur
         self.ladung_baden = LadungBaden(sp_temperatur)
         self.ladung_heizung = LadungHeizung(sp_temperatur, temperatur_aussen_C)
 

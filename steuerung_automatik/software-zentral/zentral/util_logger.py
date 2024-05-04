@@ -103,5 +103,6 @@ def initialize_logger() -> None:
 
     logging.getLogger().addHandler(ch)
 
+    # logging.getLogger("zentral.util_logger").setLevel(logging.DEBUG)
     logging.getLogger("pymodbus.logging").setLevel(logging.INFO)
     logging.getLogger("asyncssh").setLevel(logging.WARNING)

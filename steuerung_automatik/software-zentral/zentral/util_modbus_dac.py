@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class Dac:
-    ADC_ADDRESS = 0
+    DAC_ADDRESS = 0
 
     def __init__(self, modbus: "ModbusWrapper", modbus_address: int):
         assert isinstance(modbus, ModbusWrapper)
@@ -20,8 +20,8 @@ class Dac:
         await self._modbus.write_registers(
             slave=self._modbus_address,
             slave_label=self._modbus_label,
-            address=self.ADC_ADDRESS,
+            address=self.DAC_ADDRESS,
             values=output,
         )
 
-        logger.debug("set_adc")
+        logger.debug("set_dac")

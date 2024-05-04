@@ -3,8 +3,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from hsm import hsm
-
 from micropython.portable_modbus_registers import GpioBits
+from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
+from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_constants_haus import SpPosition
 
 from zentral.hsm_dezentral_signal import (
@@ -18,7 +19,6 @@ from zentral.util_logger import HsmLoggingLogger
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
-    from zentral.util_modbus_haus import ModbusIregsAll
     from zentral.context import Context
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class HsmDezentral(hsm.HsmMixin):
         self._context: "Context" = None
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
         self.modbus_history = History2()
-        self.modbus_iregs_all: "ModbusIregsAll" = None
+        self.modbus_iregs_all: ModbusIregsAll2 = None
         self.dezentral_gpio = GpioBits(0)
         self._time_begin_s = 0.0
 
@@ -50,6 +50,10 @@ class HsmDezentral(hsm.HsmMixin):
         """
         if isinstance(signal, SignalModbusSuccess):
             self.modbus_iregs_all = signal.modbus_iregs_all
+            if self.modbus_iregs_all.version_sw < DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:
+                # In older software 'relais_valve_open' is always read as 0.
+                # We override with the local value
+                self.modbus_iregs_all.relais_gpio.relais_valve_open = self.dezentral_gpio.relais_valve_open
             self._update_dezentral_led_blink()
             self.modbus_history.success()
             if self.modbus_iregs_all.relais_gpio.button_zentrale:
@@ -81,7 +85,7 @@ class HsmDezentral(hsm.HsmMixin):
 
     @hsm.value(0)
     @hsm.init_state
-    def state_initializeing(self, signal: SignalDezentralBase):
+    def state_initializing(self, signal: SignalDezentralBase):
         """ """
         self._handle_modbus(signal=signal)
 
@@ -93,6 +97,9 @@ class HsmDezentral(hsm.HsmMixin):
         self._handle_modbus(signal=signal)
 
         raise hsm.DontChangeStateException()
+
+    def exit_ok(self, signal: SignalDezentralBase):
+        self.modbus_iregs_all = None
 
     @hsm.value(2)
     def state_error(self, signal: SignalDezentralBase):
@@ -118,9 +125,9 @@ class HsmDezentral(hsm.HsmMixin):
 
     def entry_error_hardwaretest(self, signal: SignalDezentralBase):
         self.timer_start()
+        self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=False))
         self.dezentral_gpio.set_led_zentrale(on=True, blink=False)
         self.dezentral_gpio.relais_valve_open = False
-        self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=False))
 
     def exit_error_hardwaretest(self, signal: SignalDezentralBase):
         self._context.hsm_zentral.dispatch(signal=SignalHardwaretestEnd())

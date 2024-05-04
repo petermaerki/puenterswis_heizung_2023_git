@@ -8,6 +8,21 @@ logger = logging.getLogger(__name__)
 
 modbus_time_1char_ms = 11 / 9600
 
+MODBUS_MAX_REGISTER_COUNT = 125
+"""
+Some sources say that a modbus packet should not exceet 256 bytes => 125 holding registers
+"""
+
+MODBUS_TIMEOUT_S = 0.4
+"""
+This timeout was 0.1s, but this limited the read of the maximum register count to
+~50 registers.
+Maximum of 125 registers:
+ 0.28s fails
+ 0.29s ok
+=> We choose 0.4s
+"""
+
 
 def get_serial_port2():
     for args in (
@@ -78,7 +93,7 @@ def get_modbus_client() -> AsyncModbusSerialClient:
         bytesize=8,
         parity="N",
         stopbits=1,
-        timeout=0.1,  # :param timeout: Timeout for a request, in seconds.
+        timeout=MODBUS_TIMEOUT_S,  # :param timeout: Timeout for a request, in seconds.
         retries=0,  # :param retries: Max number of retries per request.
         retry_on_empty=0,  # :param retry_on_empty: Retry on empty response.
         broadcast_enable=False,  # :param broadcast_enable: True to treat id 0 as broadcast address.

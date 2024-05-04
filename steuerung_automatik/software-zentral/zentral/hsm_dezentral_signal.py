@@ -1,7 +1,4 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from zentral.util_modbus_haus import ModbusIregsAll
+from zentral.util_modbus_gpio import ModbusIregsAll2
 
 
 class SignalDezentralBase:
@@ -10,8 +7,8 @@ class SignalDezentralBase:
 
 
 class SignalModbusSuccess(SignalDezentralBase):
-    def __init__(self, modbus_iregs_all: "ModbusIregsAll"):
-        self.modbus_iregs_all: "ModbusIregsAll" = modbus_iregs_all
+    def __init__(self, modbus_iregs_all: ModbusIregsAll2):
+        self.modbus_iregs_all: ModbusIregsAll2 = modbus_iregs_all
 
 
 class SignalModbusFailed(SignalDezentralBase):

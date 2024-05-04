@@ -1,3 +1,4 @@
+import enum
 import logging
 from pymodbus import ModbusException
 import pathlib
@@ -18,13 +19,22 @@ DIRECTORY_DOC = DIRECTORY_ZENTRAL / "doc"
 DIRECTORY_DOC.mkdir(exist_ok=True)
 
 MODBUS_ADDRESS_RELAIS = 1
-MODBUS_ADDRESS_ADC = 2
+MODBUS_ADDRESS_DAC = 2
 MODBUS_ADDRESS_BELIMO = 3
 
 ETAPPE_TAG_VIRGIN = "virgin"
 ETAPPE_TAG_BOCHS = "bochs"
 ETAPPE_TAG_PUENT = "puent"
 ETAPPE_TAGS = (ETAPPE_TAG_VIRGIN, ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT)
+
+DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN = 103
+
+
+class HsmZentralStartupMode(enum.IntEnum):
+    Manuell = 0
+    AutoSimple = 1
+    AutoMischventiltest = 2
+    AutoKomplex = 3
 
 
 class ModbusExceptionIsError(ModbusException):

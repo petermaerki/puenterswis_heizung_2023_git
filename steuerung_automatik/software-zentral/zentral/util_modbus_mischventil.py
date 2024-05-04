@@ -1,9 +1,10 @@
 import enum
+from typing import List
 
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-from zentral.constants import MODBUS_ADDRESS_BELIMO
 
+from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 
@@ -40,6 +41,20 @@ class Mischventil:
         self._modbus = modbus
         self._modbus_address = modbus_address
         self._modbus_label = f"Mischventil(modbus={self._modbus_address})"
+
+    @property
+    async def all_registers(self) -> List[int]:
+        """
+        Try to read as many bytes as possible.
+        """
+        response = await self._modbus.read_holding_registers(
+            slave=self._modbus_address,
+            slave_label=self._modbus_label,
+            address=1,
+            count=MODBUS_MAX_REGISTER_COUNT,
+        )
+        assert not response.isError()
+        return response.registers
 
     @property
     async def setpoint(self) -> float:
@@ -100,7 +115,12 @@ class Mischventil:
     async def _write_16bit(self, address: int, value: float, factor: float) -> None:
         value_raw = round(value / factor)
         assert 0 <= value_raw < 2**16
-        await self._modbus.write_registers(slave=MODBUS_ADDRESS_BELIMO, address=address, values=[value_raw])
+        await self._modbus.write_registers(
+            slave=self._modbus_address,
+            slave_label=self._modbus_label,
+            address=address,
+            values=[value_raw],
+        )
 
     async def _read_32bit(self, address: int, factor: float) -> float:
         response = await self._modbus.read_holding_registers(
