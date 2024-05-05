@@ -52,6 +52,16 @@ class ConfigHaus:
     # def __hash__(self):
     #     return self.haus.nummer
 
+    @property
+    def influx_offset08(self) -> float:
+        """
+        A offset in the range from 0.0 to 0.8 for each haus.
+        In Grafana, all häuser will be visible line by line.
+        """
+        offset_total = 0.8
+        anzahl_haeuser = len(self.etappe.dict_haeuser)
+        return self.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
+
 
 @dataclasses.dataclass(repr=True, order=True)
 class Haus:

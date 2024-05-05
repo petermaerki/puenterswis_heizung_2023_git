@@ -122,19 +122,15 @@ class Influx:
             await self.write_records(records=r)
 
     async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
-        offset_total = 0.8
-        anzahl_haeuser = len(haus.config_haus.etappe.dict_haeuser)
-        offset = haus.config_haus.haus_idx0 * offset_total / max(1, (anzahl_haeuser - 1))
-        state_value = state.value + offset
-        # print(haus.influx_tag, state_value)
         r = InfluxRecords(haus=haus)
         hsm_dezentral = haus.status_haus.hsm_dezentral
+        influx_offset08 = haus.config_haus.influx_offset08
         fields = {
-            "hsm_state_value": state_value,
+            "hsm_state_value": state.value + influx_offset08,
             "modbus_ok_percent": hsm_dezentral.modbus_history.percent,
         }
         try:
-            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
+            fields["relais_valve_open2"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
         except AttributeError:
             pass
         r.add_fields(fields=fields)
