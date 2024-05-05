@@ -45,6 +45,14 @@ class ModbusExceptionIsError(ModbusException):
     pass
 
 
+class ModbusExceptionNoResponseReceived(ModbusException):
+    """
+    "No response received" in e.message
+    """
+
+    pass
+
+
 class ModbusExceptionRegisterCount(ModbusException):
     """
     This exception could be raised:

@@ -130,7 +130,8 @@ class Influx:
             "modbus_ok_percent": hsm_dezentral.modbus_history.percent,
         }
         try:
-            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
+            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
+            fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
         except AttributeError:
             pass
         r.add_fields(fields=fields)

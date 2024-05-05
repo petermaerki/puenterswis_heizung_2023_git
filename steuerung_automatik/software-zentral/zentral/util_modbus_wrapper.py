@@ -16,7 +16,8 @@ from pymodbus.exceptions import ModbusException, ConnectionException
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
 from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
-from zentral.constants import ModbusExceptionIsError, ModbusExceptionRegisterCount
+from zentral.constants import ModbusExceptionIsError, ModbusExceptionNoResponseReceived, ModbusExceptionRegisterCount
+from zentral.util_gpio import ScopeTrigger
 from zentral.util_scenarios import (
     SCENARIOS,
     ScenarioBase,
@@ -56,6 +57,7 @@ class ModbusWrapper:
         self._dict_modbus_server_id_2_haus = {h.config_haus.modbus_server_id: h for h in self._context.config_etappe.haeuser}
 
         self._lock = asyncio.Lock()
+        self._scope_trigger = ScopeTrigger()
 
     async def connect(self):
         await self._modbus_client.connect()
@@ -82,10 +84,13 @@ class ModbusWrapper:
             except ModbusException as e:
                 if "No response received" in e.message:
                     logger.debug(f"{slave_label}: No response: {e!r}")
-                    await asyncio.sleep(TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S)
-                    raise
+                    with self._scope_trigger.modbus_no_response:
+                        await asyncio.sleep(TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S)
+                    raise ModbusExceptionNoResponseReceived(e)
+
                 logger.error(f"{slave_label}: {e!r}")
-                await asyncio.sleep(TIMEOUT_AFTER_MODBUS_ERROR_S)
+                with self._scope_trigger.modbus_error:
+                    await asyncio.sleep(TIMEOUT_AFTER_MODBUS_ERROR_S)
                 raise
 
     def _iter_by_class_slave(self, cls_scenario, slave: int) -> Iterator[ScenarioBase]:
