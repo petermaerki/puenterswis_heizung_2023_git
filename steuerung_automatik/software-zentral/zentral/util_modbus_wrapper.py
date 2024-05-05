@@ -33,9 +33,14 @@ if TYPE_CHECKING:
     from zentral.context import Context
 
 
-TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.005
-TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S = 0.005
-TIMEOUT_AFTER_MODBUS_ERROR_S = 0.010
+TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.020
+"""
+0.005: Dezentral had up to 10% rate of modbus no response.
+0.010: Dezentral has 0% rate of modbus no response.
+0.020: Our choice
+"""
+TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S = 0.020
+TIMEOUT_AFTER_MODBUS_ERROR_S = 0.020
 logger = logging.getLogger(__name__)
 
 

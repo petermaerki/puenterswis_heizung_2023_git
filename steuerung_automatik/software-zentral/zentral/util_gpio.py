@@ -15,8 +15,13 @@ import pathlib
 import subprocess
 import typing
 
+SCOPE_TRIGGER_ENABLED = False
+
 
 def is_raspberrypi():
+    if not SCOPE_TRIGGER_ENABLED:
+        return False
+
     filename_model = pathlib.Path("/sys/firmware/devicetree/base/model")
     if not filename_model.exists():
         return False
