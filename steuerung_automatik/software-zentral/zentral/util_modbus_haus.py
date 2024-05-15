@@ -33,18 +33,16 @@ class ModbusHaus:
     async def handle_haus_gpio(self, haus: "Haus") -> None:
         hsm = haus.status_haus.hsm_dezentral
 
-        if hsm.modbus_iregs_all is None:
-            return
-
-        if hsm.modbus_iregs_all.version_sw >= DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:
-            # Remove above 'if' and this comment when all dezental are updated with this version.
-            changed = hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio)
-            if False:
-                text1 = f"local {hsm.dezentral_gpio.value} <-> remote {hsm.modbus_iregs_all.relais_gpio.value}"
-                text2 = "  changed" if changed else "  unchanged"
-                print(f"{haus.label:19} relais_valve_open={hsm.dezentral_gpio.relais_valve_open} ({text1}) {text2}")
-            if not changed:
-                return
+        if hsm.modbus_iregs_all is not None:
+            if hsm.modbus_iregs_all.version_sw >= DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:
+                # Remove above 'if' and this comment when all dezental are updated with this version.
+                changed = hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio)
+                if False:
+                    text1 = f"local {hsm.dezentral_gpio.value} <-> remote {hsm.modbus_iregs_all.relais_gpio.value}"
+                    text2 = "  changed" if changed else "  unchanged"
+                    print(f"{haus.label:19} relais_valve_open={hsm.dezentral_gpio.relais_valve_open} ({text1}) {text2}")
+                if not changed:
+                    return
 
         try:
             _rsp = await self._modbus.write_registers(

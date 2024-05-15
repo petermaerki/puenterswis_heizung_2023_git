@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 from utils_common.utils_constants import ZEROES, ZERO_VIRGIN, ZERO_BOCHS, ZERO_PUENT
 from zentral.config_base import ConfigEtappe, ConfigHaus, Haus
