@@ -8,6 +8,7 @@ from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_constants_haus import SpPosition
 
+
 from zentral.hsm_dezentral_signal import (
     SignalDezentralBase,
     SignalModbusSuccess,

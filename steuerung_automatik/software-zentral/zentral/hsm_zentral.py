@@ -5,6 +5,7 @@ import time
 
 from hsm import hsm
 
+from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerABC
 from zentral.controller_simple import controller_factory
 from zentral.util_logger import HsmLoggingLogger
@@ -48,7 +49,10 @@ class HsmZentral(hsm.HsmMixin):
         self.relais.relais_7_automatik = False
 
         for haus in self.ctx.config_etappe.haeuser:
-            haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
+            if WHILE_HARGASSNER:
+                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
+            else:
+                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
     def _handle_signal(self, signal: SignalZentralBase) -> None:
         if isinstance(signal, SignalHardwaretestBegin):

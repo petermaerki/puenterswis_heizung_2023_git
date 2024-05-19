@@ -1,4 +1,5 @@
 import logging
+import time
 import typing
 
 from zentral.constants import WHILE_HARGASSNER
@@ -49,4 +50,4 @@ class ControllerSimple(ControllerABC):
 
 
 def controller_factory() -> ControllerABC:
-    return ControllerSimple()
+    return ControllerSimple(time.monotonic())
