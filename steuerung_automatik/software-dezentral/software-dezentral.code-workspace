@@ -146,7 +146,7 @@
 				"name": "example_mischventil_a.py",
 				"type": "debugpy",
 				"request": "launch",
-				"program": "${workspaceFolder:zero}/example_mischventil_a.py",
+				"program": "${workspaceFolder:zentral}/zentral/example_mischventil_a.py",
 				"console": "integratedTerminal",
 				"justMyCode": false
 			},

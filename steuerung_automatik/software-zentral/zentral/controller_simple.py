@@ -1,6 +1,7 @@
 import logging
 import typing
 
+from zentral.constants import WHILE_HARGASSNER
 from zentral.util_modbus_iregs_all import SpTemperatur
 from zentral.controller_base import ControllerABC
 
@@ -25,10 +26,11 @@ class ControllerSimple(ControllerABC):
                 if sp_temperatur is None:
                     continue
 
-                if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
-                    hsm_dezentral.dezentral_gpio.relais_valve_open = True
-                elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
-                    hsm_dezentral.dezentral_gpio.relais_valve_open = False
+                if not WHILE_HARGASSNER:
+                    if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
+                        hsm_dezentral.dezentral_gpio.relais_valve_open = True
+                    elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
+                        hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
         def get_pumpe_ein():
             for haus in ctx.config_etappe.haeuser:

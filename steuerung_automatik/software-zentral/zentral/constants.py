@@ -5,6 +5,12 @@ import pathlib
 
 logger = logging.getLogger(__name__)
 
+WHILE_HARGASSNER = True
+"""
+Solange ide Hargassner Heizung in Betrieb ist.
+Nachher auf 'False' setzen oder besser entfernen.
+"""
+
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
 assert (DIRECTORY_ZENTRAL / "zentral").is_dir()
