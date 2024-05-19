@@ -45,7 +45,7 @@ class Hardware:
         If None, LIMIT_UPTIME_S has been reached.
         """
         self.PIN_RELAIS = machine.Pin(3, machine.Pin.OUT)
-        self.PIN_RELAIS.off()
+        self.PIN_RELAIS.on()
         self.PIN_DS_OK_LED = machine.Pin(20, machine.Pin.OUT)
         self.PIN_DS_OK_LED.off()
         self.PIN_BUTTON_ZENTRALE = machine.Pin(4, machine.Pin.IN)
