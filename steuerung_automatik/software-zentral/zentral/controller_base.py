@@ -12,4 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerABC(ABC):
-    def process(self, ctx: "Context"): ...
+    def __init__(self, now_s: float) -> None:
+        ...
+
+    def process(self, ctx: "Context", now_s: float) -> None:
+        ...

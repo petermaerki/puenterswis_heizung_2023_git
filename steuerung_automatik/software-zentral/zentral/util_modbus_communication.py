@@ -7,6 +7,7 @@ from pymodbus.client import AsyncModbusSerialClient
 from zentral.hsm_zentral_signal import SignalDrehschalter
 from zentral.util_influx import InfluxRecords
 
+from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 
@@ -36,6 +37,7 @@ class ModbusCommunication:
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
         self.r = Gpio(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
+        self.pcb_dezentral_heizzentrale = PcbDezentralHeizzentrale(self._modbus, 42)
 
     def _get_modbus_client(self) -> AsyncModbusSerialClient:
         return get_modbus_client()
@@ -101,7 +103,7 @@ class ModbusCommunication:
 
             if True:
                 try:
-                    await self.a.set_dac()
+                    await self.a.set_dac(output_V=self._context.hsm_zentral.mischventil_stellwert_V)
                 except ModbusException as e:
                     logger.warning(f"Dac: {e}")
 

@@ -1,0 +1,238 @@
+import logging
+import typing
+
+from zentral.controller_simple import ControllerSimple
+
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
+
+logger = logging.getLogger(__name__)
+
+
+class Credit:
+    """
+    Falls der Kredit zu klein ist, wird der gain ('faktor') reduziert um
+    die Schwingung zu verhindern.
+    """
+
+    _GRENZE_GAIN_REDUKTION_PROZENT = 50.0
+    """
+    ist der actuation_credit_prozent kleiner als dieser Wert, so wird der gain reduziert
+    """
+    assert 10.0 < _GRENZE_GAIN_REDUKTION_PROZENT <= 100.0
+
+    def __init__(self, now_s: float):
+        self.time_last_credit_s = now_s
+        self.mischventil_actuation_credit_prozent = 100.0
+        self.last_Tfr_C = 0.0
+        self.last_Tfv_soll_C = 0.0
+        self.last_Tszo_C = 0.0
+
+    def add_mischventil_credit(self, credit: float) -> None:
+        self.mischventil_actuation_credit_prozent += credit
+        self.mischventil_actuation_credit_prozent = min(100.0, max(self.mischventil_actuation_credit_prozent, 0.0))
+
+    @property
+    def faktor(self) -> float:
+        return min(self.mischventil_actuation_credit_prozent / self._GRENZE_GAIN_REDUKTION_PROZENT, 1.0)
+
+    def update_credit(
+        self,
+        now_s: float,
+        Tfr_C: float,
+        Tfv_soll_C: float,
+        Tszo_C: float,
+    ) -> None:
+        duration_s = now_s - self.time_last_credit_s
+        self.time_last_credit_s = now_s
+
+        if abs(Tszo_C - self.last_Tszo_C) > 2.0:
+            # die Bedingungen haben geaendert, das Mischventil muss reagieren
+            self.last_Tszo_C = Tszo_C
+            self.add_mischventil_credit(5.0)
+
+        if abs(Tfr_C - self.last_Tfr_C) > 2.0:
+            # die Bedingungen haben geaendert, das Mischventil muss reagieren
+            self.last_Tfr_C = Tfr_C
+            self.add_mischventil_credit(5.0)
+
+        if abs(Tfv_soll_C - self.last_Tfv_soll_C) > 2.0:
+            # die Bedingungen haben geaendert, das Mischventil muss reagieren
+            self.last_Tfv_soll_C = Tfv_soll_C
+            self.add_mischventil_credit(5.0)
+
+        self.add_mischventil_credit(duration_s / 60.0 * 0.5)
+
+
+class PumpeAnlaufzeit:
+    """
+    Wenn die Pumpe anläuft, dauert es 30s bis das System stabil
+    ist und mit Regeln begonnen werden kann.
+    """
+
+    _WARTEZEIT_NACH_PUMPE_EIN_s = 30
+
+    def __init__(self):
+        self.pumpe_start_s: float = 0.0
+        self.last_pumpe_ein = False
+
+    def pumpe(self, now_s: float, ein: bool) -> None:
+        if (not self.last_pumpe_ein) and ein:
+            # Flanke von Pumpe aus -> ein.
+            self.pumpe_start_s = now_s
+
+        self.last_pumpe_ein = ein
+
+    def pumpe_und_stabil(self, now_s: float) -> bool:
+        """
+        Return True, falls geregelt werden darf:
+        * Pumpe läuft und stabil
+        """
+        if not self.last_pumpe_ein:
+            return False
+
+        duration_s = now_s - self.pumpe_start_s
+        return duration_s > self._WARTEZEIT_NACH_PUMPE_EIN_s
+
+
+class NextControl:
+    """
+    Nach jedem Stellschritt warten wir, bis
+    sich das thermische Gleichgewicht eingestellt hat.
+    """
+
+    _CONTROL_LOOP_TIME_INTERVAL_s = 20.0
+
+    def __init__(self):
+        self.next_s = 0.0
+
+    def wait(self, now_s: float) -> bool:
+        wait_s = now_s - self.next_s
+        if wait_s < 0.0:
+            return True
+        if wait_s > self._CONTROL_LOOP_TIME_INTERVAL_s:
+            # There was a very long pause (the pump was off).
+            # Start a new interval.
+            self.next_s = now_s + self._CONTROL_LOOP_TIME_INTERVAL_s
+            return False
+        # We are in a 20s interval
+        self.next_s += self._CONTROL_LOOP_TIME_INTERVAL_s
+        return False
+
+    def add(self, add_s: float) -> None:
+        assert isinstance(add_s, float)
+        self.next_s += add_s
+
+
+class ControllerMischventil(ControllerSimple):
+    _STEILHEIT_MISCHVENTIL_PRO_V = 0.25
+    """
+    abgeschaetzt anhand Datenblatt, 20240506a_spannung_zu_winkel.ods"""
+    STEILHEIT_MISCHVENTIL_C_PRO_V_MIN = 0.5
+    """
+    Minimalwert damit Regler nicht instabil bei kleinen Temperaturdifferenzen, typisch sind 6 C/V
+    """
+    _Tfv_TOLERANZ_C = 1.5
+    """
+    innerhalb dieser plus minus diese Toleranz erfolgt keine Korrektur mit dem Mischer
+    """
+    _STELLWERT_V_MIN = 2.0 - 0.5
+    """ 
+    unterhalb von 2V keine Aenderung gemaess Datenblatt, minus 0.5V als Reserve
+    """
+    _STELLWERT_V_MAX = 8.0 + 0.5
+    """
+    oberhalb von 8V keine Aenderung gemaess Datenblatt, plus 0.5V als Reserve
+    """
+    _VOLLE_BEWEGUNG_S = 90.0
+    """ 
+    gemaess Datenblatt 90 grad in 90 sekunden
+    """
+    _TOTAL_HUBSPANNUNG_V = 10.0 - 0.5
+    _MOTOR_GESCHWINDIGKEIT_V_PRO_S = _TOTAL_HUBSPANNUNG_V / _VOLLE_BEWEGUNG_S
+    _ZEIT_FUER_90_GRAD_WINKEL_S = 90
+    _FAKTOR_STABILITAET_1 = 0.3
+    """
+    0..1, je kleiner, desto stabiler und langsamer
+    """
+
+    def __init__(self, now_s: float):
+        self.pumpe_anlaufzeit = PumpeAnlaufzeit()
+        self.next_control = NextControl()
+        self.credit = Credit(now_s=now_s)
+        self.last_stellwert_change_s = now_s
+        self.last_stellwert_aenderung_V = 0.0
+
+    def update_mischventil(self, ctx: "Context", now_s: float) -> None:
+        pcb = ctx.modbus_communication.pcb_dezentral_heizzentrale
+        last_stellwert_V = ctx.hsm_zentral.mischventil_stellwert_V
+
+        Tfv_soll_C_TODO = 42.0
+        self.credit.update_credit(
+            now_s=now_s,
+            Tfr_C=pcb.Tfr_C,
+            Tszo_C=pcb.Tszo_C,
+            Tfv_soll_C=Tfv_soll_C_TODO,
+        )
+
+        duration_since_last_stellwert_change_s = now_s - self.last_stellwert_change_s
+        abweichung_C = ctx.hsm_zentral.solltemperatur_Tfv - pcb.Tfv_C
+        if duration_since_last_stellwert_change_s < 5 * 60.0:
+            if abs(abweichung_C) < self._Tfv_TOLERANZ_C:  # Genuegend genau, nichts machen
+                return
+
+        temperaturdifferenz_eingang_mischventil_C = pcb.Tszo_C - pcb.Tfr_C
+        if temperaturdifferenz_eingang_mischventil_C < 1.0:
+            # Fehlermeldung: "Tszo und Tfr sind fast gleich, Regeln Mischventil ausgesetzt."
+            return
+
+        # steilheit_mischventil_C_pro_V: typisch z.B. 6C/V
+        steilheit_mischventil_C_pro_V = temperaturdifferenz_eingang_mischventil_C * self._STEILHEIT_MISCHVENTIL_PRO_V
+        steilheit_mischventil_C_pro_V = max(steilheit_mischventil_C_pro_V, self.STEILHEIT_MISCHVENTIL_C_PRO_V_MIN)
+
+        stellwert_V = last_stellwert_V + abweichung_C / steilheit_mischventil_C_pro_V * self.credit.faktor * self._FAKTOR_STABILITAET_1
+        stellwert_V = min(stellwert_V, self._STELLWERT_V_MAX)
+        stellwert_V = max(stellwert_V, self._STELLWERT_V_MIN)
+
+        stellwert_aenderung_V = stellwert_V - last_stellwert_V
+        # Abnutzung durch jede Stellwert Aenderung
+        self.credit.add_mischventil_credit(-20.0 * abs(stellwert_aenderung_V))
+        if stellwert_aenderung_V * self.last_stellwert_aenderung_V < 0.0:  # Vorzeichenwechsel
+            if abs(stellwert_aenderung_V) > 0.1:
+                # Vorzeichenwechsel bei Stellwert kann Oszillation bedeuten
+                self.credit.add_mischventil_credit(-5.0)
+
+        self.last_stellwert_aenderung_V = stellwert_aenderung_V
+
+        # Hier wird der Stellwert gesetzt!
+        ctx.hsm_zentral.mischventil_stellwert_V = stellwert_V
+        self.last_stellwert_change_s = now_s
+
+        # zusaetzlich warten bis Mischventil fertig bewegt hat
+        self.next_control.add(abs(stellwert_aenderung_V) / self._MOTOR_GESCHWINDIGKEIT_V_PRO_S)
+
+    def process(self, ctx: "Context", now_s: float) -> None:
+        self.pumpe_anlaufzeit.pumpe(
+            now_s=now_s,
+            ein=ctx.hsm_zentral.relais.relais_6_pumpe_ein,
+        )
+        if not self.pumpe_anlaufzeit.pumpe_und_stabil(now_s=now_s):
+            return
+        if self.next_control.wait(now_s=now_s):
+            return
+
+        self.update_hauser_valve(ctx=ctx)
+
+        ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
+        ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx)
+        ctx.hsm_zentral.relais.relais_7_automatik = True
+
+        self.update_mischventil(ctx=ctx, now_s=now_s)
+
+    @staticmethod
+    def calculate_valve_100(stellwert_V: float) -> float:
+        """
+        fuer Grafana:
+        """
+        valve_100 = 100.0 * (stellwert_V - ControllerMischventil._STELLWERT_V_MIN) / (ControllerMischventil._STELLWERT_V_MAX - ControllerMischventil._STELLWERT_V_MIN)
+        return valve_100

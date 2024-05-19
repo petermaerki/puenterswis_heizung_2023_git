@@ -1,6 +1,7 @@
 import dataclasses
 import logging
 import typing
+import time
 
 from hsm import hsm
 
@@ -30,13 +31,15 @@ class HsmZentral(hsm.HsmMixin):
         self.ctx = ctx
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
+        self.mischventil_stellwert_V = 0.0
+        self.solltemperatur_Tfv = 0.0
         self.controller: ControllerABC = None
         self.grundzustand_manuell()
 
     def controller_process(self, ctx: "Context") -> None:
         if not self.is_state(self.state_hardwaretest):
             if self.controller is not None:
-                self.controller.process(ctx=ctx)
+                self.controller.process(ctx=ctx, now_s=time.monotonic())
 
     def grundzustand_manuell(self) -> None:
         self.controller = None

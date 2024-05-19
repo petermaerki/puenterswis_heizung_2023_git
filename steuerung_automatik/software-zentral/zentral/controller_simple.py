@@ -15,34 +15,36 @@ class ControllerSimple(ControllerABC):
     grenze_mitte_ein_C = 40.0
     grenze_mitte_aus_C = 50.0
 
-    def process(self, ctx: "Context"):
-        def update_hauser_valve():
-            for haus in ctx.config_etappe.haeuser:
-                hsm_dezentral = haus.status_haus.hsm_dezentral
-                modbus_iregs_all = hsm_dezentral.modbus_iregs_all
-                if modbus_iregs_all is None:
-                    continue
-                sp_temperatur: SpTemperatur = modbus_iregs_all.sp_temperatur
-                if sp_temperatur is None:
-                    continue
+    def update_hauser_valve(self, ctx: "Context"):
+        for haus in ctx.config_etappe.haeuser:
+            assert haus.status_haus is not None
+            hsm_dezentral = haus.status_haus.hsm_dezentral
+            modbus_iregs_all = hsm_dezentral.modbus_iregs_all
+            if modbus_iregs_all is None:
+                continue
+            sp_temperatur: SpTemperatur = modbus_iregs_all.sp_temperatur
+            if sp_temperatur is None:
+                continue
 
-                if not WHILE_HARGASSNER:
-                    if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
-                        hsm_dezentral.dezentral_gpio.relais_valve_open = True
-                    elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
-                        hsm_dezentral.dezentral_gpio.relais_valve_open = False
+            if not WHILE_HARGASSNER:
+                if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
+                    hsm_dezentral.dezentral_gpio.relais_valve_open = True
+                elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
+                    hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
-        def get_pumpe_ein():
-            for haus in ctx.config_etappe.haeuser:
-                hsm_dezentral = haus.status_haus.hsm_dezentral
-                if hsm_dezentral.dezentral_gpio.relais_valve_open:
-                    return True
-            return False
+    def get_pumpe_ein(self, ctx: "Context"):
+        for haus in ctx.config_etappe.haeuser:
+            assert haus.status_haus is not None
+            hsm_dezentral = haus.status_haus.hsm_dezentral
+            if hsm_dezentral.dezentral_gpio.relais_valve_open:
+                return True
+        return False
 
-        update_hauser_valve()
+    def process(self, ctx: "Context", now_s: float) -> None:
+        self.update_hauser_valve(ctx=ctx)
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
-        ctx.hsm_zentral.relais.relais_6_pumpe_ein = get_pumpe_ein()
+        ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx=ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
 

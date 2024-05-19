@@ -151,6 +151,20 @@
 				"justMyCode": false
 			},
 			{
+				"name": "controller_mischventil_test",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "zentral.controller_mischventil_test",
+				"cwd": "${workspaceFolder:zentral}",
+				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
+					// "PYTHONPATH": "${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}",
+					// "PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
+				},
+				"justMyCode": false
+			},
+			{
 				"name": "Current File",
 				"type": "debugpy",
 				"request": "launch",

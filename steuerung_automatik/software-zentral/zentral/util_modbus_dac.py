@@ -14,14 +14,14 @@ class Dac:
         self._modbus_address = modbus_address
         self._modbus_label = f"Dac(modbus={self._modbus_address})"
 
-    async def set_dac(self) -> None:
-        output = [5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000]
+    async def set_dac(self, output_V: float) -> None:
+        outputs_mV = 8 * [int(1000 * output_V)]
 
         await self._modbus.write_registers(
             slave=self._modbus_address,
             slave_label=self._modbus_label,
             address=self.DAC_ADDRESS,
-            values=output,
+            values=outputs_mV,
         )
 
         logger.debug("set_dac")
