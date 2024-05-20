@@ -148,7 +148,7 @@ class HsmDezentral(hsm.HsmMixin):
         * Zentral: Modbus Zentral: Relais 7 automatik: aus
         * Zentral: pause 10s
         """
-        if self.timer_duration_s > 10.0:
+        if self.timer_duration_s > 40.0:
             self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=True))
             raise hsm.StateChangeException(self.state_error_hardwaretest_02)
         raise hsm.DontChangeStateException()
@@ -161,7 +161,7 @@ class HsmDezentral(hsm.HsmMixin):
         * erwartet: Dezentral: Relais 'Automatik', roter Indikator.
         * Zentral: pause 10s
         """
-        if self.timer_duration_s > 20.0:
+        if self.timer_duration_s > 40.0 + 40.0:
             self.dezentral_gpio.relais_valve_open = True
             raise hsm.StateChangeException(self.state_error_hardwaretest_03)
         raise hsm.DontChangeStateException()
@@ -174,6 +174,6 @@ class HsmDezentral(hsm.HsmMixin):
         * erwartet: Dezentral: Relais 'Valve_open' und 'Automatik' roter Indikator.
         * Zentral: pause 10s
         """
-        if self.timer_duration_s > 30.0:
+        if self.timer_duration_s > 40.0 + 40.0 + 40.0:
             raise hsm.StateChangeException(self.state_ok)
         raise hsm.DontChangeStateException()
