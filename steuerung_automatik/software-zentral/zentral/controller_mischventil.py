@@ -151,7 +151,7 @@ class ControllerMischventil(ControllerSimple):
     _TOTAL_HUBSPANNUNG_V = 10.0 - 0.5
     _MOTOR_GESCHWINDIGKEIT_V_PRO_S = _TOTAL_HUBSPANNUNG_V / _VOLLE_BEWEGUNG_S
     _ZEIT_FUER_90_GRAD_WINKEL_S = 90
-    _FAKTOR_STABILITAET_1 = 0.3
+    _FAKTOR_STABILITAET_1 = 0.5
     """
     0..1, je kleiner, desto stabiler und langsamer
     """

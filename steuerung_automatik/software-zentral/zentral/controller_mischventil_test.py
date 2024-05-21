@@ -58,7 +58,7 @@ class Plot:
         self.mischventil_actuation_credit_prozent.append(mischventil_actuation_credit_prozent)
 
     def plot(self, title: str, filename: pathlib.Path) -> None:
-        fig, ax1 = plt.subplots(figsize=(10, 6))
+        fig, ax1 = plt.subplots(figsize=(14, 8))
 
         color = "tab:red"
         ax1.set_xlabel("Time")
@@ -66,7 +66,7 @@ class Plot:
         ax1.plot(self.now_s, self.Tszo_C, color="tab:grey", label="Tszo")
         ax1.plot(self.now_s, self.Tfv_C, linewidth=4, color="tab:red", label="Tfv")
         ax1.plot(self.now_s, self.Tfv_set_C, color="tab:orange", label="Tfv set")
-        ax1.plot(self.now_s, self.Tfr_C, color="tab:grey", label="Tfr")
+        ax1.plot(self.now_s, self.Tfr_C, color="tab:pink", label="Tfr")
         ax1.tick_params(axis="y", labelcolor=color)
         ax1.legend(loc="lower left")
 
@@ -91,8 +91,8 @@ class Testparams:
     label: str
     Tszo_C: float = 65.0
     Tfr_C: float = 25.0
-    Tfv_C: float = 25.0
-    CONTROLLER_FAKTOR_STABILITAET_1: float = 0.3
+    Tfv_set_C: float = 60.0
+    CONTROLLER_FAKTOR_STABILITAET_1: float = 0.5
 
     @property
     def filename(self) -> pathlib.Path:
@@ -112,13 +112,13 @@ async def run_scenario(testparam: Testparams) -> None:
         Tszo_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tszo_C
         Tfr_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C
         ctx.hsm_zentral.mischventil_stellwert_V = 1.0
-        ctx.hsm_zentral.solltemperatur_Tfv = 60.0
+        ctx.hsm_zentral.solltemperatur_Tfv = testparam.Tfv_set_C
         ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
 
         p = Plot()
-        for now_s in range(20 * 60):
+        for now_s in range(30 * 60):
             if True:  # Todo "Set wechsel"
-                if now_s == 800:
+                if now_s == 1000:
                     ctx.hsm_zentral.solltemperatur_Tfv = 30.0
             ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
             ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C = modell_mischventil(
@@ -146,32 +146,36 @@ async def main():
             "normal",
             Tszo_C=65.0,
             Tfr_C=25.0,
-            Tfv_C=25.0,
+            Tfv_set_C=60.0,
         ),
         Testparams(
-            "normal und Schwingen",
+            "gain zu hoch daher Oszillation blocken",
             Tszo_C=65.0,
             Tfr_C=25.0,
-            Tfv_C=25.0,
+            Tfv_set_C=60.0,
             CONTROLLER_FAKTOR_STABILITAET_1=2.5,
         ),
         Testparams(
-            "zentraler Speicher etwas kalt",
+            "zentraler Speicher etwas kalt Tfv steht an",
             Tszo_C=40.0,
             Tfr_C=25.0,
-            Tfv_C=25.0,
+            Tfv_set_C=60.0,
         ),
         Testparams(
-            "zentraler Speicher komplett kalt",
+            "zentraler Speicher komplett kalt daher mischventil inaktiv",
             Tszo_C=25.5,
             Tfr_C=25.0,
-            Tfv_C=25.0,
+            Tfv_set_C=60.0,
         ),
         Testparams(
-            "Ruecklauf waermer als zentraler Speicher",
-            Tszo_C=25.5,
+            "Ruecklauf waermer als zentraler Speicher daher mischventil inaktiv",
+            Tszo_C=25.0,
             Tfr_C=35.0,
-            Tfv_C=25.0,
+            Tfv_set_C=60.0,
+        ),
+        Testparams(
+            "Tfv set immer 30",
+            Tfv_set_C=30.0,
         ),
     ):
         await run_scenario(testparam=testparam)
