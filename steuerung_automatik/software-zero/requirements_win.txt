@@ -1,0 +1,4 @@
+# Auf Windows wird zusätzlich benötigt für zentral\controller_mischventil_test.py
+
+matplotlib
+pyqt5

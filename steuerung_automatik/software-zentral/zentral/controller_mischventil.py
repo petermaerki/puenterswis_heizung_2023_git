@@ -61,7 +61,7 @@ class Credit:
             self.last_Tfv_soll_C = Tfv_soll_C
             self.add_mischventil_credit(5.0)
 
-        self.add_mischventil_credit(duration_s / 60.0 * 0.5)
+        self.add_mischventil_credit(duration_s / 60.0 * 0.2)
 
 
 class PumpeAnlaufzeit:
@@ -196,7 +196,7 @@ class ControllerMischventil(ControllerSimple):
 
         stellwert_aenderung_V = stellwert_V - last_stellwert_V
         # Abnutzung durch jede Stellwert Aenderung
-        self.credit.add_mischventil_credit(-20.0 * abs(stellwert_aenderung_V))
+        self.credit.add_mischventil_credit(-4.0 * abs(stellwert_aenderung_V))
         if stellwert_aenderung_V * self.last_stellwert_aenderung_V < 0.0:  # Vorzeichenwechsel
             if abs(stellwert_aenderung_V) > 0.1:
                 # Vorzeichenwechsel bei Stellwert kann Oszillation bedeuten
