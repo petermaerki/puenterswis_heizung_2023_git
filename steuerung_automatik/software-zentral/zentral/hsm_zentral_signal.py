@@ -6,10 +6,12 @@ class SignalZentralBase:
 class SignalDrehschalter(SignalZentralBase):
     """
     Will be sent after every modbus communication to the relais.
+
+    The state of the drehschalter may be retrieved here:
+    self.ctx.modbus_communication.drehschalter.is_manuell.
     """
 
-    def __init__(self, manuell: bool):
-        self.manuell = manuell
+    pass
 
 
 class SignalHardwaretestBegin(SignalZentralBase):

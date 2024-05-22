@@ -29,6 +29,32 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class Drehschalter:
+    """
+    Drehschalter off is indicated by the waveshare-relais-module
+    not beeing powered:
+    There whill be 'no_response'.
+    However, we wait for 10 consecutively 'no_response' to distinguish
+    between flakyness and power off.
+    We propagate a signal to hsm-zentral.
+    """
+
+    REQUIRED_NO_RESPONSES = 10
+
+    def __init__(self):
+        self._no_response_counter = 0
+
+    def ok(self) -> None:
+        self._no_response_counter = 0
+
+    def no_response(self) -> None:
+        self._no_response_counter += 1
+
+    @property
+    def is_manuell(self) -> bool:
+        return self._no_response_counter > self.REQUIRED_NO_RESPONSES
+
+
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self._context = context
@@ -38,6 +64,7 @@ class ModbusCommunication:
         self.r = Gpio(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
         self.pcb_dezentral_heizzentrale = PcbDezentralHeizzentrale(self._modbus, 42)
+        self.drehschalter = Drehschalter()
 
     def _get_modbus_client(self) -> AsyncModbusSerialClient:
         return get_modbus_client()
@@ -65,36 +92,6 @@ class ModbusCommunication:
             # await modbus_haus.reboot_reset(haus=haus)
 
     async def _task_modbus(self):
-        class Drehschalter:
-            """
-            Drehschalter off is indicated by the waveshare-relais-module
-            not beeing powered:
-            There whill be 'no_response'.
-            However, we wait for 10 consecutively 'no_response' to distinguish
-            between flakyness and power off.
-            We propagate a signal to hsm-zentral.
-            """
-
-            REQUIRED_NO_RESPONSES = 10
-
-            def __init__(self, hsm_zentral: "Context"):
-                self._hsm_zentral = hsm_zentral
-                self._no_response_counter = 0
-
-            def ok(self) -> None:
-                self._no_response_counter = 0
-                self._hsm_dispatch()
-
-            def no_response(self) -> None:
-                self._no_response_counter += 1
-                self._hsm_dispatch()
-
-            def _hsm_dispatch(self):
-                manuell = self._no_response_counter > self.REQUIRED_NO_RESPONSES
-                self._hsm_zentral.dispatch(SignalDrehschalter(manuell=manuell))
-
-        drehschalter = Drehschalter(hsm_zentral=self._context.hsm_zentral)
-
         while True:
             if True:
                 await self.modbus_haueser_loop()
@@ -148,9 +145,11 @@ class ModbusCommunication:
                             relais.relais_7_automatik,
                         )
                     )
-                    drehschalter.ok()
+                    self.drehschalter.ok()
+                    self._context.hsm_zentral.dispatch(SignalDrehschalter())
                 except ModbusException as e:
-                    drehschalter.no_response()
+                    self.drehschalter.no_response()
+                    self._context.hsm_zentral.dispatch(SignalDrehschalter())
                     logger.warning(f"Relais: {e}")
 
             # await asyncio.sleep(5.0)

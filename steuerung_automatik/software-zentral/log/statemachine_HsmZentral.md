@@ -17,11 +17,11 @@ stateDiagram-v2
         state ok_drehschalterauto {
             ok_drehschalterauto_manuell: manuell
             state ok_drehschalterauto_manuell
+            ok_drehschalterauto_manuell --> ok_drehschalterauto_manuell: Dummy
 
             ok_drehschalterauto_regeln: regeln
             state ok_drehschalterauto_regeln
-            ok_drehschalterauto_regeln --> ok_drehschalterauto_regeln: Dummy
-            [*] --> ok_drehschalterauto_manuell
+            [*] --> ok_drehschalterauto_regeln
         }
 
         ok_drehschaltermanuell: drehschaltermanuell

@@ -16,6 +16,12 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+INIT_STATE_DREHSCHALTERAUTO_REGELN = True
+"""
+True: state_ok_drehschalterauto_regeln
+False: state_ok_drehschalterauto_manuell
+"""
+
 
 @dataclasses.dataclass
 class Relais:
@@ -54,6 +60,17 @@ class HsmZentral(hsm.HsmMixin):
             else:
                 haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
+    def _drehschalter_switch_state(self) -> typing.NoReturn:
+        """
+        Je nachdem wie der Drehschalter gestellt ist, muss in
+        state_ok_drehschaltermanuell / state_ok_drehschalterauto
+        gewechselt werden
+        """
+        if self.ctx.modbus_communication.drehschalter.is_manuell:
+            raise hsm.StateChangeException(self.state_ok_drehschaltermanuell)
+        else:
+            raise hsm.StateChangeException(self.state_ok_drehschalterauto)
+
     def _handle_signal(self, signal: SignalZentralBase) -> None:
         if isinstance(signal, SignalHardwaretestBegin):
             raise hsm.StateChangeException(self.state_hardwaretest)
@@ -70,8 +87,7 @@ class HsmZentral(hsm.HsmMixin):
         """ """
         self._handle_signal(signal=signal)
         if isinstance(signal, SignalDrehschalter):
-            new_state = self.state_ok_drehschaltermanuell if signal.manuell else self.state_ok_drehschalterauto_regeln
-            raise hsm.StateChangeException(new_state)
+            self._drehschalter_switch_state()
         raise hsm.DontChangeStateException()
 
     def entry_hardwaretest(self, signal: SignalZentralBase):
@@ -86,7 +102,7 @@ class HsmZentral(hsm.HsmMixin):
         if isinstance(signal, SignalHardwaretestBegin):
             self.relais.relais_7_automatik = signal.relais_7_automatik
         if isinstance(signal, SignalHardwaretestEnd):
-            raise hsm.StateChangeException(self.state_ok_drehschalterauto)
+            self._drehschalter_switch_state()
         raise hsm.DontChangeStateException()
 
     @hsm.value(3)
@@ -103,8 +119,7 @@ class HsmZentral(hsm.HsmMixin):
     def state_ok_drehschaltermanuell(self, signal: SignalZentralBase):
         """ """
         if isinstance(signal, SignalDrehschalter):
-            if not signal.manuell:
-                raise hsm.StateChangeException(self.state_ok_drehschalterauto)
+            self._drehschalter_switch_state()
 
     def entry_ok_drehschalterauto(self, signal: SignalZentralBase):
         self.controller = controller_factory()
@@ -113,19 +128,18 @@ class HsmZentral(hsm.HsmMixin):
     def state_ok_drehschalterauto(self, signal: SignalZentralBase):
         """ """
         if isinstance(signal, SignalDrehschalter):
-            if signal.manuell:
-                raise hsm.StateChangeException(self.state_ok_drehschaltermanuell)
+            self._drehschalter_switch_state()
 
     def entry_ok_drehschalterauto_manuell(self, signal: SignalZentralBase):
         self.grundzustand_manuell()
 
     @hsm.value(6)
-    @hsm.init_state
     def state_ok_drehschalterauto_manuell(self, signal: SignalZentralBase):
         """ """
         pass
 
     @hsm.value(7)
+    @hsm.init_state
     def state_ok_drehschalterauto_regeln(self, signal: SignalZentralBase):
         """ """
         pass
