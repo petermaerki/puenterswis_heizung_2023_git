@@ -17,7 +17,8 @@ Size: 433MB
 
 Start: "Raspberry Pi Imager"
 
-Select: Pi OS Lite (64-bit)
+* Choose Device: `Raspberry Pi 4`
+* Choose OS: `Pi OS Lite (64-bit)`
 * General
   * `check` Set Hostname: `zero-virgin`
   * `check` Set username and password

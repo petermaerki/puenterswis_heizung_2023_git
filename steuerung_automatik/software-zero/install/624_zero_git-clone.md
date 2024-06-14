@@ -8,7 +8,7 @@ Goal:
 
 PC:
 ```
-ssh zero@zero-virgin
+ssh zero@zero-virgin.local
 ```
 
 Use password authentication!
