@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from hsm import hsm
 from micropython.portable_modbus_registers import GpioBits
@@ -10,6 +10,7 @@ from zentral.hsm_dezentral_signal import SignalDezentralBase, SignalModbusFailed
 from zentral.hsm_zentral_signal import SignalHardwaretestBegin, SignalHardwaretestEnd
 from zentral.util_constants_haus import SpPosition
 from zentral.util_history_modbus import HistoryModbus
+from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_gpio import ModbusIregsAll2
 
@@ -31,6 +32,7 @@ class HsmDezentral(hsm.HsmMixin):
         self.modbus_history = HistoryModbus()
         self.modbus_iregs_all: ModbusIregsAll2 = None
         self.dezentral_gpio = GpioBits(0)
+        self.verbrauch = VerbrauchHaus()
         self._time_begin_s = 0.0
 
     @property
@@ -39,6 +41,18 @@ class HsmDezentral(hsm.HsmMixin):
 
     def timer_start(self) -> None:
         self._time_begin_s = time.monotonic()
+
+    @property
+    def sp_energie_absolut_J(self) -> Optional[float]:
+        """
+        return None, falls noch keine Modbus Daten empfangen wurden
+        """
+        if self.modbus_iregs_all is None:
+            return None
+        return self.modbus_iregs_all.sp_temperatur.energie_absolut_J
+
+    async def handle_history_verbrauch(self) -> None:
+        await self.verbrauch.update_valve(hsm_dezentral=self, context=self._context)
 
     def _handle_modbus(self, signal: SignalDezentralBase) -> bool:
         """

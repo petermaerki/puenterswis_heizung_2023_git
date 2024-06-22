@@ -1,10 +1,10 @@
 import asyncio
+
 from zentral import util_ssh_repl
 from zentral.config_base import ConfigEtappe
 from zentral.constants import DIRECTORY_LOG
 from zentral.hsm_zentral import HsmZentral
-from zentral.util_influx import HsmZentralInfluxLogger, Influx, HsmDezentralInfluxLogger
-
+from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl_update_scenarios
 
@@ -75,6 +75,13 @@ class Context:
 
             await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
             await sleep(duration_s=60.0)
+
+    async def task_verbrauch(self) -> None:
+        while True:
+            for haus in self.config_etappe.haeuser:
+                await haus.status_haus.hsm_dezentral.handle_history_verbrauch()
+
+            await asyncio.sleep(60.0)
 
     async def __aenter__(self):
         await self.modbus_communication.connect()

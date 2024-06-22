@@ -4,11 +4,11 @@ import pprint
 from typing import List
 
 from pymodbus import ModbusException
-from zentral.constants import MODBUS_ADDRESS_RELAIS
 
-from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_modbus_iregs_all import ModbusIregsAll
+from zentral.constants import MODBUS_ADDRESS_RELAIS
 from zentral.util_constants_haus import SpPosition
+from zentral.util_modbus_iregs_all import ModbusIregsAll
+from zentral.util_modbus_wrapper import ModbusWrapper
 
 
 class Gpio:

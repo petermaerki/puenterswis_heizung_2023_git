@@ -1,12 +1,13 @@
 import asyncio
 import logging
 import time
-from typing import Dict, List, Union, TYPE_CHECKING
-from hsm import hsm
-from influxdb_client import Point, DeleteApi, WriteOptions
-from influxdb_client.client.influxdb_client import InfluxDBClient
-from zentral.config_base import Haus
+from typing import TYPE_CHECKING, Dict, List, Union
 
+from hsm import hsm
+from influxdb_client import DeleteApi, Point, WriteOptions
+from influxdb_client.client.influxdb_client import InfluxDBClient
+
+from zentral.config_base import Haus
 from zentral.config_secrets import InfluxSecrets
 from zentral.constants import ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
@@ -98,7 +99,7 @@ class Influx:
         # except TimeoutError:
         #     logger.exception("Failed to write to influx")
 
-    async def send_modbus_iregs_all(self, haus: "Haus", modbus_iregs_all: "ModbusIregsAll") -> None:
+    async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll") -> None:
         fields: Dict[str, float] = {}
 
         fields["uptime_s"] = modbus_iregs_all.uptime_s
@@ -121,7 +122,7 @@ class Influx:
             r.add_fields(fields=fields)
             await self.write_records(records=r)
 
-    async def send_hsm_dezental(self, haus: "Haus", state: hsm.HsmState) -> None:
+    async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)
         hsm_dezentral = haus.status_haus.hsm_dezentral
         influx_offset08 = haus.config_haus.influx_offset08

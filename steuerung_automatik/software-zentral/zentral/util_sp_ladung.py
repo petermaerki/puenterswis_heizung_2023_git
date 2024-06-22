@@ -1,4 +1,5 @@
 import dataclasses
+
 from zentral.util_transition import linear_transition
 
 
@@ -7,6 +8,16 @@ class SpTemperatur:
     unten_C: float
     mitte_C: float
     oben_C: float
+
+    @property
+    def energie_absolut_J(self) -> float:
+        """
+        Energie bezueglich 0C
+        """
+        energie_u_J = self.unten_C * LadungBase.SP_UNTEN_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
+        energie_m_J = self.mitte_C * LadungBase.SP_MITTE_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
+        energie_o_J = self.oben_C * LadungBase.SP_OBEN_WASSER_KG * LadungBase.KAPAZITAET_WASSER_J_kg_K
+        return energie_u_J + energie_m_J + energie_o_J
 
 
 class LadungBase:

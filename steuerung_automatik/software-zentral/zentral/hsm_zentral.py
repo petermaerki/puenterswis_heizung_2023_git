@@ -1,15 +1,15 @@
 import dataclasses
 import logging
-import typing
 import time
+import typing
 
 from hsm import hsm
 
 from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerABC
 from zentral.controller_simple import controller_factory
+from zentral.hsm_zentral_signal import SignalDrehschalter, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
-from zentral.hsm_zentral_signal import SignalDrehschalter, SignalZentralBase, SignalHardwaretestBegin, SignalHardwaretestEnd
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -27,6 +27,9 @@ False: state_ok_drehschalterauto_manuell
 class Relais:
     relais_0_mischventil_automatik = False
     relais_6_pumpe_ein = False
+    """
+    While HARGASSNER: Der Wert is invertiert!
+    """
     relais_7_automatik = False
 
 

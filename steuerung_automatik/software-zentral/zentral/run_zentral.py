@@ -1,14 +1,13 @@
-import asyncio
 import argparse
-
+import asyncio
 import logging
 
 from config import raspi_os_config
+
 from zentral import config_etappe
 from zentral.context import Context
 from zentral.context_mock import ContextMock
 from zentral.util_logger import initialize_logger
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,7 @@ async def main():
 
         asyncio.create_task(ctx.modbus_communication.task_modbus())
         asyncio.create_task(ctx.task_hsm())
+        asyncio.create_task(ctx.task_verbrauch())
 
         await asyncio.Future()  # Wait forever.
         print("Done")
