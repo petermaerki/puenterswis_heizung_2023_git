@@ -1,6 +1,6 @@
 import dataclasses
-from typing import Dict, List, Union
 from enum import IntEnum
+from typing import Dict, List, Union
 
 from zentral.constants import HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
@@ -38,6 +38,11 @@ class ConfigHaus:
     addresse: str = dataclasses.field(hash=False, compare=False)
     bewohner: str = dataclasses.field(hash=False, compare=False)
     etappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
+
+    @property
+    def haus_maerki(self) -> bool:
+        "Haus Maerki kann Wärme rückspeisen"
+        return self.nummer == 13
 
     @property
     def modbus_server_id(self) -> int:

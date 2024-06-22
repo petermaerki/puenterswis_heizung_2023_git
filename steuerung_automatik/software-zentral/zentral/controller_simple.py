@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerSimple(ControllerABC):
-    grenze_mitte_ein_C = 50.0
+    grenze_mitte_ein_C = 46.0
     grenze_mitte_aus_C = 60.0
     if WHILE_HARGASSNER:
         anforderung_ein = False
@@ -32,8 +32,10 @@ class ControllerSimple(ControllerABC):
             sp_temperatur: SpTemperatur = modbus_iregs_all.sp_temperatur
             if sp_temperatur is None:
                 continue
-
             if WHILE_HARGASSNER:
+                if haus.config_haus.haus_maerki:
+                    # Haus 13 soll keine Anforderung ausloesen und auch nicht aktiv geladen werden
+                    continue
                 if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
                     ein_haus_zu_kalt = True
                 else:
