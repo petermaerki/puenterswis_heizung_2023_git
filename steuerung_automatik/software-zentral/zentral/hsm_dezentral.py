@@ -1,22 +1,17 @@
-import time
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from hsm import hsm
 from micropython.portable_modbus_registers import GpioBits
+
 from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
-from zentral.util_modbus_gpio import ModbusIregsAll2
+from zentral.hsm_dezentral_signal import SignalDezentralBase, SignalModbusFailed, SignalModbusSuccess
+from zentral.hsm_zentral_signal import SignalHardwaretestBegin, SignalHardwaretestEnd
 from zentral.util_constants_haus import SpPosition
-
-
-from zentral.hsm_dezentral_signal import (
-    SignalDezentralBase,
-    SignalModbusSuccess,
-    SignalModbusFailed,
-)
-from zentral.hsm_zentral_signal import SignalHardwaretestEnd, SignalHardwaretestBegin
-from zentral.util_history2 import History2
+from zentral.util_history_modbus import HistoryModbus
 from zentral.util_logger import HsmLoggingLogger
+from zentral.util_modbus_gpio import ModbusIregsAll2
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -33,7 +28,7 @@ class HsmDezentral(hsm.HsmMixin):
         self._haus = haus
         self._context: "Context" = None
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
-        self.modbus_history = History2()
+        self.modbus_history = HistoryModbus()
         self.modbus_iregs_all: ModbusIregsAll2 = None
         self.dezentral_gpio = GpioBits(0)
         self._time_begin_s = 0.0

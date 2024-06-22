@@ -1,4 +1,4 @@
-class History2:
+class HistoryModbus:
     SUCCESS = 1
     FAILED = 0
 
