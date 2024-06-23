@@ -1,4 +1,5 @@
 import dataclasses
+import logging
 import time
 from typing import TYPE_CHECKING, List, Optional
 
@@ -9,6 +10,8 @@ if TYPE_CHECKING:
     from zentral.hsm_dezentral import HsmDezentral
 
 INTERVAL_VERBRAUCH_HAUS_S = 3600.0
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -39,6 +42,12 @@ class VerbrauchHaus:
     """
     Is None if the valve was open.
     As soon as the valve closes, this will be set to start measuring.
+
+    Debug using: ssh -p 8022 localhost
+    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.verbrauch.next_interval_time_s
+    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.sp_energie_absolut_J
+    ctx.hsm_zentral.relais.relais_6_pumpe_ein
+    ctx.hsm_zentral._state_actual.full_name
     """
     history: HistoryVerbrauchHaus = dataclasses.field(default_factory=HistoryVerbrauchHaus)
 
@@ -54,6 +63,7 @@ class VerbrauchHaus:
             valve_open = hsm_dezentral.dezentral_gpio.relais_valve_open
 
         if not hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
+            self.next_interval_time_s = None
             return
 
         if valve_open:
@@ -71,7 +81,8 @@ class VerbrauchHaus:
             return
 
         # Ventil ist geschlossen: Ist ein Interval abgelaufen?
-        if time.monotonic() < self.next_interval_time_s:
+        remaining_s = self.next_interval_time_s - time.monotonic()
+        if remaining_s > 0:
             return
 
         # Ein Interval ist abgelaufen
