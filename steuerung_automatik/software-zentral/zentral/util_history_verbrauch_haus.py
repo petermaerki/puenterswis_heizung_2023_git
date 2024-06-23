@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from zentral.context import Context
     from zentral.hsm_dezentral import HsmDezentral
 
+INTERVAL_VERBRAUCH_HAUS_S = 3600.0
+
 
 @dataclasses.dataclass
 class Messung:
@@ -38,7 +40,6 @@ class VerbrauchHaus:
     Is None if the valve was open.
     As soon as the valve closes, this will be set to start measuring.
     """
-    interval_s: float = 3600.0
     history: HistoryVerbrauchHaus = dataclasses.field(default_factory=HistoryVerbrauchHaus)
 
     async def update_valve(self, hsm_dezentral: "HsmDezentral", context: "Context") -> None:
@@ -65,7 +66,7 @@ class VerbrauchHaus:
                 # Wir haben noch keine Messwerte via modbus erhalten
                 return
             self.last_energie_J = sp_energie_absolut_J
-            self.next_interval_time_s = time.monotonic() + self.interval_s
+            self.next_interval_time_s = time.monotonic() + INTERVAL_VERBRAUCH_HAUS_S
             return
 
         # Ventil ist geschlossen: Ist ein Interval abgelaufen?
@@ -80,9 +81,9 @@ class VerbrauchHaus:
 
         interval_energie_J = self.last_energie_J - sp_energie_absolut_J
         self.last_energie_J = sp_energie_absolut_J
-        messung = Messung(verbrauch_W=interval_energie_J / self.interval_s, time_s=self.next_interval_time_s - self.interval_s / 2.0)
+        messung = Messung(verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S, time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0)
         self.history.add(messung=messung)
-        self.next_interval_time_s += self.interval_s
+        self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
 
         # Avoid cyclic import
         from zentral.util_influx import InfluxRecords
