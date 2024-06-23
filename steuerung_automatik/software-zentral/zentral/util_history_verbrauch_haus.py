@@ -57,6 +57,7 @@ class VerbrauchHaus:
             return
 
         if valve_open:
+            self.next_interval_time_s = None
             return
 
         if self.next_interval_time_s is None:
