@@ -1,26 +1,19 @@
-import os
 import logging
+import os
 import typing
 
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
+
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
 from zentral.hsm_zentral_signal import SignalDrehschalter
 from zentral.util_influx import InfluxRecords
-
+from zentral.util_modbus import get_modbus_client
+from zentral.util_modbus_dac import Dac
+from zentral.util_modbus_gpio import Gpio
+from zentral.util_modbus_mischventil import Mischventil
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
-
-
-from zentral.constants import (
-    MODBUS_ADDRESS_BELIMO,
-    MODBUS_ADDRESS_RELAIS,
-    MODBUS_ADDRESS_DAC,
-)
-
-from zentral.util_modbus import get_modbus_client
-from zentral.util_modbus_mischventil import Mischventil
-from zentral.util_modbus_gpio import Gpio
-from zentral.util_modbus_dac import Dac
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
 
 if typing.TYPE_CHECKING:
@@ -155,7 +148,6 @@ class ModbusCommunication:
             # await asyncio.sleep(5.0)
 
     async def task_modbus(self):
-        await self._task_modbus()
         try:
             await self._task_modbus()
         except Exception as e:

@@ -1,12 +1,17 @@
 import asyncio
+import logging
+import os
 
 from zentral import util_ssh_repl
 from zentral.config_base import ConfigEtappe
 from zentral.constants import DIRECTORY_LOG
 from zentral.hsm_zentral import HsmZentral
+from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl_update_scenarios
+
+logger = logging.getLogger(__name__)
 
 
 class Context:
@@ -67,21 +72,33 @@ class Context:
                     return
 
         while True:
-            for haus in self.config_etappe.haeuser:
-                await self.influx.send_hsm_dezental(
-                    haus=haus,
-                    state=haus.status_haus.hsm_dezentral.get_state(),
-                )
+            try:
+                for haus in self.config_etappe.haeuser:
+                    await self.influx.send_hsm_dezental(
+                        haus=haus,
+                        state=haus.status_haus.hsm_dezentral.get_state(),
+                    )
 
-            await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
+                await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
+            except Exception as e:
+                logger.warning(f"Terminating app: Unexpected {e!r}")
+                await self.close_and_flush_influx()
+                os._exit(45)
+
             await sleep(duration_s=60.0)
 
     async def task_verbrauch(self) -> None:
         while True:
-            for haus in self.config_etappe.haeuser:
-                await haus.status_haus.hsm_dezentral.handle_history_verbrauch()
+            try:
+                for haus in self.config_etappe.haeuser:
+                    await haus.status_haus.hsm_dezentral.handle_history_verbrauch()
 
-            await asyncio.sleep(60.0)
+            except Exception as e:
+                logger.warning(f"Terminating app: Unexpected {e!r}")
+                await self.close_and_flush_influx()
+                os._exit(46)
+
+            await asyncio.sleep(INTERVAL_VERBRAUCH_HAUS_S / 100.0)
 
     async def __aenter__(self):
         await self.modbus_communication.connect()

@@ -1,16 +1,15 @@
-from contextlib import asynccontextmanager
 import asyncio
 import os
+from contextlib import asynccontextmanager
 
+from config import raspi_os_config
 from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 
-
-from config import raspi_os_config
 from zentral import config_etappe
-from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
 from zentral.context_mock import Context, ContextMock
 from zentral.util_logger import initialize_logger
+from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
 
 initialize_logger()
 
@@ -39,6 +38,7 @@ async def lifespan(app: FastAPI):
 
         asyncio.create_task(ctx.modbus_communication.task_modbus())
         asyncio.create_task(ctx.task_hsm())
+        asyncio.create_task(ctx.task_verbrauch())
         yield
 
 

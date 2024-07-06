@@ -6,7 +6,6 @@ from typing import List
 
 from hsm.hsm import HsmLoggerProtocol, HsmState
 
-
 from zentral.constants import DIRECTORY_LOG
 
 logger = logging.getLogger(__name__)
@@ -94,13 +93,12 @@ def initialize_logger() -> None:
     )
     rth.setLevel(logging.INFO)
     rth.setFormatter(formatter)
+    logging.getLogger().addHandler(rth)
 
     ch = logging.StreamHandler()
     # ch.setLevel(level=logging.DEBUG)
     ch.setLevel(level=logging.INFO)
-
     ch.setFormatter(formatter)
-
     logging.getLogger().addHandler(ch)
 
     # logging.getLogger("zentral.util_logger").setLevel(logging.DEBUG)

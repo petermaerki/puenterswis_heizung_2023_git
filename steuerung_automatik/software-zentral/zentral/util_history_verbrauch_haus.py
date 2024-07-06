@@ -1,4 +1,5 @@
 import dataclasses
+import logging
 import time
 from typing import TYPE_CHECKING, List, Optional
 
@@ -7,6 +8,10 @@ from zentral.constants import WHILE_HARGASSNER
 if TYPE_CHECKING:
     from zentral.context import Context
     from zentral.hsm_dezentral import HsmDezentral
+
+INTERVAL_VERBRAUCH_HAUS_S = 3600.0
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -37,8 +42,13 @@ class VerbrauchHaus:
     """
     Is None if the valve was open.
     As soon as the valve closes, this will be set to start measuring.
+
+    Debug using: ssh -p 8022 localhost
+    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.verbrauch.next_interval_time_s
+    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.sp_energie_absolut_J
+    ctx.hsm_zentral.relais.relais_6_pumpe_ein
+    ctx.hsm_zentral._state_actual.full_name
     """
-    interval_s: float = 3600.0
     history: HistoryVerbrauchHaus = dataclasses.field(default_factory=HistoryVerbrauchHaus)
 
     async def update_valve(self, hsm_dezentral: "HsmDezentral", context: "Context") -> None:
@@ -53,9 +63,11 @@ class VerbrauchHaus:
             valve_open = hsm_dezentral.dezentral_gpio.relais_valve_open
 
         if not hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
+            self.next_interval_time_s = None
             return
 
         if valve_open:
+            self.next_interval_time_s = None
             return
 
         if self.next_interval_time_s is None:
@@ -65,11 +77,12 @@ class VerbrauchHaus:
                 # Wir haben noch keine Messwerte via modbus erhalten
                 return
             self.last_energie_J = sp_energie_absolut_J
-            self.next_interval_time_s = time.monotonic() + self.interval_s
+            self.next_interval_time_s = time.monotonic() + INTERVAL_VERBRAUCH_HAUS_S
             return
 
         # Ventil ist geschlossen: Ist ein Interval abgelaufen?
-        if time.monotonic() < self.next_interval_time_s:
+        remaining_s = self.next_interval_time_s - time.monotonic()
+        if remaining_s > 0:
             return
 
         # Ein Interval ist abgelaufen
@@ -80,9 +93,9 @@ class VerbrauchHaus:
 
         interval_energie_J = self.last_energie_J - sp_energie_absolut_J
         self.last_energie_J = sp_energie_absolut_J
-        messung = Messung(verbrauch_W=interval_energie_J / self.interval_s, time_s=self.next_interval_time_s - self.interval_s / 2.0)
+        messung = Messung(verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S, time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0)
         self.history.add(messung=messung)
-        self.next_interval_time_s += self.interval_s
+        self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
 
         # Avoid cyclic import
         from zentral.util_influx import InfluxRecords
