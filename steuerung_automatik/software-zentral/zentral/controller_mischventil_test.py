@@ -19,12 +19,12 @@ from zentral.controller_mischventil import ControllerMischventil
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 
 
-def modell_mischventil(Tszo_C: float, Tfr_C: float, stellwert_V: float) -> float:
+def modell_mischventil(Tsz4_C: float, Tfr_C: float, stellwert_V: float) -> float:
     """
     return Tfv_C
     """
     anteil_modell = max(min((stellwert_V - 3.0) / 4.0, 1.0), 0.0)
-    Tfv = anteil_modell * (Tszo_C - Tfr_C) + Tfr_C
+    Tfv = anteil_modell * (Tsz4_C - Tfr_C) + Tfr_C
     return Tfv
 
 
@@ -32,7 +32,7 @@ class Plot:
     def __init__(self):
         self.now_s: list[float] = []
         self.valve_100: list[float] = []
-        self.Tszo_C: list[float] = []
+        self.Tsz4_C: list[float] = []
         self.Tfr_C: list[float] = []
         self.Tfv_C: list[float] = []
         self.Tfv_set_C: list[float] = []
@@ -41,7 +41,7 @@ class Plot:
     def point(
         self,
         now_s: float,
-        Tszo_C: float,
+        Tsz4_C: float,
         Tfr_C: float,
         Tfv_C: float,
         Tfv_set_C: float,
@@ -50,7 +50,7 @@ class Plot:
     ) -> None:
         valve_100 = ControllerMischventil.calculate_valve_100(stellwert_V=stellwert_V)
         self.now_s.append(now_s)
-        self.Tszo_C.append(Tszo_C)
+        self.Tsz4_C.append(Tsz4_C)
         self.Tfr_C.append(Tfr_C)
         self.Tfv_C.append(Tfv_C)
         self.Tfv_set_C.append(Tfv_set_C)
@@ -63,7 +63,7 @@ class Plot:
         color = "tab:red"
         ax1.set_xlabel("Time")
         ax1.set_ylabel("Temperature [C]", color=color)
-        ax1.plot(self.now_s, self.Tszo_C, color="tab:grey", label="Tszo")
+        ax1.plot(self.now_s, self.Tsz4_C, color="tab:grey", label="Tsz4")
         ax1.plot(self.now_s, self.Tfv_C, linewidth=4, color="tab:red", label="Tfv")
         ax1.plot(self.now_s, self.Tfv_set_C, color="tab:orange", label="Tfv set")
         ax1.plot(self.now_s, self.Tfr_C, color="tab:pink", label="Tfr")
@@ -89,7 +89,7 @@ class Plot:
 @dataclasses.dataclass
 class Testparams:
     label: str
-    Tszo_C: float = 65.0
+    Tsz4_C: float = 65.0
     Tfr_C: float = 25.0
     Tfv_set_C: float = 60.0
     CONTROLLER_FAKTOR_STABILITAET_1: float = 0.5
@@ -103,13 +103,13 @@ class Testparams:
 async def run_scenario(testparam: Testparams) -> None:
     async with ContextMock(config_etappe.create_config_etappe(hostname=ZERO_VIRGIN)) as ctx:
         await ctx.init()
-        ctx.modbus_communication.pcb_dezentral_heizzentrale.Tszo_C = testparam.Tszo_C
+        ctx.modbus_communication.pcb_dezentral_heizzentrale.Tsz4_C = testparam.Tsz4_C
         ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C = testparam.Tfr_C
 
         ControllerMischventil._FAKTOR_STABILITAET_1 = testparam.CONTROLLER_FAKTOR_STABILITAET_1
         ctl = ControllerMischventil(now_s=0.0)
 
-        Tszo_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tszo_C
+        Tsz4_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tsz4_C
         Tfr_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C
         ctx.hsm_zentral.mischventil_stellwert_V = 1.0
         ctx.hsm_zentral.solltemperatur_Tfv = testparam.Tfv_set_C
@@ -122,13 +122,13 @@ async def run_scenario(testparam: Testparams) -> None:
                     ctx.hsm_zentral.solltemperatur_Tfv = 30.0
             ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
             ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C = modell_mischventil(
-                Tszo_C=Tszo_C,
+                Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
                 stellwert_V=ctx.hsm_zentral.mischventil_stellwert_V,
             )
             p.point(
                 now_s=now_s,
-                Tszo_C=Tszo_C,
+                Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
                 Tfv_C=ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C,
                 Tfv_set_C=ctx.hsm_zentral.solltemperatur_Tfv,
@@ -144,32 +144,32 @@ async def main():
     for testparam in (
         Testparams(
             "normal",
-            Tszo_C=65.0,
+            Tsz4_C=65.0,
             Tfr_C=25.0,
             Tfv_set_C=60.0,
         ),
         Testparams(
             "gain zu hoch daher Oszillation blocken",
-            Tszo_C=65.0,
+            Tsz4_C=65.0,
             Tfr_C=25.0,
             Tfv_set_C=60.0,
             CONTROLLER_FAKTOR_STABILITAET_1=2.5,
         ),
         Testparams(
             "zentraler Speicher etwas kalt Tfv steht an",
-            Tszo_C=40.0,
+            Tsz4_C=40.0,
             Tfr_C=25.0,
             Tfv_set_C=60.0,
         ),
         Testparams(
             "zentraler Speicher komplett kalt daher mischventil inaktiv",
-            Tszo_C=25.5,
+            Tsz4_C=25.5,
             Tfr_C=25.0,
             Tfv_set_C=60.0,
         ),
         Testparams(
             "Ruecklauf waermer als zentraler Speicher daher mischventil inaktiv",
-            Tszo_C=25.0,
+            Tsz4_C=25.0,
             Tfr_C=35.0,
             Tfv_set_C=60.0,
         ),

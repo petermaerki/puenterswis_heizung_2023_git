@@ -14,7 +14,7 @@ def main():
     initialize_logger()
     ctx = Context()
     ctx.sensoren.energie_gestern_kWh = 100.0
-    ctx.sensoren.zentralspeicher_oben_Tszo_C = 80.0
+    ctx.sensoren.zentralspeicher_oben_Tsz4_C = 80.0
     ctx.sensoren.anforderung = False
     ctx.time_s = 0.0
     ctx.dispatch(TimeSignal())
@@ -30,11 +30,11 @@ def main():
     ctx.sensoren.anforderung = True
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
-    ctx.sensoren.zentralspeicher_oben_Tszo_C = 50.0
+    ctx.sensoren.zentralspeicher_oben_Tsz4_C = 50.0
     logger.info("Zentralspeicher zu kalt")
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
-    ctx.sensoren.zentralspeicher_oben_Tszo_C = 70.0
+    ctx.sensoren.zentralspeicher_oben_Tsz4_C = 70.0
     logger.info("Zentralspeicher wieder warm")
     ctx.time_s += 5.0
     ctx.dispatch(TimeSignal())
@@ -49,7 +49,7 @@ def main():
     # ctx.dispatch(TimeSignal())
     # time_s += 6*60.0
     # ctx.dispatch(TimeSignal())
-    # ctx.sensoren.zentralspeicher_oben_Tszo_C = 30.0
+    # ctx.sensoren.zentralspeicher_oben_Tsz4_C = 30.0
     # time_s += 2*60.0
     # ctx.dispatch(TimeSignal())
     # for temp in range(-20, 30, 5):

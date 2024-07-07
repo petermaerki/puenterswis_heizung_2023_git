@@ -26,7 +26,7 @@ class Credit:
         self.mischventil_actuation_credit_prozent = 100.0
         self.last_Tfr_C = 0.0
         self.last_Tfv_soll_C = 0.0
-        self.last_Tszo_C = 0.0
+        self.last_Tsz4_C = 0.0
 
     def add_mischventil_credit(self, credit: float) -> None:
         self.mischventil_actuation_credit_prozent += credit
@@ -41,14 +41,14 @@ class Credit:
         now_s: float,
         Tfr_C: float,
         Tfv_soll_C: float,
-        Tszo_C: float,
+        Tsz4_C: float,
     ) -> None:
         duration_s = now_s - self.time_last_credit_s
         self.time_last_credit_s = now_s
 
-        if abs(Tszo_C - self.last_Tszo_C) > 2.0:
+        if abs(Tsz4_C - self.last_Tsz4_C) > 2.0:
             # die Bedingungen haben geaendert, das Mischventil muss reagieren
-            self.last_Tszo_C = Tszo_C
+            self.last_Tsz4_C = Tsz4_C
             self.add_mischventil_credit(5.0)
 
         if abs(Tfr_C - self.last_Tfr_C) > 2.0:
@@ -171,7 +171,7 @@ class ControllerMischventil(ControllerSimple):
         self.credit.update_credit(
             now_s=now_s,
             Tfr_C=pcb.Tfr_C,
-            Tszo_C=pcb.Tszo_C,
+            Tsz4_C=pcb.Tsz4_C,
             Tfv_soll_C=Tfv_soll_C_TODO,
         )
 
@@ -181,9 +181,9 @@ class ControllerMischventil(ControllerSimple):
             if abs(abweichung_C) < self._Tfv_TOLERANZ_C:  # Genuegend genau, nichts machen
                 return
 
-        temperaturdifferenz_eingang_mischventil_C = pcb.Tszo_C - pcb.Tfr_C
+        temperaturdifferenz_eingang_mischventil_C = pcb.Tsz4_C - pcb.Tfr_C
         if temperaturdifferenz_eingang_mischventil_C < 1.0:
-            # Fehlermeldung: "Tszo und Tfr sind fast gleich, Regeln Mischventil ausgesetzt."
+            # Fehlermeldung: "Tsz4 und Tfr sind fast gleich, Regeln Mischventil ausgesetzt."
             return
 
         # steilheit_mischventil_C_pro_V: typisch z.B. 6C/V

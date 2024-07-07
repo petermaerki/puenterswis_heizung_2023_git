@@ -1,0 +1,39 @@
+Peter Maerki 2024-05-31_17_18_45
+
+Peter und Nino machen Ausbaustufe E1.
+
+Die Anforderung (Relais und auf Display) bleibt bestehen, auch wenn BWW auf über 50C.
+Wir suchen, finden nichts. Strom Elfero neu einstecken. BWW ändern. Unter 40 schaltet Anforderung ein, über 50 nicht aus.
+
+Manual Temperatursollwerte ändern.
+Standard Warmwasser ist 
+1	45
+2	45
+3	45
+(4 gibt es nicht weil keine Legionellenladung erlaubt)
+
+Standard Raumptemperaturen
+1	10
+2	15
+3	20.5 (hier wäre 20.0 gemäss Manual standard)
+ich ändere auf 20.0
+
+BWW ändern. Nichts.
+Elfero neu bestromen: jetzt ist gut.
+
+Jetzt ist noch das Relais für das blaue Ventil pin 13 14 falsch: Bei BWW über 50 bleibt es geschlossen.
+
+Ich klicke mich durchs Benutzermenu. Verändere Werte rauf und wieder zurück. Strom Elfero weg und neu einstecken. Jetzt plötzlich geht es.
+
+Anforderung und Relais für Ventil blau.
+
+Erklärungsversuch:
+
+Software: speichert falsche Zwischenresultate im EEProm. Wenn man einen Wert ändert, so wird das korrekte Resultat abgespeichert. Müll-Software, könnte ich mir vorstellen.
+
+Spinnt: Vielleicht spinnt dieser Regler auch einfach und mach was er will. Ohne system.
+
+Üble Sache.
+
+
+

@@ -1,0 +1,28 @@
+https://www.reichelt.com/ch/de/unitronic-liyy-100-m-4-x-0-75-liyy-4x0-75-100-p166059.html?search=LIYY+4X0%2C75-100&&r=1
+
+1	weiss
+2	braun
+3	gruen
+4	gelb
+
+
+Allgemeines
+Typ   Datenleitung 
+Ausführung   farbcodiert 
+Aderanzahl   4 polig 
+Kabeltyp   LIYY 
+Farbe   kieselgrau (RAL 7032) 
+Material   PVC 
+Ausführung
+Kabelquerschnitt   0,75 mm² 
+Maße
+Kabellänge   100 m 
+Øaußen   6,1 mm 
+Elektrische Werte
+Belastungsgrenze   500 V 
+Herstellerangaben
+Hersteller   LAPP 
+Artikelnummer des Herstellers   0028604/100 
+Verpackungsgewicht   6.2 kg 
+RoHS   konform 
+EAN / GTIN   4044774709840

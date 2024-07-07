@@ -29,7 +29,7 @@ class HsmPumpe(hsm.HsmMixin):
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
         ):
-            if self.ctx.sensoren.zentralspeicher_oben_Tszo_C > self.ctx.konstanten.legionellen_fernleitungstemperatur_C + 5.0:  # Todo korrekte temperatur
+            if self.ctx.sensoren.zentralspeicher_oben_Tsz4_C > self.ctx.konstanten.legionellen_fernleitungstemperatur_C + 5.0:  # Todo korrekte temperatur
                 raise hsm.StateChangeException(self.state_ein)
         if self.ctx.hsm_ladung.is_state(
             self.ctx.hsm_ladung.state_leeren,
@@ -51,7 +51,7 @@ class HsmPumpe(hsm.HsmMixin):
             self.ctx.hsm_ladung.state_bedarf,
             self.ctx.hsm_ladung.state_zwang,
         ):
-            if self.ctx.sensoren.zentralspeicher_oben_Tszo_C < self.ctx.konstanten.legionellen_fernleitungstemperatur_C:
+            if self.ctx.sensoren.zentralspeicher_oben_Tsz4_C < self.ctx.konstanten.legionellen_fernleitungstemperatur_C:
                 raise hsm.StateChangeException(
                     self.state_aus,
                     why="Zentralspeicher zu kalt",

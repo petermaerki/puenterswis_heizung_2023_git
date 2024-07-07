@@ -1,0 +1,17 @@
+Peter Maerki 2024-04-18_13_47_40
+
+Schär->Märki
+
+Die bestehende Verkabelung war nicht richtig. Wie Du gestern bemerkt hast, war die Adern-Nummerierung „ungewöhnlich".
+
+Situation vorgefunden:
+-Fernleitungsanschlüsse Bedarfsmeldung
+gelb / weiss : Kabeladern 5 und 6 : Elfero-Anschlüsse 5 und 6 —> i.O. Anforderungen konnten gesendet werden.
+
+- Zwangsladung
+Blau / weiss: Kabeladern ab Klemmenbox 7 und 4 : Elfero-Anschlüsse (Relais K58) Kabeladern 3 und 4. —> Zwangsladung konnte blaues Ventil nicht öffnen.
+
+Massnahme:
+Ich habe nun die Kabelader 7 an das Zwangsladungsrelais K58 angeschlossen. Oben in der Box bleibt 7 und 4 und die Elfero-Anschlüsse (Relais K58) sind neu 7 und 4.
+Die Parameter 190 und 191 habe ich auf dem Standard 45°C und 10°C belassen.
+Ich gehe davon aus, vorausgesetzt, dass das Relais K58 funktioniert, dass jetzt die Speicherbeladung bei Yvonne und Jeannot wie in den anderen Häusern funktioniert. 

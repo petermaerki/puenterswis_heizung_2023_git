@@ -1,0 +1,35 @@
+Peter Maerki 2024-07-06_08_16_15
+20240624 Von Stutz: alles was vorhanden an infos ueber Pufferspeicher.
+Extrahiert aus dokument Ausschreibungstext Puffersoeicher.pdf
+------------------------------------------------------------------------
+
+Ausschreibungstext Pufferspeicher 
+
+2.1 Norm-Pufferspeicher 1250 lt.  
+Art.Nr.: NS1250 
+- Masse ohne Isolation in mm / mit Isolation in mm 
+Ø 950 mm / Ø 1150 mm, Kippm. 2070 mm (ohne 
+Isolation) 
+Höhe 2010 mm / 2060 mm 
+- Anschlüsse Standard 
+- Wärmedämmung : 
+Vlies Isolierung 130 mm mit Polystrol-Mantel 
+Lambda-Wert 0,038, Brandschutzklasse B2 
+Techn. Daten 
+- Material ST 35 / 2 
+- Betriebstemp. max. 120 °C 
+- Betriebsdruck max. 3 bar 
+- Rostschutzgrundierung aussen, innen roh 
+- Anschlüsse: 4 x 1/2", 1 x 5/4", 8 x 11/2" 
+- Fühlerrohr 14 x 1.5 mm 
+- Gewicht 155 kg 
+
+ 
+2.2 Tauchhülse aus Messing 1/2" 4.00 Stk  
+Art.Nr.: TH140 
+L = 150 mm 
+
+2.3 Speicherthermometer 0-120°C 2.00 Stk  
+Art.Nr.: 100 150 
+Gehäuse aus Stahlblech vernickelt mit 
+austauschbarer Kunststoffscheibe ø 

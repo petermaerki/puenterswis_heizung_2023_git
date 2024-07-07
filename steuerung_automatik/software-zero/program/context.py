@@ -19,7 +19,7 @@ class Sensoren:
     brenner_1_on: bool = False
     brenner_2_on: bool = False
     anforderung: bool = False
-    zentralspeicher_oben_Tszo_C: float = 20.0
+    zentralspeicher_oben_Tsz4_C: float = 20.0
     # zentralspeicher_mitte_Tszm_C: float = 20.0
     # zentralspeicher_unten_Tszu_C: float = 20.0
     fernleitung_warm_Tfv_C: float = 30.0
@@ -44,11 +44,7 @@ class Konstanten:
         elfero_dezentral_hysterese_warmwasser_C = 10.0
         reserve_solltemperatur_warmwasser_C = 5.0
 
-        self.sommer_fernleitung_solltemperatur_warmwasserladung_C = (
-            elfero_dezentral_solltemperatur_warmwasser_C
-            + (elfero_dezentral_hysterese_warmwasser_C * 0.5)
-            + reserve_solltemperatur_warmwasser_C
-        )
+        self.sommer_fernleitung_solltemperatur_warmwasserladung_C = elfero_dezentral_solltemperatur_warmwasser_C + (elfero_dezentral_hysterese_warmwasser_C * 0.5) + reserve_solltemperatur_warmwasser_C
 
         """
         Fernleitungstemperatur damit die Legionellen in den
@@ -59,17 +55,11 @@ class Konstanten:
         # Reserve, Fernleitung
         legionellen_temperaturueberhoehung_C: float = 5.0
 
-        self.legionellen_fernleitungstemperatur_C = (
-            legionellen_normtemperatur_C + legionellen_temperaturueberhoehung_C
-        )
+        self.legionellen_fernleitungstemperatur_C = legionellen_normtemperatur_C + legionellen_temperaturueberhoehung_C
 
-        self.legionellen_intervall_s = (
-            7 * 24 * 3600.0
-        )  # eine Legionellenladung macht man typischweise jede Woche
+        self.legionellen_intervall_s = 7 * 24 * 3600.0  # eine Legionellenladung macht man typischweise jede Woche
 
-        self.legionellen_zwangsladezeit_s = (
-            5 * 3600.0
-        )  # Zeit welche mindestens geladen werden muss
+        self.legionellen_zwangsladezeit_s = 5 * 3600.0  # Zeit welche mindestens geladen werden muss
 
         # bochs = 0
         # puent = 1
@@ -101,9 +91,7 @@ class Context:
 
         for hsm in self.hsms:
             hsm.init()
-            hsm.write_mermaid_md(
-                DIRECTORY_DOC / f"statemachine_{hsm.__class__.__name__}.md"
-            )
+            hsm.write_mermaid_md(DIRECTORY_DOC / f"statemachine_{hsm.__class__.__name__}.md")
 
         for hsm in self.hsms:
             hsm.start()
@@ -116,13 +104,9 @@ class Context:
     def fernleitungs_solltemperatur_C(self) -> float:
         """Fernleitungstemperatur damit die Heizleistung uebertragen werden kann"""
         waermekapazitaet_wasser_JkgK = 4190.0
-        nominalfluss_puent_kg_s = (
-            2300.0 / 3600.0
-        )  # Nominalfluss bei Zentrale gemaess Auslegung Gadola
+        nominalfluss_puent_kg_s = 2300.0 / 3600.0  # Nominalfluss bei Zentrale gemaess Auslegung Gadola
         maximalleistung_puent_W = 70000.0  # Maximalleistung Oekofen Puenterswis
-        temperaturspreizung_maximalleistung_K = maximalleistung_puent_W / (
-            nominalfluss_puent_kg_s * waermekapazitaet_wasser_JkgK
-        )
+        temperaturspreizung_maximalleistung_K = maximalleistung_puent_W / (nominalfluss_puent_kg_s * waermekapazitaet_wasser_JkgK)
         aussentemperatur_grenze_heizbetrieb_C = 20.0
         aussentemperatur_maximalleistung_C = -14.0
         ruecklauf_bodenheizung_C = 24.0
@@ -134,20 +118,9 @@ class Context:
             ),
             aussentemperatur_grenze_heizbetrieb_C,
         )
-        spreizung_C = (
-            (aussentemperatur_grenze_heizbetrieb_C - temperatur_C)
-            / (
-                aussentemperatur_grenze_heizbetrieb_C
-                - aussentemperatur_maximalleistung_C
-            )
-            * temperaturspreizung_maximalleistung_K
-        )
-        minimale_temperatur_leistungsueberagung_C = (
-            ruecklauf_bodenheizung_C + spreizung_C + reserve_C
-        )
-        if self.hsm_legionellen.is_state(
-            self.hsm_legionellen.state_aktiv
-        ) and self.hsm_ladung.is_state(self.hsm_ladung.entry_zwang):
+        spreizung_C = (aussentemperatur_grenze_heizbetrieb_C - temperatur_C) / (aussentemperatur_grenze_heizbetrieb_C - aussentemperatur_maximalleistung_C) * temperaturspreizung_maximalleistung_K
+        minimale_temperatur_leistungsueberagung_C = ruecklauf_bodenheizung_C + spreizung_C + reserve_C
+        if self.hsm_legionellen.is_state(self.hsm_legionellen.state_aktiv) and self.hsm_ladung.is_state(self.hsm_ladung.entry_zwang):
             # print(f'Um die Legionellen zu killen wird eine Fernleitungstemperatur von {self.konstanten.legionellen_fernleitungstemperatur_C:0.2f} gewaehlt')
             return self.konstanten.legionellen_fernleitungstemperatur_C
         fernleitungs_solltemperatur_C = max(
