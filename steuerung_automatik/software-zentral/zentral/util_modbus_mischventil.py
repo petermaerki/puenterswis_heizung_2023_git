@@ -35,6 +35,69 @@ class EnumRegisters(enum.IntEnum):
     "Absolute Pmax [kW]"
 
 
+class MischventilRegisters:
+    def __init__(self, registers: List[int]):
+        assert len(registers) == MODBUS_MAX_REGISTER_COUNT
+        self._registers = registers
+
+    @property
+    def setpoint(self) -> float:
+        "r/w [0..1]"
+        return self._read_16bit(EnumRegisters.SETPOINT, factor=1e-4)
+
+    @property
+    def relative_position(self) -> float:
+        "r [0..1]"
+        return self._read_16bit(EnumRegisters.RELATIVE_POSITION, factor=1e-4)
+
+    @property
+    def fluss_m3_s(self) -> float:
+        return self._read_16bit(EnumRegisters.ZENTRAL_FLUSS_M3_S, factor=1e-5)
+
+    @property
+    def valve_T1_C(self) -> float:
+        return self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T1_C, factor=0.01)
+
+    @property
+    def valve_T2_C(self) -> float:
+        return self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T2_C, factor=0.01)
+
+    @property
+    def cooling_energie_J(self) -> float:
+        return self._read_32bit(EnumRegisters.ZENTRAL_COOLING_ENERGIE_J, factor=3.6e6)
+
+    @property
+    def heating_energie_J(self) -> float:
+        return self._read_32bit(EnumRegisters.ZENTRAL_HEATING_ENERGIE_J, factor=3.6e6)
+
+    @property
+    def cooling_power_W(self) -> float:
+        return self._read_32bit(EnumRegisters.ZENTRAL_COOLING_POWER_W, factor=1.0)
+
+    @property
+    def heating_power_W(self) -> float:
+        return self._read_32bit(EnumRegisters.ZENTRAL_HEATING_POWER_W, factor=1.0)
+
+    @property
+    def absolute_power_kW(self) -> float:
+        return self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
+
+    def _read_16bit(self, address: int, factor: float) -> float:
+        return self._registers[address] * factor
+
+    def _read_32bit(self, address: int, factor: float) -> float:
+        assert len(self._registers) > address + 2
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            self._registers[address : address + 2],
+            byteorder=Endian.LITTLE,
+            wordorder=Endian.LITTLE,
+        )
+
+        value = decoder.decode_32bit_uint()
+
+        return value * factor
+
+
 class Mischventil:
     def __init__(self, modbus: ModbusWrapper, modbus_address: int):
         assert isinstance(modbus, ModbusWrapper)
@@ -65,43 +128,6 @@ class Mischventil:
         "r/w [0..1]"
         assert 0.0 <= value <= 1.0
         await self._write_16bit(EnumRegisters.SETPOINT, value, factor=1e-4)
-
-    @property
-    async def relative_position(self) -> float:
-        "r [0..1]"
-        return await self._read_16bit(EnumRegisters.RELATIVE_POSITION, factor=1e-4)
-
-    @property
-    async def zentral_fluss_m3_S(self) -> float:
-        return await self._read_16bit(EnumRegisters.ZENTRAL_FLUSS_M3_S, factor=1e-5)
-
-    @property
-    async def zentral_valve_T1_C(self) -> float:
-        return await self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T1_C, factor=0.01)
-
-    @property
-    async def zentral_valve_T2_C(self) -> float:
-        return await self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T2_C, factor=0.01)
-
-    @property
-    async def zentral_cooling_energie_J(self) -> float:
-        return await self._read_32bit(EnumRegisters.ZENTRAL_COOLING_ENERGIE_J, factor=3.6e6)
-
-    @property
-    async def zentral_heating_energie_J(self) -> float:
-        return await self._read_32bit(EnumRegisters.ZENTRAL_HEATING_ENERGIE_J, factor=3.6e6)
-
-    @property
-    async def zentral_cooling_power_W(self) -> float:
-        return await self._read_32bit(EnumRegisters.ZENTRAL_COOLING_POWER_W, factor=1.0)
-
-    @property
-    async def zentral_heating_power_W(self) -> float:
-        return await self._read_32bit(EnumRegisters.ZENTRAL_HEATING_POWER_W, factor=1.0)
-
-    @property
-    async def absolute_power_kW(self) -> float:
-        return await self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
 
     async def _read_16bit(self, address: int, factor: float) -> float:
         response = await self._modbus.read_holding_registers(

@@ -145,6 +145,36 @@ class Influx:
         fields = {
             "hsm_zentral_state_value": state.value,
         }
+        r.add_fields(fields=fields)
+
+        def mischventil_registers():
+            registers = ctx.hsm_zentral.modbus_mischventil_registers
+            if registers is None:
+                return
+            fields["mischventil_power_W"] = registers.heating_power_W - registers.cooling_power_W
+            fields["mischventil_fluss_m3_s"] = registers.fluss_m3_s
+
+        def mischventil_automatik():
+            key = "relais_0_mischventil_automatik"
+            fields[key] = int(ctx.hsm_zentral.relais.relais_0_mischventil_automatik)
+            manuell, relais_0_mischventil_automatik = ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite
+            if manuell:
+                fields[key + "_overwrite"] = int(relais_0_mischventil_automatik)
+
+        def mischventil_stellwert_100():
+            key = "mischventil_stellwert_100"
+            fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
+            manuell, mischventil_stellwert_100 = ctx.hsm_zentral.mischventil_stellwert_100_overwrite
+            if manuell:
+                fields[key + "_overwrite"] = mischventil_stellwert_100
+
+        def mischventil_credit():
+            if ctx.hsm_zentral.controller is None:
+                return
+            credit_100 = ctx.hsm_zentral.controller.get_credit_100()
+            if credit_100 is None:
+                return
+            fields["mischventil_credit_100"] = credit_100
 
         def pumpe():
             key = "hsm_zentral_relais_6_pumpe_ein"
@@ -153,24 +183,11 @@ class Influx:
             if manuell:
                 fields[key + "_overwrite"] = int(relais_6_pumpe_ein)
 
-        def mischventil():
-            key = "mischventil_stellwert_100"
-            fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
-            manuell, mischventil_stellwert_100 = ctx.hsm_zentral.mischventil_stellwert_100_overwrite
-            if manuell:
-                fields[key + "_overwrite"] = mischventil_stellwert_100
-
-        def credit():
-            if ctx.hsm_zentral.controller is None:
-                return
-            credit_100 = ctx.hsm_zentral.controller.get_credit_100()
-            if credit_100 is None:
-                return
-            fields["mischventil_credit_100"] = credit_100
-
+        mischventil_registers()
+        mischventil_automatik()
+        mischventil_stellwert_100()
+        mischventil_credit()
         pumpe()
-        mischventil()
-        credit()
         await self.write_records(records=r)
 
 

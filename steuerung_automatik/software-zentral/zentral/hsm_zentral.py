@@ -11,7 +11,8 @@ from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_simple import controller_factory
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
-from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteRelais6PumpeEin, ScenarioOverwriteMischventil
+from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteRelais6PumpeEin, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteMischventil
+from zentral.util_modbus_mischventil import MischventilRegisters
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -38,13 +39,27 @@ class Relais:
     def relais_6_pumpe_ein_overwrite(self) -> tuple[bool, bool]:
         """
         Same as 'self.relais_6_pumpe_ein' but
-        may be overwritten by 'ScenarioManualRelais6PumpeEin'.
+        may be overwritten by 'ScenarioOverwriteRelais6PumpeEin'.
         return overwrite, value
         """
         sc = SCENARIOS.find(ScenarioOverwriteRelais6PumpeEin)
         if sc is not None:
+            sc.decrement()
             return True, sc.pumpe_ein
         return False, self.relais_6_pumpe_ein
+
+    @property
+    def relais_0_mischventil_automatik_overwrite(self) -> tuple[bool, bool]:
+        """
+        Same as 'self.relais_0_mischventil_automatik' but
+        may be overwritten by 'ScenarioOverwriteRelais0Automatik'.
+        return overwrite, value
+        """
+        sc = SCENARIOS.find(ScenarioOverwriteRelais0Automatik)
+        if sc is not None:
+            sc.decrement()
+            return True, sc.automatik
+        return False, self.relais_0_mischventil_automatik
 
 
 class HsmZentral(hsm.HsmMixin):
@@ -59,6 +74,7 @@ class HsmZentral(hsm.HsmMixin):
         self.solltemperatur_Tfv = 0.0
         self.controller: ControllerABC = None
         self.grundzustand_manuell()
+        self.modbus_mischventil_registers: MischventilRegisters = None
 
     @property
     def mischventil_stellwert_V(self) -> float:
@@ -68,11 +84,12 @@ class HsmZentral(hsm.HsmMixin):
     def mischventil_stellwert_100_overwrite(self) -> tuple[bool, float]:
         """
         Same as 'self.mischventil_stellwert_100' but
-        may be overwritten by 'ScenarioManualMischventil'.
+        may be overwritten by 'ScenarioOverwriteMischventil'.
         return overwrite, value
         """
         sc = SCENARIOS.find(ScenarioOverwriteMischventil)
         if sc is not None:
+            sc.decrement()
             return True, sc.stellwert_100
         return False, self.mischventil_stellwert_100
 

@@ -90,6 +90,7 @@ class Scenarios:
             return
 
         logger.info(f"Scenario: Add {scenario!r}")
+        self.remove_if_present(scenario.__class__)
         self._scenarios.append(scenario)
 
     def remove(self, scenario: ScenarioBase) -> None:
@@ -257,6 +258,12 @@ class ScenarioOverwriteMischventil(ScenarioBase):
 class ScenarioOverwriteRelais6PumpeEin(ScenarioBase):
     duration_s: float = 10 * 60.0
     pumpe_ein: bool = False
+
+
+@dataclasses.dataclass
+class ScenarioOverwriteRelais0Automatik(ScenarioBase):
+    duration_s: float = 10 * 60.0
+    automatik: bool = False
 
 
 def register_scenarios() -> None:

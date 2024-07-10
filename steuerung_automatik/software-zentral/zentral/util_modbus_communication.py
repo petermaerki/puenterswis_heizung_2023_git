@@ -11,7 +11,7 @@ from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_dac import Dac
 from zentral.util_modbus_gpio import Gpio
-from zentral.util_modbus_mischventil import Mischventil
+from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
@@ -109,6 +109,7 @@ class ModbusCommunication:
                 try:
                     if True:
                         all_registers = await self.m.all_registers
+                        self._context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
                         logger.debug(f"mischventil: {all_registers=}")
                     if False:
                         series = await self.m.series_3words
@@ -124,8 +125,9 @@ class ModbusCommunication:
                         zentral_cooling_energie_J = await self.m.zentral_cooling_energie_J
                         logger.info(f"mischventil: {zentral_cooling_energie_J=}")
                 except ModbusException as e:
-                    logger.warning(f"Mischventil: {e}")
+                    self._context.hsm_zentral.modbus_mischventil_registers = None
 
+                    logger.warning(f"Mischventil: {e}")
             if True:
                 try:
                     if SCENARIOS.is_present(ScenarioZentralDrehschalterManuell):
@@ -133,9 +135,10 @@ class ModbusCommunication:
 
                     relais = self._context.hsm_zentral.relais
                     _overwrite, pumpe_ein = relais.relais_6_pumpe_ein_overwrite
+                    _overwrite, automatik = relais.relais_0_mischventil_automatik_overwrite
                     await self.r.set(
                         list_gpio=(
-                            relais.relais_0_mischventil_automatik,
+                            automatik,
                             False,
                             False,
                             False,
