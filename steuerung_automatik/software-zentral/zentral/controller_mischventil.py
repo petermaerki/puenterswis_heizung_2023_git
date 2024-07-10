@@ -205,7 +205,7 @@ class ControllerMischventil(ControllerSimple):
         self.last_stellwert_aenderung_V = stellwert_aenderung_V
 
         # Hier wird der Stellwert gesetzt!
-        ctx.hsm_zentral.mischventil_stellwert_V = stellwert_V
+        ctx.hsm_zentral.mischventil_stellwert_100 = self.calculate_valve_100(stellwert_V=stellwert_V)
         self.last_stellwert_change_s = now_s
 
         # zusaetzlich warten bis Mischventil fertig bewegt hat
@@ -235,4 +235,12 @@ class ControllerMischventil(ControllerSimple):
         fuer Grafana:
         """
         valve_100 = 100.0 * (stellwert_V - ControllerMischventil._STELLWERT_V_MIN) / (ControllerMischventil._STELLWERT_V_MAX - ControllerMischventil._STELLWERT_V_MIN)
+        # assert -1 < valve_100 <= 101
         return valve_100
+
+    @staticmethod
+    def calculate_valve_V(stellwert_100: float) -> float:
+        """ """
+        # assert -1 < stellwert_100 <= 101
+        stellwert_V = stellwert_100 / 100.0 * (ControllerMischventil._STELLWERT_V_MAX - ControllerMischventil._STELLWERT_V_MIN) + ControllerMischventil._STELLWERT_V_MIN
+        return stellwert_V

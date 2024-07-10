@@ -191,6 +191,15 @@ class ModbusWrapper:
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
 
+        # Limit value from 0 to 2**16
+        for i, value in enumerate(values):
+            assert isinstance(value, int)
+            value_16bit = min(max(0, value), 2**16 - 1)
+
+            if value_16bit != value:
+                logger.warning(f"Modbus limit to 16 bits: {value} has been truncated to {value_16bit}!")
+                values[i] = value_16bit
+
         async with self.serialize_modbus_calls(slave_label=slave_label):
             rsp = await self._modbus_client.write_registers(
                 address=address,

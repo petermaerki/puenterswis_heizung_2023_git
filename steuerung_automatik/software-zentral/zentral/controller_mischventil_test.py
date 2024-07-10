@@ -19,10 +19,11 @@ from zentral.controller_mischventil import ControllerMischventil
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 
 
-def modell_mischventil(Tsz4_C: float, Tfr_C: float, stellwert_V: float) -> float:
+def modell_mischventil(Tsz4_C: float, Tfr_C: float, stellwert_100: float) -> float:
     """
     return Tfv_C
     """
+    stellwert_V = ControllerMischventil.calculate_valve_V(stellwert_100=stellwert_100)
     anteil_modell = max(min((stellwert_V - 3.0) / 4.0, 1.0), 0.0)
     Tfv = anteil_modell * (Tsz4_C - Tfr_C) + Tfr_C
     return Tfv
@@ -45,16 +46,15 @@ class Plot:
         Tfr_C: float,
         Tfv_C: float,
         Tfv_set_C: float,
-        stellwert_V: float,
+        stellwert_100: float,
         mischventil_actuation_credit_prozent: float,
     ) -> None:
-        valve_100 = ControllerMischventil.calculate_valve_100(stellwert_V=stellwert_V)
         self.now_s.append(now_s)
         self.Tsz4_C.append(Tsz4_C)
         self.Tfr_C.append(Tfr_C)
         self.Tfv_C.append(Tfv_C)
         self.Tfv_set_C.append(Tfv_set_C)
-        self.valve_100.append(valve_100)
+        self.valve_100.append(stellwert_100)
         self.mischventil_actuation_credit_prozent.append(mischventil_actuation_credit_prozent)
 
     def plot(self, title: str, filename: pathlib.Path) -> None:
@@ -111,7 +111,7 @@ async def run_scenario(testparam: Testparams) -> None:
 
         Tsz4_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tsz4_C
         Tfr_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C
-        ctx.hsm_zentral.mischventil_stellwert_V = 1.0
+        ctx.hsm_zentral.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=1.0)
         ctx.hsm_zentral.solltemperatur_Tfv = testparam.Tfv_set_C
         ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
 
@@ -124,7 +124,7 @@ async def run_scenario(testparam: Testparams) -> None:
             ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C = modell_mischventil(
                 Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
-                stellwert_V=ctx.hsm_zentral.mischventil_stellwert_V,
+                stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
             )
             p.point(
                 now_s=now_s,
@@ -132,7 +132,7 @@ async def run_scenario(testparam: Testparams) -> None:
                 Tfr_C=Tfr_C,
                 Tfv_C=ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C,
                 Tfv_set_C=ctx.hsm_zentral.solltemperatur_Tfv,
-                stellwert_V=ctx.hsm_zentral.mischventil_stellwert_V,
+                stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
                 mischventil_actuation_credit_prozent=ctl.credit.mischventil_actuation_credit_prozent,
             )
             ctl.process(ctx=ctx, now_s=float(now_s))

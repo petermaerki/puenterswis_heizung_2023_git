@@ -7,6 +7,7 @@ from hsm import hsm
 
 from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerABC
+from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_simple import controller_factory
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
@@ -41,10 +42,14 @@ class HsmZentral(hsm.HsmMixin):
         self.ctx = ctx
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
-        self.mischventil_stellwert_V = 0.0
+        self.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
         self.solltemperatur_Tfv = 0.0
         self.controller: ControllerABC = None
         self.grundzustand_manuell()
+
+    @property
+    def mischventil_stellwert_V(self) -> float:
+        return ControllerMischventil.calculate_valve_V(stellwert_100=self.mischventil_stellwert_100)
 
     def controller_process(self, ctx: "Context") -> None:
         if not self.is_state(self.state_hardwaretest):

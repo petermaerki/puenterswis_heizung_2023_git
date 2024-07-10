@@ -92,8 +92,13 @@ class ModbusCommunication:
             self._context.hsm_zentral.controller_process(ctx=self._context)
 
             if True:
+                # if flask_set_dac_manual:
+                #     mischventil_stellwert_V = Wert von Flask
+                # else:
+                #     mischventil_stellwert_V = self._context.hsm_zentral.mischventil_stellwert_V
+                # # Grafana: Show self._context.hsm_zentral.mischventil_stellwert_V
                 try:
-                    await self.a.set_dac(output_V=self._context.hsm_zentral.mischventil_stellwert_V)
+                    await self.a.set_dac_100(output_V=self._context.hsm_zentral.mischventil_stellwert_100)
                 except ModbusException as e:
                     logger.warning(f"Dac: {e}")
 
