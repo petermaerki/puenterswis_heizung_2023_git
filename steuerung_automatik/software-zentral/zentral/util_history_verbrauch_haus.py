@@ -10,6 +10,10 @@ if TYPE_CHECKING:
     from zentral.hsm_dezentral import HsmDezentral
 
 INTERVAL_VERBRAUCH_HAUS_S = 3600.0
+if WHILE_HARGASSNER:
+    LEAD_TIME_VERBRAUCH_HAUS_S = 3600.0
+else:
+    LEAD_TIME_VERBRAUCH_HAUS_S = 600.0
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +32,25 @@ class HistoryVerbrauchHaus:
     def add(self, messung: Messung) -> None:
         self._messwerte.append(messung)
         if len(self._messwerte) > self._max_length:
-            self._messwerte.pop()
+            self._messwerte.pop(0)
 
     @property
-    def avg_leistung_W(self) -> float:
-        return sum([m.verbrauch_W for m in self._messwerte]) / len(self._messwerte)
+    def verbrauch_avg_W(self) -> Optional[float]:
+        """
+        return None if no data available
+        """
+        messwerte_count = len(self._messwerte)
+        if messwerte_count == 0:
+            return None
+        return sum([m.verbrauch_W for m in self._messwerte]) / messwerte_count
 
 
 @dataclasses.dataclass
 class VerbrauchHaus:
-    last_energie_J: float = 0.0
+    last_energie_J: Optional[float] = None
+    """
+    Is None during LEAD_TIME_VERBRAUCH_HAUS_S
+    """
     next_interval_time_s: Optional[float] = None
     """
     Is None if the valve was open.
@@ -71,28 +84,31 @@ class VerbrauchHaus:
             return
 
         if self.next_interval_time_s is None:
-            # Ventil wurde geschlossen: Ein neues Interval beginnt.
-            sp_energie_absolut_J = hsm_dezentral.sp_energie_absolut_J
-            if sp_energie_absolut_J is None:
-                # Wir haben noch keine Messwerte via modbus erhalten
-                return
-            self.last_energie_J = sp_energie_absolut_J
-            self.next_interval_time_s = time.monotonic() + INTERVAL_VERBRAUCH_HAUS_S
+            # Ventil wurde geschlossen: LEAD_TIME_VERBRAUCH_HAUS_S beginnt.
+            self.last_energie_J = None
+            self.next_interval_time_s = time.monotonic() + LEAD_TIME_VERBRAUCH_HAUS_S
             return
 
-        # Ventil ist geschlossen: Ist ein Interval abgelaufen?
+        # Ventil ist geschlossen: Ist INTERVAL_VERBRAUCH_HAUS_S/INTERVAL_VERBRAUCH_HAUS_S abgelaufen?
         remaining_s = self.next_interval_time_s - time.monotonic()
         if remaining_s > 0:
             return
 
-        # Ein Interval ist abgelaufen
         sp_energie_absolut_J = hsm_dezentral.sp_energie_absolut_J
         if sp_energie_absolut_J is None:
             # Wir haben noch keine Messwerte via modbus erhalten
             return
-
-        interval_energie_J = self.last_energie_J - sp_energie_absolut_J
+        last_energie_J = self.last_energie_J
         self.last_energie_J = sp_energie_absolut_J
+
+        if last_energie_J is None:
+            # LEAD_TIME_VERBRAUCH_HAUS_S ist abgelaufen
+            # Starte ein INTERVAL_VERBRAUCH_HAUS_S
+            self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
+            return
+
+        # INTERVAL_VERBRAUCH_HAUS_S ist abgelaufen
+        interval_energie_J = last_energie_J - sp_energie_absolut_J
         messung = Messung(verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S, time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0)
         self.history.add(messung=messung)
         self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
@@ -100,11 +116,16 @@ class VerbrauchHaus:
         # Avoid cyclic import
         from zentral.util_influx import InfluxRecords
 
-        r = InfluxRecords(haus=hsm_dezentral._haus)
+        r = InfluxRecords(haus=hsm_dezentral.haus)
         r.add_fields(fields={"sp_verbrauch_W": messung.verbrauch_W})
+        verbrauch_avg_W = self.verbrauch_avg_W
+        if verbrauch_avg_W is not None:
+            r.add_fields(fields={"sp_verbrauch_avg_W": verbrauch_avg_W})
         await context.influx.write_records(records=r)
 
     @property
-    def avg_leistung_W(self) -> float:
-        # TODO: Fehlerhandling falls noch keine Messpunkt verfügbar
-        return self.history.avg_leistung_W
+    def verbrauch_avg_W(self) -> Optional[float]:
+        """
+        return None if no data available
+        """
+        return self.history.verbrauch_avg_W

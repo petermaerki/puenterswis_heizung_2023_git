@@ -36,6 +36,10 @@ class HsmDezentral(hsm.HsmMixin):
         self._time_begin_s = 0.0
 
     @property
+    def haus(self) -> "Haus":
+        return self._haus
+
+    @property
     def timer_duration_s(self) -> float:
         return time.monotonic() - self._time_begin_s
 
