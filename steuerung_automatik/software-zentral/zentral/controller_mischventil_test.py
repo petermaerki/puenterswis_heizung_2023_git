@@ -133,7 +133,7 @@ async def run_scenario(testparam: Testparams) -> None:
                 Tfv_C=ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C,
                 Tfv_set_C=ctx.hsm_zentral.solltemperatur_Tfv,
                 stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
-                mischventil_actuation_credit_prozent=ctl.credit.mischventil_actuation_credit_prozent,
+                mischventil_actuation_credit_prozent=ctl.credit.mischventil_actuation_credit_100,
             )
             ctl.process(ctx=ctx, now_s=float(now_s))
 

@@ -23,13 +23,14 @@ import sys
 import time
 import inspect
 import dataclasses
-from typing import Any, Dict, Iterator, List, TYPE_CHECKING
+from typing import Any, Dict, Iterator, List, TYPE_CHECKING, TypeVar, Type
 import logging
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
+
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,9 @@ class ScenarioBase(abc.ABC):
         self.haus_nummer = haus_nummer
 
 
+TScenario = TypeVar("TScenario", bound=ScenarioBase)
+
+
 class Scenarios:
     def __init__(self):
         self._scenarios: List[ScenarioBase] = []
@@ -93,32 +97,43 @@ class Scenarios:
         logger.info(f"Scenario: Remove {scenario!r}")
         self._scenarios.remove(scenario)
 
-    def remove_if_present(self, cls_scenario) -> bool:
+    def find(self, cls_scenario: Type[TScenario]) -> TScenario | None:
         """
-        Return True if the scenario was present
+        Return a scenario.
+        None if scenario is not present
         """
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
-                self._scenarios.remove(scenario)
-                return True
-        return False
+                return scenario
+        return None
+
+    def remove_if_present(self, cls_scenario: Type[TScenario]) -> bool:
+        """
+        Return True if the scenario was present
+        """
+        scenario = self.find(cls_scenario=cls_scenario)
+        if scenario is None:
+            return False
+        self._scenarios.remove(scenario)
+        return True
 
     @property
     def is_empty(self) -> bool:
         return len(self._scenarios) == 0
 
-    def is_present(self, cls_scenario) -> bool:
+    def is_present(self, cls_scenario: Type[TScenario]) -> bool:
         """
         Return True if the scenario was present
         """
-        for scenario in self._scenarios:
-            if scenario.__class__ is cls_scenario:
-                logger.info(f"Scenario: Apply {scenario!r}")
-                scenario.decrement()
-                return True
-        return False
+        scenario = self.find(cls_scenario=cls_scenario)
+        if scenario is None:
+            return False
 
-    def iter_by_class_haus(self, cls_scenario, haus: "Haus") -> Iterator[ScenarioBase]:
+        logger.info(f"Scenario: Apply {scenario!r}")
+        scenario.decrement()
+        return True
+
+    def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[ScenarioBase]:
         from zentral.config_base import Haus
 
         assert isinstance(haus, Haus)
@@ -230,6 +245,18 @@ class ScenarioHausSpDs18Broken(ScenarioBase):
 
     def __post_init__(self):
         self.ds18_index = ensure_enum(DS18Index, self.ds18_index)
+
+
+@dataclasses.dataclass
+class ScenarioOverwriteMischventil(ScenarioBase):
+    duration_s: float = 10 * 60.0
+    stellwert_100: float = 0
+
+
+@dataclasses.dataclass
+class ScenarioOverwriteRelais6PumpeEin(ScenarioBase):
+    duration_s: float = 10 * 60.0
+    pumpe_ein: bool = False
 
 
 def register_scenarios() -> None:

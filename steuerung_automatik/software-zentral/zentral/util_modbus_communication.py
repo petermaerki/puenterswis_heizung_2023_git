@@ -98,7 +98,8 @@ class ModbusCommunication:
                 #     mischventil_stellwert_V = self._context.hsm_zentral.mischventil_stellwert_V
                 # # Grafana: Show self._context.hsm_zentral.mischventil_stellwert_V
                 try:
-                    await self.a.set_dac_100(output_V=self._context.hsm_zentral.mischventil_stellwert_100)
+                    _manuell, output_100 = self._context.hsm_zentral.mischventil_stellwert_100_overwrite
+                    await self.a.set_dac_100(output_100=output_100)
                 except ModbusException as e:
                     logger.warning(f"Dac: {e}")
 
@@ -131,6 +132,7 @@ class ModbusCommunication:
                         raise ModbusException(ScenarioZentralDrehschalterManuell.__name__)
 
                     relais = self._context.hsm_zentral.relais
+                    _overwrite, pumpe_ein = relais.relais_6_pumpe_ein_overwrite
                     await self.r.set(
                         list_gpio=(
                             relais.relais_0_mischventil_automatik,
@@ -139,7 +141,7 @@ class ModbusCommunication:
                             False,
                             False,
                             False,
-                            not relais.relais_6_pumpe_ein,
+                            not pumpe_ein,
                             relais.relais_7_automatik,
                         )
                     )

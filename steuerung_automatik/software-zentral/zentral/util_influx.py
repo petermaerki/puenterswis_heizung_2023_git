@@ -100,6 +100,8 @@ class Influx:
         #     logger.exception("Failed to write to influx")
 
     async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll") -> None:
+        assert haus.status_haus is not None
+
         fields: Dict[str, float] = {}
 
         fields["uptime_s"] = modbus_iregs_all.uptime_s
@@ -140,12 +142,35 @@ class Influx:
 
     async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:
         r = InfluxRecords(ctx=ctx)
-        r.add_fields(
-            fields={
-                "hsm_zentral_state_value": state.value,
-                "hsm_zentral_relais_6_pumpe_ein": int(ctx.hsm_zentral.relais.relais_6_pumpe_ein),
-            }
-        )
+        fields = {
+            "hsm_zentral_state_value": state.value,
+        }
+
+        def pumpe():
+            key = "hsm_zentral_relais_6_pumpe_ein"
+            fields[key] = int(ctx.hsm_zentral.relais.relais_6_pumpe_ein)
+            manuell, relais_6_pumpe_ein = ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite
+            if manuell:
+                fields[key + "_overwrite"] = int(relais_6_pumpe_ein)
+
+        def mischventil():
+            key = "mischventil_stellwert_100"
+            fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
+            manuell, mischventil_stellwert_100 = ctx.hsm_zentral.mischventil_stellwert_100_overwrite
+            if manuell:
+                fields[key + "_overwrite"] = mischventil_stellwert_100
+
+        def credit():
+            if ctx.hsm_zentral.controller is None:
+                return
+            credit_100 = ctx.hsm_zentral.controller.get_credit_100()
+            if credit_100 is None:
+                return
+            fields["mischventil_credit_100"] = credit_100
+
+        pumpe()
+        mischventil()
+        credit()
         await self.write_records(records=r)
 
 

@@ -11,6 +11,7 @@ from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_simple import controller_factory
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
+from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteRelais6PumpeEin, ScenarioOverwriteMischventil
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -33,6 +34,18 @@ class Relais:
     """
     relais_7_automatik = False
 
+    @property
+    def relais_6_pumpe_ein_overwrite(self) -> tuple[bool, bool]:
+        """
+        Same as 'self.relais_6_pumpe_ein' but
+        may be overwritten by 'ScenarioManualRelais6PumpeEin'.
+        return overwrite, value
+        """
+        sc = SCENARIOS.find(ScenarioOverwriteRelais6PumpeEin)
+        if sc is not None:
+            return True, sc.pumpe_ein
+        return False, self.relais_6_pumpe_ein
+
 
 class HsmZentral(hsm.HsmMixin):
     """ """
@@ -51,6 +64,18 @@ class HsmZentral(hsm.HsmMixin):
     def mischventil_stellwert_V(self) -> float:
         return ControllerMischventil.calculate_valve_V(stellwert_100=self.mischventil_stellwert_100)
 
+    @property
+    def mischventil_stellwert_100_overwrite(self) -> tuple[bool, float]:
+        """
+        Same as 'self.mischventil_stellwert_100' but
+        may be overwritten by 'ScenarioManualMischventil'.
+        return overwrite, value
+        """
+        sc = SCENARIOS.find(ScenarioOverwriteMischventil)
+        if sc is not None:
+            return True, sc.stellwert_100
+        return False, self.mischventil_stellwert_100
+
     def controller_process(self, ctx: "Context") -> None:
         if not self.is_state(self.state_hardwaretest):
             if self.controller is not None:
@@ -63,6 +88,7 @@ class HsmZentral(hsm.HsmMixin):
         self.relais.relais_7_automatik = False
 
         for haus in self.ctx.config_etappe.haeuser:
+            assert haus.status_haus is not None
             if WHILE_HARGASSNER:
                 haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
             else:

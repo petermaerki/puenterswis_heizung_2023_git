@@ -23,18 +23,21 @@ class Credit:
 
     def __init__(self, now_s: float):
         self.time_last_credit_s = now_s
-        self.mischventil_actuation_credit_prozent = 100.0
+        self.mischventil_actuation_credit_100 = 100.0
+        """
+        0.0 .. 100.0
+        """
         self.last_Tfr_C = 0.0
         self.last_Tfv_soll_C = 0.0
         self.last_Tsz4_C = 0.0
 
     def add_mischventil_credit(self, credit: float) -> None:
-        self.mischventil_actuation_credit_prozent += credit
-        self.mischventil_actuation_credit_prozent = min(100.0, max(self.mischventil_actuation_credit_prozent, 0.0))
+        self.mischventil_actuation_credit_100 += credit
+        self.mischventil_actuation_credit_100 = min(100.0, max(self.mischventil_actuation_credit_100, 0.0))
 
     @property
     def faktor(self) -> float:
-        return min(self.mischventil_actuation_credit_prozent / self._GRENZE_GAIN_REDUKTION_PROZENT, 1.0)
+        return min(self.mischventil_actuation_credit_100 / self._GRENZE_GAIN_REDUKTION_PROZENT, 1.0)
 
     def update_credit(
         self,
@@ -162,6 +165,9 @@ class ControllerMischventil(ControllerSimple):
         self.credit = Credit(now_s=now_s)
         self.last_stellwert_change_s = now_s
         self.last_stellwert_aenderung_V = 0.0
+
+    def get_credit_100(self) -> float | None:
+        return self.credit.mischventil_actuation_credit_100
 
     def update_mischventil(self, ctx: "Context", now_s: float) -> None:
         pcb = ctx.modbus_communication.pcb_dezentral_heizzentrale

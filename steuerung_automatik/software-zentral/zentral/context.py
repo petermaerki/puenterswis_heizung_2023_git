@@ -35,6 +35,7 @@ class Context:
         self.config_etappe.init()
 
         for haus in self.config_etappe.haeuser:
+            assert haus.status_haus is not None
             haus.status_haus.hsm_dezentral._context = self
             haus.status_haus.hsm_dezentral.init()
 
