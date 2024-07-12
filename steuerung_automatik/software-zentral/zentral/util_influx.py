@@ -107,11 +107,13 @@ class Influx:
         fields["uptime_s"] = modbus_iregs_all.uptime_s
 
         for p in SpPosition:
-            pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
-            fields[f"{p.tag}_error_C"] = pair_ds18.error_C
-            if pair_ds18.error_any:
+            if p is SpPosition.UNUSED:
                 continue
-            fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
+            pair_ds18 = modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
+            if pair_ds18.temperature_C is not None:
+                fields[f"{p.tag}_temperature_C"] = pair_ds18.temperature_C
+            if pair_ds18.error_C is not None:
+                fields[f"{p.tag}_error_C"] = pair_ds18.error_C
 
         ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
         if ladung_minimum is not None:

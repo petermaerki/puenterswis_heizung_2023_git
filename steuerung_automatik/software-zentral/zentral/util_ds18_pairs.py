@@ -1,3 +1,15 @@
+"""
+Error logic
+
+DSx+0 DSx+1 temperature_C error_C
+DSa   DSb
+17.2  17.2  17.2          None
+17.2  25.8  17.2          DS18_REDUNDANCY_ERROR_DIFF_C
+err   17.2  17.2          DS18_REDUNDANCY_WARNING_DSa_BROKEN_C
+17.2  err   17.2          DS18_REDUNDANCY_WARNING_DSb_BROKEN_C
+err   err   None          DS18_REDUNDANCY_FATAL_C
+"""
+
 import dataclasses
 import logging
 
@@ -11,9 +23,10 @@ DS18_MEASUREMENT_FAILED_cK = 0
 DS18_0C_cK = 27315
 
 DS18_REDUNDANCY_ACCEPTABLE_DIFF_C = 5.0
-DS18_REDUNDANCY_WARNING_C = 1.0
+DS18_REDUNDANCY_ERROR_DIFF_C = 10.0
+DS18_REDUNDANCY_WARNING_DSa_BROKEN_C = 1.0
+DS18_REDUNDANCY_WARNING_DSb_BROKEN_C = 2.0
 DS18_REDUNDANCY_FATAL_C = 20.0
-DS18_FALLBACK_C = -100.0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -32,8 +45,16 @@ class DS18:
 class DS18_Pair:
     a: DS18
     b: DS18
-    error_C: float = None
-    temperature_C: float = DS18_FALLBACK_C
+    error_C: float | None = None
+    """
+    The error-temperature.
+    None if no error occured.
+    """
+    temperature_C: float | None = None
+    """
+    The effective temperature.
+    None if both sensors are broken.
+    """
     error_any = True
 
     def __post_init__(self):
@@ -45,21 +66,25 @@ class DS18_Pair:
         if a_broken and b_broken:
             # Both sensors broken
             self.error_C = DS18_REDUNDANCY_FATAL_C
+            self.temperature_C = None
             return
 
         if a_ok and b_ok:
             # Both ok
             diff_C = self.a.temperature_C - self.b.temperature_C
             if diff_C > abs(DS18_REDUNDANCY_ACCEPTABLE_DIFF_C):
-                self.error_C = diff_C
+                self.error_C = DS18_REDUNDANCY_ERROR_DIFF_C
             self.temperature_C = self.a.temperature_C
             self.error_any = False
             return
 
         # Exactly one sensor broken
-        self.error_C = DS18_REDUNDANCY_WARNING_C
         if a_broken:
+            self.error_C = DS18_REDUNDANCY_WARNING_DSa_BROKEN_C
             self.temperature_C = self.b.temperature_C
+        else:
+            self.error_C = DS18_REDUNDANCY_WARNING_DSb_BROKEN_C
+            self.temperature_C = self.a.temperature_C
 
     def increment_C(self, delta_C: float) -> None:
         """

@@ -12,7 +12,7 @@ from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_dac import Dac
 from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
-from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentralHeizzentrale
+from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
 
@@ -56,7 +56,7 @@ class ModbusCommunication:
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
         self.r = Gpio(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
-        self.pcb_dezentral_heizzentrale = PcbDezentralHeizzentrale(self._modbus, 42)
+        self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale()
         self.drehschalter = Drehschalter()
 
     def _get_modbus_client(self) -> AsyncModbusSerialClient:
@@ -102,6 +102,15 @@ class ModbusCommunication:
                     await self.a.set_dac_100(output_100=output_100)
                 except ModbusException as e:
                     logger.warning(f"Dac: {e}")
+
+            if True:
+                for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
+                    try:
+                        await pcb.read(ctx=self._context, modbus=self._modbus)
+                    except ModbusException as e:
+                        logger.warning(f"{pcb.modbus_label}: {e}")
+
+                # TODO: Im Fehlerfall muss in den manuellen Mode gewechselt werden!
 
             if True:
                 if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
@@ -161,7 +170,7 @@ class ModbusCommunication:
         try:
             await self._task_modbus()
         except Exception as e:
-            logger.warning(f"Terminating app: Unexpected {e!r}")
+            logger.exception(msg=f"Terminating app: Unexpected {e!r}", exc_info=e)
             await self._context.close_and_flush_influx()
             os._exit(43)
         except SystemExit as e:

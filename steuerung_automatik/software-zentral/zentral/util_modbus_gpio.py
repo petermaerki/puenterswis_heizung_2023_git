@@ -73,6 +73,8 @@ class ModbusIregsAll2(ModbusIregsAll):
         }
 
         for p in SpPosition:
+            if p is SpPosition.UNUSED:
+                continue
             pair_ds18 = self.pairs_ds18[p.ds18_pair_index]
             dict_regs[f"{p.tag}_error_C"] = pair_ds18.error_C
             if pair_ds18.error_any:

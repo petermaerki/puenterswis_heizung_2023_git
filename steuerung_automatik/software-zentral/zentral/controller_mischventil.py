@@ -170,24 +170,24 @@ class ControllerMischventil(ControllerSimple):
         return self.credit.mischventil_actuation_credit_100
 
     def update_mischventil(self, ctx: "Context", now_s: float) -> None:
-        pcb = ctx.modbus_communication.pcb_dezentral_heizzentrale
+        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
         last_stellwert_V = ctx.hsm_zentral.mischventil_stellwert_V
 
         Tfv_soll_C_TODO = 42.0
         self.credit.update_credit(
             now_s=now_s,
-            Tfr_C=pcb.Tfr_C,
-            Tsz4_C=pcb.Tsz4_C,
+            Tfr_C=pcbs.Tfr_C,
+            Tsz4_C=pcbs.Tsz4_C,
             Tfv_soll_C=Tfv_soll_C_TODO,
         )
 
         duration_since_last_stellwert_change_s = now_s - self.last_stellwert_change_s
-        abweichung_C = ctx.hsm_zentral.solltemperatur_Tfv - pcb.Tfv_C
+        abweichung_C = ctx.hsm_zentral.solltemperatur_Tfv - pcbs.Tfv_C
         if duration_since_last_stellwert_change_s < 5 * 60.0:
             if abs(abweichung_C) < self._Tfv_TOLERANZ_C:  # Genuegend genau, nichts machen
                 return
 
-        temperaturdifferenz_eingang_mischventil_C = pcb.Tsz4_C - pcb.Tfr_C
+        temperaturdifferenz_eingang_mischventil_C = pcbs.Tsz4_C - pcbs.Tfr_C
         if temperaturdifferenz_eingang_mischventil_C < 1.0:
             # Fehlermeldung: "Tsz4 und Tfr sind fast gleich, Regeln Mischventil ausgesetzt."
             return

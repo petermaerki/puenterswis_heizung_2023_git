@@ -19,13 +19,19 @@ def ensure_enum(enum_type: Enum, name: str | Enum) -> Enum:
 
 
 class SpPosition(StrEnum):
+    UNUSED = "unused"
+    "Klemmenpaar DS_0, DS_1"
     UNTEN = "unten"
+    "Klemmenpaar DS_2, DS_3"
     MITTE = "mitte"
+    "Klemmenpaar DS_4, DS_5"
     OBEN = "oben"
+    "Klemmenpaar DS_6, DS_7"
 
     @property
     def ds18_pair_index(self) -> int:
         return {
+            self.UNUSED: 0,
             self.UNTEN: 1,
             self.MITTE: 2,
             self.OBEN: 3,
@@ -41,7 +47,7 @@ class SpPosition(StrEnum):
 
 class DS18Index(StrEnum):
     """
-    This corresponds to sensor numbering on the Dezentral BCB.
+    This corresponds to sensor numbering on the Dezentral PCB.
     """
 
     UNUSED_A = auto()

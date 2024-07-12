@@ -90,6 +90,8 @@ class HsmDezentral(hsm.HsmMixin):
         def failure() -> bool:
             # print(self.modbus_iregs_all.debug_temperatureC_percent)
             for p in SpPosition:
+                if p is SpPosition.UNUSED:
+                    continue
                 pair_ds18 = self.modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
                 if pair_ds18.error_any:
                     return True

@@ -99,18 +99,35 @@ class Testparams:
         f = "controller_mischventil_test_scenario_" + self.label.replace(" ", "-")
         return DIRECTORY_OF_THIS_FILE / f
 
+    @property
+    def dict_temperatures_C(self) -> dict[str, float]:
+        dict_temperatures_C = {
+            "Tsz1_C": 25.0,
+            "Tsz2_C": 35.0,
+            "Tsz3_C": 45.0,
+            "Tsz4_C": 65.0,
+            "Tfr_C": 25.0,
+            "Tfv_C": 25.0,
+            "Tkr_C": 25.0,
+            "Tbv1_C": 25.0,
+            "Tbv2_C": 25.0,
+            "Tbv_C": 25.0,
+        }
+        dict_temperatures_C["Tsz4_C"] = self.Tsz4_C
+        dict_temperatures_C["Tfr_C"] = self.Tfr_C
+        return dict_temperatures_C
+
 
 async def run_scenario(testparam: Testparams) -> None:
     async with ContextMock(config_etappe.create_config_etappe(hostname=ZERO_VIRGIN)) as ctx:
         await ctx.init()
-        ctx.modbus_communication.pcb_dezentral_heizzentrale.Tsz4_C = testparam.Tsz4_C
-        ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C = testparam.Tfr_C
+        ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
 
         ControllerMischventil._FAKTOR_STABILITAET_1 = testparam.CONTROLLER_FAKTOR_STABILITAET_1
         ctl = ControllerMischventil(now_s=0.0)
 
-        Tsz4_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tsz4_C
-        Tfr_C = ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfr_C
+        Tsz4_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C
+        Tfr_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfr_C
         ctx.hsm_zentral.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=1.0)
         ctx.hsm_zentral.solltemperatur_Tfv = testparam.Tfv_set_C
         ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
@@ -121,7 +138,7 @@ async def run_scenario(testparam: Testparams) -> None:
                 if now_s == 1000:
                     ctx.hsm_zentral.solltemperatur_Tfv = 30.0
             ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
-            ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C = modell_mischventil(
+            ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C = modell_mischventil(
                 Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
                 stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
@@ -130,7 +147,7 @@ async def run_scenario(testparam: Testparams) -> None:
                 now_s=now_s,
                 Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
-                Tfv_C=ctx.modbus_communication.pcb_dezentral_heizzentrale.Tfv_C,
+                Tfv_C=ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C,
                 Tfv_set_C=ctx.hsm_zentral.solltemperatur_Tfv,
                 stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
                 mischventil_actuation_credit_prozent=ctl.credit.mischventil_actuation_credit_100,
