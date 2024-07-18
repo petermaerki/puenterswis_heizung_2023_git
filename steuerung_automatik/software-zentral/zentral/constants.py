@@ -21,6 +21,9 @@ assert (DIRECTORY_REPO / ".git").is_dir()
 DIRECTORY_LOG = DIRECTORY_ZENTRAL / "log"
 DIRECTORY_LOG.mkdir(exist_ok=True)
 
+DIRECTORY_PERSISTENCE = DIRECTORY_ZENTRAL / "persistence"
+DIRECTORY_PERSISTENCE.mkdir(exist_ok=True)
+
 DIRECTORY_DOC = DIRECTORY_ZENTRAL / "doc"
 DIRECTORY_DOC.mkdir(exist_ok=True)
 
