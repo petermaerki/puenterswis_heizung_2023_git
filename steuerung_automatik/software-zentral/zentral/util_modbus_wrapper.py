@@ -7,37 +7,31 @@ This class implements:
 * DONE: Modbus calls in two asyncio tasks must not interleave
 """
 
-from typing import TYPE_CHECKING, Iterator, Union, List
-from contextlib import asynccontextmanager
 import asyncio
 import logging
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Iterator, List, Union
 
-from pymodbus.exceptions import ModbusException, ConnectionException
+from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
 from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.exceptions import ConnectionException, ModbusException
 from pymodbus.pdu import ModbusResponse
-from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
+
 from zentral.constants import ModbusExceptionIsError, ModbusExceptionNoResponseReceived, ModbusExceptionRegisterCount
 from zentral.util_gpio import ScopeTrigger
-from zentral.util_scenarios import (
-    SCENARIOS,
-    ScenarioBase,
-    ScenarioHausModbusError,
-    ScenarioHausModbusException,
-    ScenarioHausModbusSystemExit,
-    ScenarioHausModbusWrongRegisterCount,
-    ScenarioHausSpDs18Broken,
-)
+from zentral.util_scenarios import SCENARIOS, ScenarioBase, ScenarioHausModbusError, ScenarioHausModbusException, ScenarioHausModbusSystemExit, ScenarioHausModbusWrongRegisterCount, ScenarioHausSpDs18Broken
 
 if TYPE_CHECKING:
-    from zentral.context_mock import ModbusMockClient
     from zentral.context import Context
+    from zentral.context_mock import ModbusMockClient
 
 
-TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.020
+TIMEOUT_AFTER_MODBUS_TRANSFER_S = 0.040
 """
 0.005: Dezentral had up to 10% rate of modbus no response.
 0.010: Dezentral has 0% rate of modbus no response.
-0.020: Our choice
+0.020: Our choice March 2024 (but some errors, House 2, 1%, with additional pcb_dezentral 10, 11, 12)
+0.040: Our choice July 2024
 """
 TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S = 0.020
 TIMEOUT_AFTER_MODBUS_ERROR_S = 0.020
