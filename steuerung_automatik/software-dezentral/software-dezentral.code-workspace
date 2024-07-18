@@ -21,6 +21,21 @@
 		"version": "0.2.0",
 		"configurations": [
 			{
+				"name": "Pytest",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "pytest",
+				"cwd": "${workspaceFolder:repo}",
+				"console": "integratedTerminal",
+				"args": [
+					"-v",
+					"-s",
+					"${workspaceFolder:zentral}",
+					"${workspaceFolder:dezentral}"
+				],
+				"justMyCode": true
+			},
+			{
 				"name": "Ruff",
 				"type": "debugpy",
 				"request": "launch",
@@ -175,8 +190,11 @@
 		]
 	},
 	"settings": {
-		// "python.testing.pytestArgs": [],
-		"python.testing.cwd": "${workspaceFolder:dezentral}",
+		"python.testing.pytestArgs": [
+			"${workspaceFolder:dezentral}",
+			"${workspaceFolder:zentral}"
+		],
+		"python.testing.cwd": "${workspaceFolder:repo}",
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestEnabled": true,
 		"python.autoComplete.extraPaths": [

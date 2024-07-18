@@ -5,3 +5,4 @@ ruff
 pylint
 isort
 pytest
+pytest-asyncio

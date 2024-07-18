@@ -6,6 +6,8 @@ from zentral.constants import HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
 from zentral.util_uploadinterval import UploadInterval
 
+MODBUS_OFFSET_HAUS = 100
+
 
 class StatusHaus:
     def __init__(self, haus: "Haus"):
@@ -46,7 +48,7 @@ class ConfigHaus:
 
     @property
     def modbus_server_id(self) -> int:
-        return self.nummer + 100
+        return self.nummer + MODBUS_OFFSET_HAUS
 
     @property
     def haus_idx0(self) -> int:

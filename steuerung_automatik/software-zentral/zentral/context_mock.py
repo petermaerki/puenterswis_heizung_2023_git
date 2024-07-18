@@ -7,11 +7,12 @@ from zentral.constants import (
     MODBUS_ADDRESS_BELIMO,
     MODBUS_ADDRESS_RELAIS,
 )
-from zentral.config_base import ConfigEtappe, Haus
+from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
 from pymodbus.pdu import ModbusResponse
 from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from micropython import util_constants
 from pymodbus.client import AsyncModbusSerialClient
+from zentral.util_modbus import MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.context import Context
 
@@ -30,8 +31,12 @@ class ModbusMockClient:
         assert isinstance(context, ContextMock)
         self._context = context
 
-    def _get_haus(self, slave: int) -> Haus:
-        return self._context.config_etappe.get_haus_by_modbus_server_id(modbus_server_id=slave)
+    def validate_modbus_slave_address(self, slave: int) -> None:
+        for pcb_dezentral_heizzentrale in self._context.modbus_communication.pcbs_dezentral_heizzentrale.pcbs:
+            if pcb_dezentral_heizzentrale.modbus_slave_addr == slave:
+                return
+        _haus = self._context.config_etappe.get_haus_by_modbus_server_id(modbus_server_id=slave)
+        return
 
     def close(self):
         pass
@@ -47,7 +52,7 @@ class ModbusMockClient:
 
         await asyncio.sleep(MOCK_DURATION_S)
 
-        _haus = self._get_haus(slave=slave)
+        self.validate_modbus_slave_address(slave=slave)
 
         a = IregsAll()
         registers = [
@@ -79,7 +84,7 @@ class ModbusMockClient:
         await asyncio.sleep(MOCK_DURATION_S)
 
         if address == EnumModbusRegisters.SETGET16BIT_GPIO:
-            _haus = self._get_haus(slave=slave)
+            self.validate_modbus_slave_address(slave=slave)
 
             rsp = ModbusResponse()
             rsp.registers = [1]
@@ -94,6 +99,10 @@ class ModbusMockClient:
                 rsp = ModbusResponse()
                 rsp.registers = [100, 100]
                 return rsp
+            if address == MODBUS_MAX_REGISTER_START_ADDRESS:
+                rsp = ModbusResponse()
+                rsp.registers = count * [100]
+                return rsp
         assert False
 
     async def write_registers(
@@ -104,9 +113,19 @@ class ModbusMockClient:
         **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
-        assert address == util_modbus_dac.Dac.DAC_ADDRESS
-        assert slave == MODBUS_ADDRESS_DAC
-        assert len(values) == 8
+
+        def assert_modbus():
+            if slave == MODBUS_ADDRESS_DAC:
+                assert address == util_modbus_dac.Dac.DAC_ADDRESS
+                assert len(values) == 8
+                return
+
+            if slave > MODBUS_OFFSET_HAUS:
+                assert address == EnumModbusRegisters.SETGET16BIT_GPIO
+                assert len(values) == 1
+                return
+
+        assert_modbus()
 
         await asyncio.sleep(MOCK_DURATION_S)
 
@@ -122,7 +141,7 @@ class ModbusMockClient:
         **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
-        assert address == util_modbus_gpio.Gpio.COIL_ADDRESS
+        assert address in (util_modbus_gpio.Gpio.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
         assert slave == MODBUS_ADDRESS_RELAIS
 
         rsp = ModbusResponse()

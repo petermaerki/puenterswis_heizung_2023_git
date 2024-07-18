@@ -30,8 +30,8 @@ class DsPair:
 
 
 class PcbDezentral:
-    def __init__(self, modbus_address: int, list_ds_pair: list[DsPair]) -> None:
-        self.modbus_address = modbus_address
+    def __init__(self, modbus_slave_addr: int, list_ds_pair: list[DsPair]) -> None:
+        self.modbus_slave_addr = modbus_slave_addr
 
         self.list_ds_pair = list_ds_pair
         """
@@ -53,7 +53,7 @@ class PcbDezentral:
 
     @property
     def modbus_label(self) -> str:
-        return f"PcbDezentralHeizzentrale(modbus={self.modbus_address})"
+        return f"PcbDezentralHeizzentrale(modbus={self.modbus_slave_addr})"
 
     async def read(self, ctx: "Context", modbus: "ModbusWrapper") -> None:
         """
@@ -64,7 +64,7 @@ class PcbDezentral:
 
         try:
             rsp = await modbus.read_input_registers(
-                slave=self.modbus_address,
+                slave=self.modbus_slave_addr,
                 slave_label=self.modbus_label,
                 address=EnumModbusRegisters.SETGET16BIT_ALL_SLOW,
                 count=IREGS_ALL.register_count,
@@ -118,7 +118,7 @@ class PcbsDezentralHeizzentrale:
         """
 
         self._pcb10 = PcbDezentral(
-            modbus_address=10,
+            modbus_slave_addr=10,
             list_ds_pair=[
                 DsPair(_DS0_DS1, "Tkr_C"),
                 DsPair(_DS2_DS3, "Tbv1_C"),
@@ -127,7 +127,7 @@ class PcbsDezentralHeizzentrale:
             ],
         )
         self._pcb11 = PcbDezentral(
-            modbus_address=11,
+            modbus_slave_addr=11,
             list_ds_pair=[
                 DsPair(_DS0_DS1, "Tsz1_C"),
                 DsPair(_DS2_DS3, "Tsz2_C"),
@@ -136,7 +136,7 @@ class PcbsDezentralHeizzentrale:
             ],
         )
         self._pcb12 = PcbDezentral(
-            modbus_address=12,
+            modbus_slave_addr=12,
             list_ds_pair=[
                 DsPair(_DS0_DS1, "Tfv_C"),
                 DsPair(_DS2_DS3, "Tfr_C"),
@@ -172,5 +172,5 @@ class PcbsDezentralHeizzentrale:
 
     def set_mock(self, dict_temperatures_C: dict[str, float]) -> None:
         for label in dict_temperatures_C:
-            assert label not in self._dict_label_2_pcb, f"Unknown label={label}! {','.join(dict_temperatures_C)}"
+            assert label in self._dict_label_2_pcb, f"Unknown label={label}! {','.join(self._dict_label_2_pcb)}"
         self.dict_mock_temperatures_C = dict_temperatures_C

@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 modbus_time_1char_ms = 11 / 9600
 
+MODBUS_MAX_REGISTER_START_ADDRESS = 1
 MODBUS_MAX_REGISTER_COUNT = 125
 """
 Some sources say that a modbus packet should not exceet 256 bytes => 125 holding registers

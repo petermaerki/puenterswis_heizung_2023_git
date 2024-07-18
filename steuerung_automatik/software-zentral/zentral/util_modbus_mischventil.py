@@ -4,7 +4,7 @@ from typing import List
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
-from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT
+from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT, MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 
@@ -113,7 +113,7 @@ class Mischventil:
         response = await self._modbus.read_holding_registers(
             slave=self._modbus_address,
             slave_label=self._modbus_label,
-            address=1,
+            address=MODBUS_MAX_REGISTER_START_ADDRESS,
             count=MODBUS_MAX_REGISTER_COUNT,
         )
         assert not response.isError()

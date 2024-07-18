@@ -73,12 +73,14 @@ class ModbusWrapper:
         self._modbus_client = None
 
     @asynccontextmanager
-    async def serialize_modbus_calls(self, slave_label: int):
+    async def serialize_modbus_calls(self, slave_label: str):
         """
         Make sure the modbus call do not interleave.
         Specially the sleep at the end must block the start of the next
         modbus call.
         """
+        assert isinstance(slave_label, str)
+
         async with self._lock:
             try:
                 yield
@@ -118,6 +120,8 @@ class ModbusWrapper:
         slave_label: str,
     ) -> ModbusResponse:
         assert address == EnumModbusRegisters.SETGET16BIT_ALL_SLOW
+        assert isinstance(slave_label, str)
+        assert isinstance(slave, int)
 
         for scenario in self._iter_by_class_slave(
             cls_scenario=ScenarioHausModbusException,

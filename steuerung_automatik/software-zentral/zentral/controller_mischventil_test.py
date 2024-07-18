@@ -1,9 +1,11 @@
 import asyncio
+import subprocess
 import dataclasses
 import pathlib
 import sys
 
 import matplotlib.pyplot as plt
+import pytest
 
 from .constants import DIRECTORY_ZENTRAL
 
@@ -17,6 +19,7 @@ from zentral.context_mock import ContextMock
 from zentral.controller_mischventil import ControllerMischventil
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
+DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "controller_mischventil_testresults"
 
 
 def modell_mischventil(Tsz4_C: float, Tfr_C: float, stellwert_100: float) -> float:
@@ -57,7 +60,7 @@ class Plot:
         self.valve_100.append(stellwert_100)
         self.mischventil_actuation_credit_prozent.append(mischventil_actuation_credit_prozent)
 
-    def plot(self, title: str, filename: pathlib.Path) -> None:
+    def plot(self, title: str, filename: pathlib.Path, do_show_plot: bool) -> None:
         fig, ax1 = plt.subplots(figsize=(14, 8))
 
         color = "tab:red"
@@ -82,12 +85,12 @@ class Plot:
         fig.tight_layout()
         fig.suptitle(title)
         plt.savefig(filename)
-        if True:
+        if do_show_plot:
             plt.show()
 
 
 @dataclasses.dataclass
-class Testparams:
+class Ttestparam:
     label: str
     Tsz4_C: float = 65.0
     Tfr_C: float = 25.0
@@ -95,9 +98,17 @@ class Testparams:
     CONTROLLER_FAKTOR_STABILITAET_1: float = 0.5
 
     @property
-    def filename(self) -> pathlib.Path:
+    def pytest_id(self) -> str:
+        return str(self.filename_stem.name)
+
+    @property
+    def filename_stem(self) -> pathlib.Path:
         f = "controller_mischventil_test_scenario_" + self.label.replace(" ", "-")
-        return DIRECTORY_OF_THIS_FILE / f
+        return DIRECTORY_TESTRESULTS / f
+
+    @property
+    def filename_png(self) -> pathlib.Path:
+        return self.filename_stem.with_suffix(".png")
 
     @property
     def dict_temperatures_C(self) -> dict[str, float]:
@@ -118,7 +129,7 @@ class Testparams:
         return dict_temperatures_C
 
 
-async def run_scenario(testparam: Testparams) -> None:
+async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
     async with ContextMock(config_etappe.create_config_etappe(hostname=ZERO_VIRGIN)) as ctx:
         await ctx.init()
         ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
@@ -154,48 +165,75 @@ async def run_scenario(testparam: Testparams) -> None:
             )
             ctl.process(ctx=ctx, now_s=float(now_s))
 
-        p.plot(title=testparam.label, filename=testparam.filename)
+        p.plot(title=testparam.label, filename=testparam.filename_png, do_show_plot=do_show_plot)
+
+        try:
+            subprocess.run(
+                args=[
+                    "git",
+                    "diff",
+                    "--exit-code",
+                    str(testparam.filename_png),
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise AssertionError(f"{testparam.filename_stem}:\nstderr:{e.stderr}\nstdout:{e.stdout}\nExit code {e.returncode}: If this is 1, then the file has changed.") from e
+
+        # proc = subprocess.run(args=["git", "diff", "--exit-code", str(testparam.filename)], capture_output=True)
+        # assert proc.returncode == 0, f"{testparam.filename}:\nstderr:{proc.stderr}\nstdout:{proc.stdout}\nExit code {proc.returncode}: I this is 1, then the file has changed."
+
+
+_TESTPARAMS = [
+    Ttestparam(
+        "normal",
+        Tsz4_C=65.0,
+        Tfr_C=25.0,
+        Tfv_set_C=60.0,
+    ),
+    Ttestparam(
+        "gain zu hoch daher Oszillation blocken",
+        Tsz4_C=65.0,
+        Tfr_C=25.0,
+        Tfv_set_C=60.0,
+        CONTROLLER_FAKTOR_STABILITAET_1=2.5,
+    ),
+    Ttestparam(
+        "zentraler Speicher etwas kalt Tfv steht an",
+        Tsz4_C=40.0,
+        Tfr_C=25.0,
+        Tfv_set_C=60.0,
+    ),
+    Ttestparam(
+        "zentraler Speicher komplett kalt daher mischventil inaktiv",
+        Tsz4_C=25.5,
+        Tfr_C=25.0,
+        Tfv_set_C=60.0,
+    ),
+    Ttestparam(
+        "Ruecklauf waermer als zentraler Speicher daher mischventil inaktiv",
+        Tsz4_C=25.0,
+        Tfr_C=35.0,
+        Tfv_set_C=60.0,
+    ),
+    Ttestparam(
+        "Tfv set immer 30",
+        Tfv_set_C=30.0,
+    ),
+]
+
+
+@pytest.mark.parametrize("testparam", _TESTPARAMS, ids=lambda testparam: testparam.pytest_id)
+@pytest.mark.asyncio
+async def test_controller_mischventil(testparam: Ttestparam):
+    await run_scenario(testparam=testparam, do_show_plot=False)
 
 
 async def main():
-    for testparam in (
-        Testparams(
-            "normal",
-            Tsz4_C=65.0,
-            Tfr_C=25.0,
-            Tfv_set_C=60.0,
-        ),
-        Testparams(
-            "gain zu hoch daher Oszillation blocken",
-            Tsz4_C=65.0,
-            Tfr_C=25.0,
-            Tfv_set_C=60.0,
-            CONTROLLER_FAKTOR_STABILITAET_1=2.5,
-        ),
-        Testparams(
-            "zentraler Speicher etwas kalt Tfv steht an",
-            Tsz4_C=40.0,
-            Tfr_C=25.0,
-            Tfv_set_C=60.0,
-        ),
-        Testparams(
-            "zentraler Speicher komplett kalt daher mischventil inaktiv",
-            Tsz4_C=25.5,
-            Tfr_C=25.0,
-            Tfv_set_C=60.0,
-        ),
-        Testparams(
-            "Ruecklauf waermer als zentraler Speicher daher mischventil inaktiv",
-            Tsz4_C=25.0,
-            Tfr_C=35.0,
-            Tfv_set_C=60.0,
-        ),
-        Testparams(
-            "Tfv set immer 30",
-            Tfv_set_C=30.0,
-        ),
-    ):
-        await run_scenario(testparam=testparam)
+    for testparam in _TESTPARAMS:
+        await run_scenario(testparam=testparam, do_show_plot=True)
 
 
 if __name__ == "__main__":
