@@ -1,5 +1,5 @@
-import pathlib
 import json
+import pathlib
 import time
 from typing import Any
 
@@ -97,7 +97,7 @@ class Persistence:
         self._data = data
         self._dirty_s = self._time_base.monotonic_s
 
-    def get_data(self) -> None:
+    def get_data(self) -> Any:
         assert self._dirty_s is None, "Call get_data() BEFORE data has been written!"
         return self._data
 
@@ -146,5 +146,8 @@ class Persistence:
         return self._data
 
     def _add_history(self, why: str) -> None:
+        if len(self._history) > 100:
+            # Make sure that the history does not get too long
+            self._history = []
         history_text = f"{self._time_base.timestamp} {why}"
         self._history.append(history_text)

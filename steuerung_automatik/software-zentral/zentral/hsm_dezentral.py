@@ -13,6 +13,7 @@ from zentral.util_history_modbus import HistoryModbus
 from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_gpio import ModbusIregsAll2
+from zentral.util_persistence import Persistence
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -32,7 +33,8 @@ class HsmDezentral(hsm.HsmMixin):
         self.modbus_history = HistoryModbus()
         self.modbus_iregs_all: ModbusIregsAll2 = None
         self.dezentral_gpio = GpioBits(0)
-        self.verbrauch = VerbrauchHaus()
+        self._persistence = Persistence(tag=f"verbrauch_{haus.influx_tag}", period_s=60.0)
+        self.verbrauch = VerbrauchHaus(persistence=self._persistence)
         self._time_begin_s = 0.0
 
     @property
@@ -45,6 +47,9 @@ class HsmDezentral(hsm.HsmMixin):
 
     def timer_start(self) -> None:
         self._time_begin_s = time.monotonic()
+
+    def save_persistence(self, why: str) -> None:
+        self._persistence.save(force=True, why=why)
 
     @property
     def sp_energie_absolut_J(self) -> Optional[float]:
@@ -63,6 +68,9 @@ class HsmDezentral(hsm.HsmMixin):
         returns True, if the signal was not handled
         """
         if isinstance(signal, SignalModbusSuccess):
+            # Has to be called periodically
+            self._persistence.save()
+
             self.modbus_iregs_all = signal.modbus_iregs_all
             if self.modbus_iregs_all.version_sw < DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:
                 # In older software 'relais_valve_open' is always read as 0.

@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import dataclasses
 import logging
 import time
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from zentral.constants import WHILE_HARGASSNER
+from zentral.util_persistence import Persistence
 
 if TYPE_CHECKING:
     from zentral.context import Context
@@ -17,22 +20,54 @@ else:
 
 logger = logging.getLogger(__name__)
 
+_TAG_VERBRAUCH_W = "verbrauch_W"
+_TAG_TIME_S = "time_s"
+
 
 @dataclasses.dataclass
 class Messung:
     verbrauch_W: float
     time_s: float
 
+    @property
+    def to_dict(self) -> dict:
+        "Deserialize for persistence"
+        return {_TAG_VERBRAUCH_W: self.verbrauch_W, _TAG_TIME_S: self.time_s}
 
-@dataclasses.dataclass
+    @staticmethod
+    def from_dict(m: dict) -> Messung:
+        "Serialize for persistence"
+        return Messung(verbrauch_W=m[_TAG_VERBRAUCH_W], time_s=m[_TAG_TIME_S])
+
+
 class HistoryVerbrauchHaus:
-    _max_length = 3 * 24
-    _messwerte: List[Messung] = dataclasses.field(default_factory=list)
+    def __init__(self, persistence: Persistence) -> None:
+        self._max_length = 3 * 24
+        self._messwerte: list[Messung] = []
+        self._persistence = persistence
+        self._load_data()
+
+    def _load_data(self) -> None:
+        """
+        Load data from persistence file.
+        """
+        data = self._persistence.get_data()
+        if data is None:
+            # No persistence file found
+            return
+        assert isinstance(data, list)
+        for m in data:
+            assert isinstance(m, dict)
+            self._messwerte.append(Messung.from_dict(m))
 
     def add(self, messung: Messung) -> None:
         self._messwerte.append(messung)
         if len(self._messwerte) > self._max_length:
             self._messwerte.pop(0)
+
+        # Store data to persistence file.
+        data = [m.to_dict for m in self._messwerte]
+        self._persistence.push_data(data=data)
 
     @property
     def verbrauch_avg_W(self) -> Optional[float]:
@@ -45,24 +80,24 @@ class HistoryVerbrauchHaus:
         return sum([m.verbrauch_W for m in self._messwerte]) / messwerte_count
 
 
-@dataclasses.dataclass
 class VerbrauchHaus:
-    last_energie_J: Optional[float] = None
-    """
-    Is None during LEAD_TIME_VERBRAUCH_HAUS_S
-    """
-    next_interval_time_s: Optional[float] = None
-    """
-    Is None if the valve was open.
-    As soon as the valve closes, this will be set to start measuring.
+    def __init__(self, persistence: Persistence) -> None:
+        self.last_energie_J: Optional[float] = None
+        """
+        Is None during LEAD_TIME_VERBRAUCH_HAUS_S
+        """
+        self.next_interval_time_s: Optional[float] = None
+        """
+        Is None if the valve was open.
+        As soon as the valve closes, this will be set to start measuring.
 
-    Debug using: ssh -p 8022 localhost
-    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.verbrauch.next_interval_time_s
-    ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.sp_energie_absolut_J
-    ctx.hsm_zentral.relais.relais_6_pumpe_ein
-    ctx.hsm_zentral._state_actual.full_name
-    """
-    history: HistoryVerbrauchHaus = dataclasses.field(default_factory=HistoryVerbrauchHaus)
+        Debug using: ssh -p 8022 localhost
+        ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.verbrauch.next_interval_time_s
+        ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.sp_energie_absolut_J
+        ctx.hsm_zentral.relais.relais_6_pumpe_ein
+        ctx.hsm_zentral._state_actual.full_name
+        """
+        self.history: HistoryVerbrauchHaus = HistoryVerbrauchHaus(persistence=persistence)
 
     async def update_valve(self, hsm_dezentral: "HsmDezentral", context: "Context") -> None:
         """
@@ -109,7 +144,10 @@ class VerbrauchHaus:
 
         # INTERVAL_VERBRAUCH_HAUS_S ist abgelaufen
         interval_energie_J = last_energie_J - sp_energie_absolut_J
-        messung = Messung(verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S, time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0)
+        messung = Messung(
+            verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S,
+            time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0,
+        )
         self.history.add(messung=messung)
         self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
 

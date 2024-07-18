@@ -1,7 +1,7 @@
 import asyncio
-import subprocess
 import dataclasses
 import pathlib
+import subprocess
 import sys
 
 import matplotlib.pyplot as plt
@@ -181,9 +181,6 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
             )
         except subprocess.CalledProcessError as e:
             raise AssertionError(f"{testparam.filename_stem}:\nstderr:{e.stderr}\nstdout:{e.stdout}\nExit code {e.returncode}: If this is 1, then the file has changed.") from e
-
-        # proc = subprocess.run(args=["git", "diff", "--exit-code", str(testparam.filename)], capture_output=True)
-        # assert proc.returncode == 0, f"{testparam.filename}:\nstderr:{proc.stderr}\nstdout:{proc.stdout}\nExit code {proc.returncode}: I this is 1, then the file has changed."
 
 
 _TESTPARAMS = [

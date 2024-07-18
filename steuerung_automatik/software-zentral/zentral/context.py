@@ -30,6 +30,9 @@ class Context:
 
     async def close_and_flush_influx(self) -> None:
         await self.influx.close_and_flush()
+        for haus in self.config_etappe.haeuser:
+            if haus.status_haus is not None:
+                haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
 
     async def init(self) -> None:
         self.config_etappe.init()
@@ -107,5 +110,5 @@ class Context:
 
     async def __aexit__(self, *exc):
         await self.modbus_communication.close()
-        await self.influx.close_and_flush()
+        await self.close_and_flush_influx()
         return False
