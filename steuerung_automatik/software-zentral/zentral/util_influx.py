@@ -51,6 +51,14 @@ class InfluxRecords:
         )
 
 
+DEVELOPMENT = True
+
+if DEVELOPMENT:
+    INFLUX_FLASH_INTERVAL_MS = 10_000
+else:
+    INFLUX_FLASH_INTERVAL_MS = 60_000
+
+
 class Influx:
     def __init__(self):
         secrets = InfluxSecrets()
@@ -59,10 +67,10 @@ class Influx:
         self._bucket = secrets.bucket
         write_options = WriteOptions(
             batch_size=500,  # [1] the number of data point to collect in batch
-            flush_interval=10_000,  # [ms] flush data at least in this interval (milliseconds)
+            flush_interval=INFLUX_FLASH_INTERVAL_MS,  # [ms] flush data at least in this interval (milliseconds)
             jitter_interval=2_000,  # [ms] this is primarily to avoid large write spikes for users running a large number of client instances ie, a jitter of 5s and flush duration 10s means flushes will happen every 10-15s (milliseconds)
-            retry_interval=5_000,  # [ms] the time to wait before retry unsuccessful write (milliseconds)
-            max_retries=5,  # the number of max retries when write fails, 0 means retry is disabled
+            retry_interval=60_000,  # [ms] the time to wait before retry unsuccessful write (milliseconds)
+            max_retries=1_000,  # the number of max retries when write fails, 0 means retry is disabled
             max_retry_delay=30_000,  # [ms] the maximum delay between each retry attempt in milliseconds
             max_close_wait=30_000,  # [ms] the maximum time to wait for writes to be flushed if close() is called
             exponential_base=2,  # base for the exponential retry delay

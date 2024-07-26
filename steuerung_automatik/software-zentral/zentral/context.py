@@ -14,6 +14,9 @@ from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl
 logger = logging.getLogger(__name__)
 
 
+ASYNCIO_TASK_HSM_DEZENTRAL_S = 60.0
+
+
 class Context:
     def __init__(self, config_etappe: ConfigEtappe):
         self.config_etappe = config_etappe
@@ -89,7 +92,7 @@ class Context:
                 await self.close_and_flush_influx()
                 os._exit(45)
 
-            await sleep(duration_s=60.0)
+            await sleep(duration_s=ASYNCIO_TASK_HSM_DEZENTRAL_S)
 
     async def task_verbrauch(self) -> None:
         while True:
