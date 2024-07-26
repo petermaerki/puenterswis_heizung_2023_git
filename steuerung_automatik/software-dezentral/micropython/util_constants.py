@@ -1,3 +1,16 @@
+"""
+Version:
+  Example hw=10000
+             1     major
+              00   medium
+                00 minor
+        =>   1.0.0
+
+  Example sw: 104
+        =>   0.1.4
+"""
+
+
 def to_version(version):
     assert len(version) == 3
     return 10_000 * version[0] + 100 * version[1] + version[2]

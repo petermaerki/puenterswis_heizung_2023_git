@@ -1,16 +1,14 @@
 import logging
-from typing import List, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, List
 
 from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
-
-from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_Pair, DS18_MEASUREMENT_FAILED_cK, DS18_0C_cK
-from zentral.util_sp_ladung import SpTemperatur, LadungMinimum
+from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_0C_cK, DS18_MEASUREMENT_FAILED_cK, DS18_Pair
 from zentral.util_scenarios import (
     ScenarioHausSpTemperatureIncrease,
     SpPosition,
 )
+from zentral.util_sp_ladung import LadungMinimum, SpTemperatur
 
 if TYPE_CHECKING:
     pass
@@ -90,3 +88,17 @@ class ModbusIregsAll:
         if sp_temperature is None:
             return None
         return LadungMinimum(sp_temperature, temperatur_aussen_C=temperatur_aussen_C)
+
+    def _version_to_verbose(self, version: int) -> str:
+        """
+        See: micropython/util_constants.py
+        """
+        return f"{version//10000}.{version//100%100}.{version%100}"
+
+    @property
+    def version_sw_verbose(self) -> str:
+        return self._version_to_verbose(self.version_sw)
+
+    @property
+    def version_hw_verbose(self) -> str:
+        return self._version_to_verbose(self.version_hw)

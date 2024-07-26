@@ -115,6 +115,9 @@ class HsmDezentral(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
+    def entry_ok(self, signal: SignalDezentralBase):
+        logger.info(f"{self.haus.label}: version sw={self.modbus_iregs_all.version_sw_verbose} hw={self.modbus_iregs_all.version_hw_verbose}")
+
     @hsm.value(1)
     def state_ok(self, signal: SignalDezentralBase):
         """ """
