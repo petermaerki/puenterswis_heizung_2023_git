@@ -30,5 +30,11 @@ class LegionellenLadungSignal(SignalZentralBase):
 
 
 class SignalError(SignalZentralBase):
+    """
+    Important:
+    If something fails, we have to reiterate sending 'SignalError'.
+    As soon as we stop sending 'SignalError', the application assumes that everything is find and the application will restart.
+    """
+
     def __init__(self, why: str):
         self.why = why

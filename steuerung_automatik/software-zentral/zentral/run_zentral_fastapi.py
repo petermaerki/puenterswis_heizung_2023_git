@@ -1,4 +1,3 @@
-import asyncio
 import os
 from contextlib import asynccontextmanager
 
@@ -8,6 +7,7 @@ from fastapi.responses import RedirectResponse
 
 from zentral import config_etappe
 from zentral.context_mock import Context, ContextMock
+from zentral.run_zentral import start_application
 from zentral.util_logger import initialize_logger
 from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
 
@@ -31,14 +31,8 @@ async def lifespan(app: FastAPI):
     cls_ctx = ContextMock if mocked else Context
 
     async with cls_ctx(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
-        await ctx.init()
-        await ctx.create_ssh_repl()
+        await start_application(ctx=ctx)
 
-        globals.ctx = ctx
-
-        asyncio.create_task(ctx.modbus_communication.task_modbus())
-        asyncio.create_task(ctx.task_hsm())
-        asyncio.create_task(ctx.task_verbrauch())
         yield
 
 

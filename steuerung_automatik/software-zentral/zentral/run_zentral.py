@@ -12,6 +12,15 @@ from zentral.util_logger import initialize_logger
 logger = logging.getLogger(__name__)
 
 
+async def start_application(ctx: Context) -> None:
+    await ctx.init()
+    await ctx.create_ssh_repl()
+
+    asyncio.create_task(ctx.modbus_communication.task_modbus())
+    asyncio.create_task(ctx.task_hsm())
+    asyncio.create_task(ctx.task_verbrauch())
+
+
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mocked", help="increase output verbosity", action="store_true")
@@ -19,12 +28,7 @@ async def main():
     ContextClass = ContextMock if args.mocked else Context
 
     async with ContextClass(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
-        await ctx.init()
-        await ctx.create_ssh_repl()
-
-        asyncio.create_task(ctx.modbus_communication.task_modbus())
-        asyncio.create_task(ctx.task_hsm())
-        asyncio.create_task(ctx.task_verbrauch())
+        await start_application(ctx=ctx)
 
         await asyncio.Future()  # Wait forever.
         print("Done")
