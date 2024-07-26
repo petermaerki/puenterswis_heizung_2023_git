@@ -9,16 +9,22 @@ from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerABC
 from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_simple import controller_factory
-from zentral.hsm_zentral_signal import SignalDrehschalter, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
+from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
-from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
-from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteRelais6PumpeEin, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteMischventil
 from zentral.util_modbus_mischventil import MischventilRegisters
+from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
+from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeEin
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
 
 logger = logging.getLogger(__name__)
+
+STATE_ERROR_RECOVER_S = 60.0
+"""
+In 'state_error':
+After x s of absense of an 'SignalError', we will initialize again.
+"""
 
 INIT_STATE_DREHSCHALTERAUTO_REGELN = True
 """
@@ -79,6 +85,7 @@ class HsmZentral(hsm.HsmMixin):
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters = None
         self._programm_start_s = time.monotonic()
+        self._state_error_last_error_s: float = 0.0
 
     @property
     def uptime_s(self) -> float:
@@ -138,11 +145,28 @@ class HsmZentral(hsm.HsmMixin):
     def _handle_signal(self, signal: SignalZentralBase) -> None:
         if isinstance(signal, SignalHardwaretestBegin):
             raise hsm.StateChangeException(self.state_hardwaretest)
+        if isinstance(signal, SignalError):
+            self._state_error_last_error_s = time.monotonic()
+            raise hsm.StateChangeException(self.state_error, why=signal.why)
+
+    def entry_error(self, signal: SignalZentralBase):
+        self.grundzustand_manuell()
 
     @hsm.value(0)
     def state_error(self, signal: SignalZentralBase):
         """ """
         self._handle_signal(signal=signal)
+
+        def restart_if_errors_gone():
+            timelapse_without_error_s = time.monotonic() - self._state_error_last_error_s
+            assert timelapse_without_error_s >= 0.0
+            if timelapse_without_error_s > STATE_ERROR_RECOVER_S:
+                msg = f"No SignalError occured during {timelapse_without_error_s}s. Exit the application, the service will restart it."
+                raise SystemExit(msg)
+                # raise hsm.StateChangeException(self.state_initializing, why=msg)
+
+        restart_if_errors_gone()
+
         raise hsm.DontChangeStateException()
 
     @hsm.value(1)

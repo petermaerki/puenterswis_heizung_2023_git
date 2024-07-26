@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import typing
@@ -5,8 +6,8 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
-from zentral.hsm_zentral_signal import SignalDrehschalter
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
+from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_dac import Dac
@@ -14,12 +15,17 @@ from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
+from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
+from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
     from context import Context
 
 logger = logging.getLogger(__name__)
+
+MODBUS_SLEEP_S = 1.0
+
+MODBUS_ZENTRAL_MAX_INACTIVITY_S = 10.0
 
 
 class Drehschalter:
@@ -85,58 +91,48 @@ class ModbusCommunication:
             # await modbus_haus.reboot_reset(haus=haus)
 
     async def _task_modbus(self):
+        watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
         while True:
+            msg = watchdog_modbus_zentral.has_expired()
+            if msg is not None:
+                self._context.hsm_zentral.dispatch(SignalError(why=msg))
+
             if True:
                 await self.modbus_haueser_loop()
 
             self._context.hsm_zentral.controller_process(ctx=self._context)
 
             if True:
-                # if flask_set_dac_manual:
-                #     mischventil_stellwert_V = Wert von Flask
-                # else:
-                #     mischventil_stellwert_V = self._context.hsm_zentral.mischventil_stellwert_V
-                # # Grafana: Show self._context.hsm_zentral.mischventil_stellwert_V
                 try:
                     _manuell, output_100 = self._context.hsm_zentral.mischventil_stellwert_100_overwrite
-                    await self.a.set_dac_100(output_100=output_100)
+                    with watchdog_modbus_zentral.activity("dac"):
+                        await self.a.set_dac_100(output_100=output_100)
                 except ModbusException as e:
                     logger.warning(f"Dac: {e}")
 
             if True:
                 for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
                     try:
-                        await pcb.read(ctx=self._context, modbus=self._modbus)
+                        with watchdog_modbus_zentral.activity(pcb.modbus_label):
+                            await pcb.read(ctx=self._context, modbus=self._modbus)
                     except ModbusException as e:
                         logger.warning(f"{pcb.modbus_label}: {e}")
-
-                # TODO: Im Fehlerfall muss in den manuellen Mode gewechselt werden!
 
             if True:
                 if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
                     raise SystemExit(f"ScenarioMischventilModbusSystemExit({self.m._modbus_label})")
                 try:
-                    if True:
+                    if SCENARIOS.is_present(ScenarioMischventilModbusNoResponseReceived):
+                        raise ModbusExceptionNoResponseReceived(ScenarioMischventilModbusNoResponseReceived.__name__)
+                    with watchdog_modbus_zentral.activity("mischventil"):
                         all_registers = await self.m.all_registers
-                        self._context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
-                        logger.debug(f"mischventil: {all_registers=}")
-                    if False:
-                        series = await self.m.series_3words
-                        logger.info(f"mischventil: {series=}")
-                    if False:
-                        relative_position = await self.m.relative_position
-                        logger.info(f"mischventil: {relative_position=}")
-                    if False:
-                        absolute_power_kW = await self.m.absolute_power_kW
-                        logger.info(f"mischventil: {absolute_power_kW=}")
-
-                    if False:
-                        zentral_cooling_energie_J = await self.m.zentral_cooling_energie_J
-                        logger.info(f"mischventil: {zentral_cooling_energie_J=}")
+                    self._context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
+                    logger.debug(f"mischventil: {all_registers=}")
                 except ModbusException as e:
                     self._context.hsm_zentral.modbus_mischventil_registers = None
 
                     logger.warning(f"Mischventil: {e}")
+
             if True:
                 try:
                     if SCENARIOS.is_present(ScenarioZentralDrehschalterManuell):
@@ -145,18 +141,19 @@ class ModbusCommunication:
                     relais = self._context.hsm_zentral.relais
                     _overwrite, pumpe_ein = relais.relais_6_pumpe_ein_overwrite
                     _overwrite, automatik = relais.relais_0_mischventil_automatik_overwrite
-                    await self.r.set(
-                        list_gpio=(
-                            automatik,
-                            False,
-                            False,
-                            False,
-                            False,
-                            False,
-                            not pumpe_ein,
-                            relais.relais_7_automatik,
+                    with watchdog_modbus_zentral.activity("relais"):
+                        await self.r.set(
+                            list_gpio=(
+                                automatik,
+                                False,
+                                False,
+                                False,
+                                False,
+                                False,
+                                not pumpe_ein,
+                                relais.relais_7_automatik,
+                            )
                         )
-                    )
                     self.drehschalter.ok()
                     self._context.hsm_zentral.dispatch(SignalDrehschalter())
                 except ModbusException as e:
@@ -164,9 +161,10 @@ class ModbusCommunication:
                     self._context.hsm_zentral.dispatch(SignalDrehschalter())
                     logger.warning(f"Relais: {e}")
 
-            # await asyncio.sleep(5.0)
+            await asyncio.sleep(MODBUS_SLEEP_S)
 
     async def task_modbus(self):
+        # TODO: Exception handling is done here AND in 'self._task_modbus()'!
         try:
             await self._task_modbus()
         except Exception as e:

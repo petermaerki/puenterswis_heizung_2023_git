@@ -1,7 +1,8 @@
 import enum
 import logging
-from pymodbus import ModbusException
 import pathlib
+
+from pymodbus import ModbusException
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,9 @@ WHILE_HARGASSNER = True
 Solange ide Hargassner Heizung in Betrieb ist.
 Nachher auf 'False' setzen oder besser entfernen.
 """
+
+DEVELOPMENT = True
+
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
@@ -51,15 +55,11 @@ class ModbusExceptionIsError(ModbusException):
     Raised on Modbus communication error.
     """
 
-    pass
-
 
 class ModbusExceptionNoResponseReceived(ModbusException):
     """
     "No response received" in e.message
     """
-
-    pass
 
 
 class ModbusExceptionRegisterCount(ModbusException):
@@ -68,5 +68,3 @@ class ModbusExceptionRegisterCount(ModbusException):
     * If wrong package arrived (unlikly as the checksum will fail too)
     * Due to programming errors (probably).
     """
-
-    pass

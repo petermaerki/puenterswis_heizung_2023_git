@@ -17,14 +17,14 @@
   * found
 """
 
-import io
 import abc
+import dataclasses
+import inspect
+import io
+import logging
 import sys
 import time
-import inspect
-import dataclasses
-from typing import Any, Dict, Iterator, List, TYPE_CHECKING, TypeVar, Type
-import logging
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Type, TypeVar
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
 
@@ -224,6 +224,11 @@ class ScenarioInfluxWriteCrazy(ScenarioBase):
 @dataclasses.dataclass
 class ScenarioMischventilModbusSystemExit(ScenarioBase):
     pass
+
+
+@dataclasses.dataclass
+class ScenarioMischventilModbusNoResponseReceived(ScenarioBase):
+    duration_s: float = 20.0
 
 
 @dataclasses.dataclass

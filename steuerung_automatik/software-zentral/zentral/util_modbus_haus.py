@@ -1,12 +1,10 @@
 import logging
 from typing import TYPE_CHECKING
 
+from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
 from pymodbus.exceptions import ModbusException
 
-from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
-
 from zentral import hsm_dezentral_signal
-
 from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
@@ -14,8 +12,8 @@ from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import (
     SCENARIOS,
-    ScenarioHausSpTemperatureIncrease,
     ScenarioHausPicoRebootReset,
+    ScenarioHausSpTemperatureIncrease,
 )
 
 if TYPE_CHECKING:

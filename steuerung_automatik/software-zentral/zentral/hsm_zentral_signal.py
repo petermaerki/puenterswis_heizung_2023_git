@@ -11,8 +11,6 @@ class SignalDrehschalter(SignalZentralBase):
     self.ctx.modbus_communication.drehschalter.is_manuell.
     """
 
-    pass
-
 
 class SignalHardwaretestBegin(SignalZentralBase):
     def __init__(self, relais_7_automatik: bool):
@@ -29,3 +27,8 @@ class TimeSignal(SignalZentralBase):
 
 class LegionellenLadungSignal(SignalZentralBase):
     pass
+
+
+class SignalError(SignalZentralBase):
+    def __init__(self, why: str):
+        self.why = why

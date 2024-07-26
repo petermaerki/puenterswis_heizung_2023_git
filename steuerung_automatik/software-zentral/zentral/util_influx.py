@@ -9,7 +9,7 @@ from influxdb_client.client.influxdb_client import InfluxDBClient
 
 from zentral.config_base import Haus
 from zentral.config_secrets import InfluxSecrets
-from zentral.constants import ETAPPE_TAG_VIRGIN
+from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
@@ -17,6 +17,11 @@ if TYPE_CHECKING:
     from zentral.context import Context
 
 logger = logging.getLogger(__name__)
+
+if DEVELOPMENT:
+    INFLUX_FLASH_INTERVAL_MS = 10_000
+else:
+    INFLUX_FLASH_INTERVAL_MS = 60_000
 
 
 class InfluxRecords:
@@ -49,14 +54,6 @@ class InfluxRecords:
                 "time": time.time_ns(),
             }
         )
-
-
-DEVELOPMENT = True
-
-if DEVELOPMENT:
-    INFLUX_FLASH_INTERVAL_MS = 10_000
-else:
-    INFLUX_FLASH_INTERVAL_MS = 60_000
 
 
 class Influx:
