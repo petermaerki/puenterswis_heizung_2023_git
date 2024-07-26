@@ -161,7 +161,7 @@ class HsmZentral(hsm.HsmMixin):
             timelapse_without_error_s = time.monotonic() - self._state_error_last_error_s
             assert timelapse_without_error_s >= 0.0
             if timelapse_without_error_s > STATE_ERROR_RECOVER_S:
-                msg = f"No SignalError occured during {timelapse_without_error_s}s. Exit the application, the service will restart it."
+                msg = f"No SignalError occured during {timelapse_without_error_s:0.0f}s. Exit the application, the service will restart it."
                 raise SystemExit(msg)
                 # raise hsm.StateChangeException(self.state_initializing, why=msg)
 
