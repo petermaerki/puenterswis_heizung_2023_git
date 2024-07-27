@@ -233,6 +233,18 @@ class ScenarioMischventilModbusNoResponseReceived(ScenarioBase):
 
 @dataclasses.dataclass
 class ScenarioHausSpTemperatureIncrease(ScenarioBase):
+    """
+    Real situation simulated:
+     * The temperature of a DS18 pair incremented.
+     * This might be usefull, to force start heating
+
+    Notes:
+     * duration_s should be longer than 60s, otherwise it may be swallowed.
+     * Ony one class at the time may be active (as with all scenarios)
+
+    Tested: 2024-07-27
+    """
+
     haus_nummer: int = 13
     position: SpPosition = SpPosition.MITTE
     delta_C: float = 5.0
@@ -243,11 +255,50 @@ class ScenarioHausSpTemperatureIncrease(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioHausSpDs18Broken(ScenarioBase):
+class ScenarioHausSpTemperatureDiscrepancy(ScenarioBase):
+    """
+    If two sensors of a DX18Pair measures a difference of more 5C (DS18_REDUNDANCY_ACCEPTABLE_DIFF_C)
+    then the result will be 'is_ok=False'.
+    'error_C' in this case will be 10C (DS18_REDUNDANCY_ERROR_DIFF_C)
+
+    Real situation simulated:
+     * A DS18 pair measures different temperatures.
+     * Grafana: "DS18 error_C"
+
+    Notes:
+     * duration_s should be longer than 60s, otherwise it may be swallowed.
+     * Ony one class at the time may be active (as with all scenarios)
+
+    Tested: 2024-07-27
+    """
+
+    haus_nummer: int = 13
+    ds18_index: DS18Index = DS18Index.UNTEN_A
+    discrepancy_C: float = 20.0
+    duration_s: float = 120.0
+
+    def __post_init__(self):
+        self.ds18_index = ensure_enum(DS18Index, self.ds18_index)
+
+
+@dataclasses.dataclass
+class ScenarioHausSpDs18ProcentOk(ScenarioBase):
+    """
+    Real situation simulated:
+     * A DS18 is disconnected/shortened: Now 'ds18_op_percent' moves from 100% town to 0%.
+     * Grafana: "DS18 onewire ok_percent"
+
+    Notes:
+     * duration_s should be longer than 60s, otherwise it may be swallowed.
+     * Ony one class at the time may be active (as with all scenarios)
+
+    Tested: 2024-07-27
+    """
+
     haus_nummer: int = 13
     ds18_index: DS18Index = DS18Index.UNTEN_A
     ds18_ok_percent: int = 15
-    duration_s: float = 20.0
+    duration_s: float = 120.0
 
     def __post_init__(self):
         self.ds18_index = ensure_enum(DS18Index, self.ds18_index)

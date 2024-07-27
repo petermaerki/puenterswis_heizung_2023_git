@@ -3,17 +3,20 @@ from typing import TYPE_CHECKING, List
 
 from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
-from zentral.util_ds18_pairs import DS18, DS18_PAIR_COUNT, DS18_0C_cK, DS18_MEASUREMENT_FAILED_cK, DS18_Pair
-from zentral.util_scenarios import (
-    ScenarioHausSpTemperatureIncrease,
-    SpPosition,
-)
+from zentral.util_ds18_pairs import DS18, DS18_COUNT, DS18_PAIR_COUNT, DS18_0C_cK, DS18_MEASUREMENT_FAILED_cK, DS18_Pair
+from zentral.util_scenarios import SpPosition
 from zentral.util_sp_ladung import LadungMinimum, SpTemperatur
 
 if TYPE_CHECKING:
     pass
 
 logger = logging.getLogger(__name__)
+
+DS18_LIMIT_OK_PERCENT = 50
+"""
+The modbus registers 'is_ok' and 'ok_percent' are somehow redundant.
+If a 'ok_percent' goes below this value, we overwrite 'is_ok' to False.
+"""
 
 
 class ModbusIregsAll:
@@ -29,17 +32,22 @@ class ModbusIregsAll:
 
         self.relais_gpio = GpioBits(self._gpio)
 
-        def get_DS18(i) -> DS18:
+        def get_DS18(i: int) -> DS18:
+            assert 0 <= i < DS18_COUNT
             ds18_temperature_cK = IREGS_ALL.ds18_temperature_cK.get_value(registers, i)
             ds18_ok_percent = IREGS_ALL.ds18_ok_percent.get_value(registers, i)
+            is_ok = ds18_temperature_cK != DS18_MEASUREMENT_FAILED_cK
+            if ds18_ok_percent < DS18_LIMIT_OK_PERCENT:
+                is_ok = False
             return DS18(
                 i=i,
                 temperature_C=(ds18_temperature_cK - DS18_0C_cK) / 100.0,
                 ds18_ok_percent=ds18_ok_percent,
-                is_ok=ds18_temperature_cK != DS18_MEASUREMENT_FAILED_cK,
+                is_ok=is_ok,
             )
 
         def get_DS18_Pair(i) -> DS18_Pair:
+            assert 0 <= i < DS18_PAIR_COUNT
             return DS18_Pair(a=get_DS18(2 * i), b=get_DS18(2 * i + 1))
 
         self.pairs_ds18 = [get_DS18_Pair(i) for i in range(DS18_PAIR_COUNT)]
@@ -48,12 +56,6 @@ class ModbusIregsAll:
 
     def get_ds18_pair(self, position: SpPosition) -> DS18_Pair:
         return self.pairs_ds18[position.ds18_pair_index]
-
-    def apply_scenario_temperature_increase(self, scenario) -> None:
-        assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
-
-        ds18_pair = self.get_ds18_pair(position=scenario.position)
-        ds18_pair.increment_C(scenario.delta_C)
 
     @property
     def debug_temperatureC(self) -> str:

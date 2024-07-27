@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from hsm import hsm
 from micropython.portable_modbus_registers import GpioBits
@@ -28,10 +28,10 @@ class HsmDezentral(hsm.HsmMixin):
     def __init__(self, haus: "Haus"):
         hsm.HsmMixin.__init__(self, mermaid_detailed=False, mermaid_entryexit=False)
         self._haus = haus
-        self._context: "Context" = None
+        self._context: "Context" | None = None
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
         self.modbus_history = HistoryModbus()
-        self.modbus_iregs_all: ModbusIregsAll2 = None
+        self.modbus_iregs_all: ModbusIregsAll2 | None = None
         self.dezentral_gpio = GpioBits(0)
         self._persistence = Persistence(tag=f"verbrauch_{haus.influx_tag}", period_s=60.0)
         self.verbrauch = VerbrauchHaus(persistence=self._persistence)
@@ -52,7 +52,7 @@ class HsmDezentral(hsm.HsmMixin):
         self._persistence.save(force=True, why=why)
 
     @property
-    def sp_energie_absolut_J(self) -> Optional[float]:
+    def sp_energie_absolut_J(self) -> float | None:
         """
         return None, falls noch keine Modbus Daten empfangen wurden
         """
@@ -92,20 +92,25 @@ class HsmDezentral(hsm.HsmMixin):
 
         return False
 
-    def _update_dezentral_led_blink(self) -> None:
-        assert self.modbus_iregs_all is not None
-
-        def failure() -> bool:
-            # print(self.modbus_iregs_all.debug_temperatureC_percent)
-            for p in SpPosition:
-                if p is SpPosition.UNUSED:
-                    continue
-                pair_ds18 = self.modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
-                if pair_ds18.error_any:
-                    return True
+    @property
+    def any_ds18_fatal_error(self) -> bool:
+        """
+        Return True: If any of the ds18pairs (unten, mitte oben) has an error
+        """
+        if self.modbus_iregs_all is None:
             return False
 
-        self.dezentral_gpio.set_led_zentrale(on=False, blink=failure())
+        # print(self.modbus_iregs_all.debug_temperatureC_percent)
+        for p in SpPosition:
+            if p is SpPosition.UNUSED:
+                continue
+            pair_ds18 = self.modbus_iregs_all.pairs_ds18[p.ds18_pair_index]
+            if pair_ds18.error_any:
+                return True
+        return False
+
+    def _update_dezentral_led_blink(self) -> None:
+        self.dezentral_gpio.set_led_zentrale(on=False, blink=self.any_ds18_fatal_error)
 
     @hsm.value(0)
     @hsm.init_state

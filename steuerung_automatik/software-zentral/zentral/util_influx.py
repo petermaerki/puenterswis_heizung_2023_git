@@ -11,6 +11,7 @@ from zentral.config_base import Haus
 from zentral.config_secrets import InfluxSecrets
 from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
+from zentral.util_ds18_pairs import DS18
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
 if TYPE_CHECKING:
@@ -107,6 +108,9 @@ class Influx:
     async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll") -> None:
         assert haus.status_haus is not None
 
+        if not haus.status_haus.interval_haus_temperatures.time_over:
+            return
+
         fields: Dict[str, float] = {}
 
         fields["uptime_s"] = modbus_iregs_all.uptime_s
@@ -120,16 +124,28 @@ class Influx:
             if pair_ds18.error_C is not None:
                 fields[f"{p.tag}_error_C"] = pair_ds18.error_C
 
+            def add(ab: str, ds18: DS18) -> None:
+                if ds18.ds18_ok_percent == 100:
+                    # Do not flood grafana with 100 procent values.
+                    # The legend will now just contain the sensors with errors!
+                    return
+                fields[f"{p.tag}_{ab}_ok_percent"] = ds18.ds18_ok_percent
+
+            add("a", pair_ds18.a)
+            add("b", pair_ds18.b)
+
+        # if haus.config_haus.nummer == 13:
+        #     logger.info(fields)
+
         ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
         if ladung_minimum is not None:
             fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
             fields["ladung_heizung_prozent"] = ladung_minimum.ladung_heizung.ladung_prozent
             fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
 
-        if haus.status_haus.interval_haus_temperatures.time_over:
-            r = InfluxRecords(haus=haus)
-            r.add_fields(fields=fields)
-            await self.write_records(records=r)
+        r = InfluxRecords(haus=haus)
+        r.add_fields(fields=fields)
+        await self.write_records(records=r)
 
     async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)

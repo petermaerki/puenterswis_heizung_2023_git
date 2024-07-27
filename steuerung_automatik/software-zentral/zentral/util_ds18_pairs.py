@@ -32,13 +32,25 @@ DS18_REDUNDANCY_FATAL_C = 20.0
 @dataclasses.dataclass(frozen=True)
 class DS18:
     i: int
+
     temperature_C: float
+    """
+    The temperature recently measured on one sensor.
+    """
+
     ds18_ok_percent: int
     """
+    This is the quality of the ONEWIRE communication - NOT MODBUS!
     0: Never seen
     100: Always seen
     """
+
     is_ok: bool
+    """
+    If True: 'temperature_C' is valid.
+    If False: 'temperature_C' is invalid and should not be used.
+    For example just after power up, the temperature has not been measured yet so 'is_ok' will be 'False'.
+    """
 
 
 @dataclasses.dataclass()
@@ -72,8 +84,13 @@ class DS18_Pair:
         if a_ok and b_ok:
             # Both ok
             diff_C = self.a.temperature_C - self.b.temperature_C
-            if diff_C > abs(DS18_REDUNDANCY_ACCEPTABLE_DIFF_C):
+            if abs(diff_C) > DS18_REDUNDANCY_ACCEPTABLE_DIFF_C:
+                # The temperature difference is too high
                 self.error_C = DS18_REDUNDANCY_ERROR_DIFF_C
+                self.temperature_C = None
+                return
+
+            # Everything is ok
             self.temperature_C = self.a.temperature_C
             self.error_any = False
             return
@@ -85,9 +102,3 @@ class DS18_Pair:
         else:
             self.error_C = DS18_REDUNDANCY_WARNING_DSb_BROKEN_C
             self.temperature_C = self.a.temperature_C
-
-    def increment_C(self, delta_C: float) -> None:
-        """
-        This allows to mock the current reading
-        """
-        self.temperature_C += delta_C

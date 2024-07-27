@@ -38,6 +38,14 @@ class SpPosition(StrEnum):
         }[self]
 
     @property
+    def ds18_index_a(self) -> int:
+        return self.ds18_pair_index * 2
+
+    @property
+    def ds18_index_b(self) -> int:
+        return self.ds18_index_a + 1
+
+    @property
     def tag(self) -> str:
         return f"sp_{self.value}"
 
@@ -76,6 +84,9 @@ class DS18Index(StrEnum):
         return f"'{self.name}'"
 
 
-assert DS18Index.UNTEN_A.index == SpPosition.UNTEN.ds18_pair_index * 2
-assert DS18Index.MITTE_A.index == SpPosition.MITTE.ds18_pair_index * 2
-assert DS18Index.OBEN_A.index == SpPosition.OBEN.ds18_pair_index * 2
+assert DS18Index.UNTEN_A.index == SpPosition.UNTEN.ds18_index_a
+assert DS18Index.UNTEN_B.index == SpPosition.UNTEN.ds18_index_b
+assert DS18Index.MITTE_A.index == SpPosition.MITTE.ds18_index_a
+assert DS18Index.MITTE_B.index == SpPosition.MITTE.ds18_index_b
+assert DS18Index.OBEN_A.index == SpPosition.OBEN.ds18_index_a
+assert DS18Index.OBEN_B.index == SpPosition.OBEN.ds18_index_b

@@ -10,11 +10,7 @@ from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import (
-    SCENARIOS,
-    ScenarioHausPicoRebootReset,
-    ScenarioHausSpTemperatureIncrease,
-)
+from zentral.util_scenarios import SCENARIOS, ScenarioHausPicoRebootReset
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -65,13 +61,6 @@ class ModbusHaus:
             return False
 
         modbus_iregs_all2 = ModbusIregsAll2(rsp.registers)
-        # print(f"registers from MODBUS {rsp.registers} -> {modbus_iregs_all2.relais_gpio.value}")
-
-        for scenario in SCENARIOS.iter_by_class_haus(
-            cls_scenario=ScenarioHausSpTemperatureIncrease,
-            haus=self._haus,
-        ):
-            modbus_iregs_all2.apply_scenario_temperature_increase(scenario)
 
         logger.debug(f"{haus.label}: modbus: {modbus_iregs_all2.debug_dict_text}")
 

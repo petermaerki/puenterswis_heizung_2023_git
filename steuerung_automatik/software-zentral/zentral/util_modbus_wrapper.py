@@ -19,7 +19,17 @@ from pymodbus.pdu import ModbusResponse
 
 from zentral.constants import ModbusExceptionIsError, ModbusExceptionNoResponseReceived, ModbusExceptionRegisterCount
 from zentral.util_gpio import ScopeTrigger
-from zentral.util_scenarios import SCENARIOS, ScenarioBase, ScenarioHausModbusError, ScenarioHausModbusException, ScenarioHausModbusSystemExit, ScenarioHausModbusWrongRegisterCount, ScenarioHausSpDs18Broken
+from zentral.util_scenarios import (
+    SCENARIOS,
+    ScenarioBase,
+    ScenarioHausModbusError,
+    ScenarioHausModbusException,
+    ScenarioHausModbusSystemExit,
+    ScenarioHausModbusWrongRegisterCount,
+    ScenarioHausSpDs18ProcentOk,
+    ScenarioHausSpTemperatureDiscrepancy,
+    ScenarioHausSpTemperatureIncrease,
+)
 
 if TYPE_CHECKING:
     from zentral.context import Context
@@ -149,11 +159,28 @@ class ModbusWrapper:
         for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausModbusWrongRegisterCount, slave=slave):
             rsp.registers = rsp.registers[:-1]
 
-        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18Broken, slave=slave):
-            assert isinstance(scenario, ScenarioHausSpDs18Broken)
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18ProcentOk, slave=slave):
+            assert isinstance(scenario, ScenarioHausSpDs18ProcentOk)
             ds18_offset = IREGS_ALL.ds18_ok_percent.reg
             reg_index = ds18_offset + scenario.ds18_index.index
             rsp.registers[reg_index] = scenario.ds18_ok_percent
+
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpTemperatureDiscrepancy, slave=slave):
+            assert isinstance(scenario, ScenarioHausSpTemperatureDiscrepancy)
+            ds18_offset = IREGS_ALL.ds18_temperature_cK.reg
+            reg_index = ds18_offset + scenario.ds18_index.index
+            rsp.registers[reg_index] += int(100 * scenario.discrepancy_C)
+
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpTemperatureIncrease, slave=slave):
+            assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
+            ds18_offset = IREGS_ALL.ds18_temperature_cK.reg
+
+            def increment(ds18_index):
+                reg_index = ds18_offset + ds18_index
+                rsp.registers[reg_index] += int(100 * scenario.delta_C)
+
+            increment(scenario.position.ds18_index_a)
+            increment(scenario.position.ds18_index_b)
 
         self._assert_register_count(rsp=rsp, expected_register_count=count)
 
