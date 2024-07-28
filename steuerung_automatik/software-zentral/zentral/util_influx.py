@@ -150,11 +150,13 @@ class Influx:
     async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)
         hsm_dezentral = haus.status_haus.hsm_dezentral
-        influx_offset08 = haus.config_haus.influx_offset08
-        fields = {
-            "hsm_state_value": state.value + influx_offset08,
-            "modbus_ok_percent": hsm_dezentral.modbus_history.percent,
-        }
+        influx_offset08 = haus.config_haus.influx_offset05
+        fields = {}
+        fields["hsm_state_value"] = state.value + influx_offset08
+        if hsm_dezentral.modbus_history.percent < 100:
+            # Do not flood grafana with 100 procent values.
+            # The legend will now just contain the sensors with errors!
+            fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
         try:
             fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
             fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08

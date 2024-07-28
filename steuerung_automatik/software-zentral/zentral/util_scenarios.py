@@ -178,6 +178,12 @@ class ScenarioClearScenarios(ScenarioBase):
 
 
 @dataclasses.dataclass
+class ScenarioHausModbusNoResponseReceived(ScenarioBase):
+    haus_nummer: int = 13
+    duration_s: float = 20.0
+
+
+@dataclasses.dataclass
 class ScenarioHausModbusError(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1

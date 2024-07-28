@@ -18,6 +18,7 @@ from zentral.util_persistence import Persistence
 if TYPE_CHECKING:
     from zentral.config_base import Haus
     from zentral.context import Context
+    from zentral.hsm_zentral import HsmZentral
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,15 @@ class HsmDezentral(hsm.HsmMixin):
         return self._haus
 
     @property
+    def context(self) -> "Context":
+        assert self._context is not None
+        return self._context
+
+    @property
+    def hsm_zentral(self) -> "HsmZentral":
+        return self.context.hsm_zentral
+
+    @property
     def timer_duration_s(self) -> float:
         return time.monotonic() - self._time_begin_s
 
@@ -61,7 +71,7 @@ class HsmDezentral(hsm.HsmMixin):
         return self.modbus_iregs_all.sp_temperatur.energie_absolut_J
 
     async def handle_history_verbrauch(self) -> None:
-        await self.verbrauch.update_valve(hsm_dezentral=self, context=self._context)
+        await self.verbrauch.update_valve(hsm_dezentral=self, context=self.context)
 
     def _handle_modbus(self, signal: SignalDezentralBase) -> bool:
         """
@@ -79,15 +89,17 @@ class HsmDezentral(hsm.HsmMixin):
             self._update_dezentral_led_blink()
             self.modbus_history.success()
             if self.modbus_iregs_all.relais_gpio.button_zentrale:
-                raise hsm.StateChangeException(self.state_error_hardwaretest)
+                raise hsm.StateChangeException(self.state_hardwaretest, why="modbus_iregs_all.relais_gpio.button_zentrale")
+            if self.any_ds18_fatal_error:
+                raise hsm.StateChangeException(self.state_error, why="any_ds18_fatal_error")
             if self.modbus_history.ok:
-                raise hsm.StateChangeException(self.state_ok)
+                raise hsm.StateChangeException(self.state_ok, why="modbus_history")
             return True
 
         if isinstance(signal, SignalModbusFailed):
             self.modbus_history.failed()
             if not self.modbus_history.ok:
-                raise hsm.StateChangeException(self.state_error)
+                raise hsm.StateChangeException(self.state_error, why="not self.modbus_history.ok")
             return True
 
         return False
@@ -121,6 +133,8 @@ class HsmDezentral(hsm.HsmMixin):
         raise hsm.DontChangeStateException()
 
     def entry_ok(self, signal: SignalDezentralBase):
+        if self.modbus_iregs_all is None:
+            return
         logger.info(f"{self.haus.label}: version sw={self.modbus_iregs_all.version_sw_verbose} hw={self.modbus_iregs_all.version_hw_verbose}")
 
     @hsm.value(1)
@@ -133,6 +147,9 @@ class HsmDezentral(hsm.HsmMixin):
     def exit_ok(self, signal: SignalDezentralBase):
         self.modbus_iregs_all = None
 
+    def entry_error(self, signal: SignalDezentralBase):
+        self.dezentral_gpio.relais_valve_open = True
+
     @hsm.value(2)
     def state_error(self, signal: SignalDezentralBase):
         """ """
@@ -140,37 +157,22 @@ class HsmDezentral(hsm.HsmMixin):
 
         raise hsm.DontChangeStateException()
 
-    @hsm.value(3)
-    @hsm.init_state
-    def state_error_lost(self, signal: SignalDezentralBase):
-        """ """
-        self._handle_modbus(signal=signal)
-
-        raise hsm.DontChangeStateException()
-
-    @hsm.value(4)
-    def state_error_defect(self, signal: SignalDezentralBase):
-        """ """
-        self._handle_modbus(signal=signal)
-
-        raise hsm.DontChangeStateException()
-
-    def entry_error_hardwaretest(self, signal: SignalDezentralBase):
+    def entry_hardwaretest(self, signal: SignalDezentralBase):
         self.timer_start()
-        self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=False))
+        self.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=False))
         self.dezentral_gpio.set_led_zentrale(on=True, blink=False)
         self.dezentral_gpio.relais_valve_open = False
 
-    def exit_error_hardwaretest(self, signal: SignalDezentralBase):
-        self._context.hsm_zentral.dispatch(signal=SignalHardwaretestEnd())
+    def exit_hardwaretest(self, signal: SignalDezentralBase):
+        self.hsm_zentral.dispatch(signal=SignalHardwaretestEnd())
 
-    @hsm.value(5)
-    def state_error_hardwaretest(self, signal: SignalDezentralBase):
+    @hsm.value(3)
+    def state_hardwaretest(self, signal: SignalDezentralBase):
         pass
 
-    @hsm.value(6)
+    @hsm.value(4)
     @hsm.init_state
-    def state_error_hardwaretest_01(self, signal: SignalDezentralBase):
+    def state_hardwaretest_01(self, signal: SignalDezentralBase):
         """
         erwartet: Zentral: Liest Modbus, gpio Taste ist gesetzt
         * Zentral: Eintrag influx
@@ -180,12 +182,12 @@ class HsmDezentral(hsm.HsmMixin):
         * Zentral: pause 10s
         """
         if self.timer_duration_s > 40.0:
-            self._context.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=True))
-            raise hsm.StateChangeException(self.state_error_hardwaretest_02)
+            self.hsm_zentral.dispatch(signal=SignalHardwaretestBegin(relais_7_automatik=True))
+            raise hsm.StateChangeException(self.state_hardwaretest_02)
         raise hsm.DontChangeStateException()
 
-    @hsm.value(7)
-    def state_error_hardwaretest_02(self, signal: SignalDezentralBase):
+    @hsm.value(5)
+    def state_hardwaretest_02(self, signal: SignalDezentralBase):
         """
         * Zentral: Modbus Zentral: Relais 7 automatik: an
         * erwartet: Dezentral: Zentrale schliesst blaues Ventil.
@@ -194,11 +196,11 @@ class HsmDezentral(hsm.HsmMixin):
         """
         if self.timer_duration_s > 40.0 + 40.0:
             self.dezentral_gpio.relais_valve_open = True
-            raise hsm.StateChangeException(self.state_error_hardwaretest_03)
+            raise hsm.StateChangeException(self.state_hardwaretest_03)
         raise hsm.DontChangeStateException()
 
-    @hsm.value(8)
-    def state_error_hardwaretest_03(self, signal: SignalDezentralBase):
+    @hsm.value(6)
+    def state_hardwaretest_03(self, signal: SignalDezentralBase):
         """
         * Zentral: Modbus Dezentral: Relais valve_open: an
         * erwartet: Dezentral: Zentrale öffnet blaues Ventil.
@@ -206,5 +208,5 @@ class HsmDezentral(hsm.HsmMixin):
         * Zentral: pause 10s
         """
         if self.timer_duration_s > 40.0 + 40.0 + 40.0:
-            raise hsm.StateChangeException(self.state_ok)
+            raise hsm.StateChangeException(self.state_ok, why="Hardwaretest over")
         raise hsm.DontChangeStateException()

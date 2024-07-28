@@ -5,12 +5,12 @@ from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
 from pymodbus.exceptions import ModbusException
 
 from zentral import hsm_dezentral_signal
-from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
+from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN, ModbusExceptionNoResponseReceived
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioHausPicoRebootReset
+from zentral.util_scenarios import SCENARIOS, ScenarioHausModbusNoResponseReceived, ScenarioHausPicoRebootReset
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -50,6 +50,9 @@ class ModbusHaus:
 
     async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
         try:
+            for _ in SCENARIOS.iter_by_class_haus(ScenarioHausModbusNoResponseReceived, haus=haus):
+                raise ModbusExceptionNoResponseReceived(ScenarioHausModbusNoResponseReceived.__name__)
+
             rsp = await self._modbus.read_input_registers(
                 slave=haus.config_haus.modbus_server_id,
                 slave_label=haus.label,

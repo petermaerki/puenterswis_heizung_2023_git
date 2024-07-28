@@ -26,6 +26,8 @@ class ControllerSimple(ControllerABC):
         for haus in ctx.config_etappe.haeuser:
             assert haus.status_haus is not None
             hsm_dezentral = haus.status_haus.hsm_dezentral
+            if not hsm_dezentral.is_state(hsm_dezentral.state_ok):
+                continue
             modbus_iregs_all = hsm_dezentral.modbus_iregs_all
             if modbus_iregs_all is None:
                 continue
