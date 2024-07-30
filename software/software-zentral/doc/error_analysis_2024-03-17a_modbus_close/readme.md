@@ -8,13 +8,13 @@ Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/.local/lib/python3.11
 Mar 17 07:56:00 zero-puent bash[16382]:     async with self.lifespan_context(app) as maybe_state:
 Mar 17 07:56:00 zero-puent bash[16382]:   File "/usr/lib/python3.11/contextlib.py", line 211, in __aexit__
 Mar 17 07:56:00 zero-puent bash[16382]:     await anext(self.gen)
-Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/run_zentral>
+Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/run_zentral>
 Mar 17 07:56:00 zero-puent bash[16382]:     async with cls_ctx(config_bochs.create_config_bochs()) as ctx:
-Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/context.py">
+Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/context.py">
 Mar 17 07:56:00 zero-puent bash[16382]:     await self.modbus_communication.close()
-Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/util_modbus>
+Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/util_modbus>
 Mar 17 07:56:00 zero-puent bash[16382]:     await self._modbus.close()
-Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/util_modbus>
+Mar 17 07:56:00 zero-puent bash[16382]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/util_modbus>
 Mar 17 07:56:00 zero-puent bash[16382]:     await self._modbus_client.close()
 Mar 17 07:56:00 zero-puent bash[16382]: TypeError: object NoneType can't be used in 'await' expression
 Mar 17 07:56:00 zero-puent bash[16382]: ERROR:    Application shutdown failed. Exiting.
@@ -53,7 +53,7 @@ Mar 15 22:59:13 zero-puent python[725]:                ^^^^^^^^^^^^^^^^^^^^^^^^^
 Mar 15 22:59:13 zero-puent python[725]: socket.gaierror: [Errno -3] Temporary failure in name resolution
 Mar 15 22:59:13 zero-puent python[725]: The above exception was the direct cause of the following exception:
 Mar 15 22:59:13 zero-puent python[725]: Traceback (most recent call last):
-Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/util_influx.py", line 57, in write_records
+Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/util_influx.py", line 57, in write_records
 Mar 15 22:59:13 zero-puent python[725]:     success = await self._api.write(bucket=self._bucket, record=records._records)
 Mar 15 22:59:13 zero-puent python[725]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/.local/lib/python3.11/site-packages/influxdb_client/client/write_api_async.py", line 121, in write
@@ -106,7 +106,7 @@ Mar 15 22:59:13 zero-puent python[725]:                ^^^^^^^^^^^^^^^^^^^^^^^^^
 Mar 15 22:59:13 zero-puent python[725]: socket.gaierror: [Errno -3] Temporary failure in name resolution
 Mar 15 22:59:13 zero-puent python[725]: The above exception was the direct cause of the following exception:
 Mar 15 22:59:13 zero-puent python[725]: Traceback (most recent call last):
-Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zentral/zentral/util_influx.py", line 57, in write_records
+Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/puenterswis_heizung_2023_git/software/software-zentral/zentral/util_influx.py", line 57, in write_records
 Mar 15 22:59:13 zero-puent python[725]:     success = await self._api.write(bucket=self._bucket, record=records._records)
 Mar 15 22:59:13 zero-puent python[725]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Mar 15 22:59:13 zero-puent python[725]:   File "/home/zero/.local/lib/python3.11/site-packages/influxdb_client/client/write_api_async.py", line 121, in write

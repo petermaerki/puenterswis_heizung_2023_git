@@ -5,14 +5,14 @@
 # This is the only script which has to set the path!!
 #
 # How to run the script:
-#    cd /home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zero/install
+#    cd /home/zero/puenterswis_heizung_2023_git/software/software-zero/install
 #    sudo python 625_zero-root_bootstrap.py
 #
 import os
 import pathlib
 import sys
 
-DIRECTORY_ZEROSOFTWARE = pathlib.Path("/home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zero")
+DIRECTORY_ZEROSOFTWARE = pathlib.Path("/home/zero/puenterswis_heizung_2023_git/software/software-zero")
 assert DIRECTORY_ZEROSOFTWARE.exists()
 
 # Add path to allow access to uitls

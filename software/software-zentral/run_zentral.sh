@@ -1,8 +1,8 @@
 set -euox pipefail
 
-# pip install -r /home/zero/puenterswis_heizung_2023_git/steuerung_automatik/software-zero/requirements.txt
-# export AUTOMATIK=/home/maerki/work_heizung/puenterswis_heizung_2023_git/steuerung_automatik
-export AUTOMATIK=/home/zero/puenterswis_heizung_2023_git/steuerung_automatik
+# pip install -r /home/zero/puenterswis_heizung_2023_git/software/software-zero/requirements.txt
+# export AUTOMATIK=/home/maerki/work_heizung/puenterswis_heizung_2023_git/software
+export AUTOMATIK=/home/zero/puenterswis_heizung_2023_git/software
 export PYTHONPATH=${AUTOMATIK}/software-zentral:${AUTOMATIK}/software-dezentral:${AUTOMATIK}/software-zero
 export HEIZUNG2023_MOCKED=0
 cd ${AUTOMATIK}/software-zentral

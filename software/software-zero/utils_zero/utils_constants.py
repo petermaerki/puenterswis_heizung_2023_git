@@ -16,9 +16,9 @@ FILENAME_BASHRC_ZERO = DIRECTORY_HOME_ZERO / ".bashrc"
 FILENAME_BASHRC_ROOT = DIRECTORY_HOME_ROOT / ".bashrc"
 
 # software-zero
-DIRECTORY_SOFTWARE_ZERO = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/steuerung_automatik/software-zero"
+DIRECTORY_SOFTWARE_ZERO = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/software/software-zero"
 DIRECTORY_SOFTWARE_ZERO_LINK = DIRECTORY_HOME_ZERO / "software-zero"
-DIRECTORY_SOFTWARE_ZENTRAL = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/steuerung_automatik/software-zentral"
+DIRECTORY_SOFTWARE_ZENTRAL = DIRECTORY_HOME_ZERO / "puenterswis_heizung_2023_git/software/software-zentral"
 
 ZERO_NAME = socket.gethostname()
 assert ZERO_NAME in ZEROES

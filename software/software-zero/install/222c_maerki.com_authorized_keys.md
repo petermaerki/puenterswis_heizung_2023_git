@@ -6,7 +6,7 @@ To allow the rasperry PIs to login to www-insecure, the public keys have to be c
 
 ```bash
 cd <repo>
-cat steuerung_automatik/software-zero/keys/*/id_rsa.pub
+cat software/software-zero/keys/*/id_rsa.pub
 ```
 
 ## On maerki.com
