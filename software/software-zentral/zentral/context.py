@@ -1,5 +1,8 @@
 import asyncio
 import logging
+import os
+import signal
+import typing
 
 from zentral import util_ssh_repl
 from zentral.config_base import ConfigEtappe
@@ -29,6 +32,14 @@ class Context:
         influx_logger = HsmZentralInfluxLogger(influx=self.influx, ctx=self)
         self.hsm_zentral.add_logger(hsm_logger=influx_logger)
         self._persistence_legionellen = PersistenceLegionellen(ctx=self)
+
+        def sigterm_handler(_signo, _stack_frame) -> typing.NoReturn:
+            logger.warning("Received SIGTERM. Cleaning up...")
+            self.close_and_flush_influx()
+            logger.warning("...done")
+            os._exit(0)
+
+        signal.signal(signal.SIGTERM, sigterm_handler)
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
