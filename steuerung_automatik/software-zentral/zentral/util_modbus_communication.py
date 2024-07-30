@@ -15,7 +15,7 @@ from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioZentralDrehschalterManuell
+from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais2bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
@@ -134,6 +134,15 @@ class ModbusCommunication:
                     raise ModbusException(ScenarioZentralDrehschalterManuell.__name__)
 
                 relais = self._context.hsm_zentral.relais
+
+                scenario = SCENARIOS.find(ScenarioSetRelais2bis5)
+                if scenario is not None:
+                    assert isinstance(scenario, ScenarioSetRelais2bis5)
+                    relais.relais_2_brenner1_sperren = scenario.relais_2_brenner1_sperren
+                    relais.relais_3_waermeanforderung_beide = scenario.relais_3_waermeanforderung_beide
+                    relais.relais_4_brenner2_sperren = scenario.relais_4_brenner2_sperren
+                    relais.relais_5_keine_funktion = scenario.relais_5_keine_funktion
+
                 _overwrite, pumpe_ein = relais.relais_6_pumpe_ein_overwrite
                 _overwrite, automatik = relais.relais_0_mischventil_automatik_overwrite
                 with self._watchdog_modbus_zentral.activity("relais"):
@@ -141,14 +150,15 @@ class ModbusCommunication:
                         list_gpio=(
                             automatik,
                             False,
-                            False,
-                            False,
-                            False,
-                            False,
+                            relais.relais_2_brenner1_sperren,
+                            relais.relais_3_waermeanforderung_beide,
+                            relais.relais_4_brenner2_sperren,
+                            relais.relais_5_keine_funktion,
                             not pumpe_ein,
                             relais.relais_7_automatik,
                         )
                     )
+
                 self.drehschalter.ok()
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
             except ModbusException as e:

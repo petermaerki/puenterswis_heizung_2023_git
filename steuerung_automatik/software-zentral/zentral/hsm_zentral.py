@@ -38,6 +38,12 @@ _UPTIME_MODBUS_SILENT_S = 20.0
 @dataclasses.dataclass
 class Relais:
     relais_0_mischventil_automatik = False
+
+    relais_2_brenner1_sperren = False
+    relais_3_waermeanforderung_beide = False
+    relais_4_brenner2_sperren = False
+    relais_5_keine_funktion = False
+
     relais_6_pumpe_ein = False
     """
     While HARGASSNER: Der Wert is invertiert!
