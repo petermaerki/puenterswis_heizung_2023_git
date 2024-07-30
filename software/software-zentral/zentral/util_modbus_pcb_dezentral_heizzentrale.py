@@ -1,12 +1,13 @@
 import dataclasses
 import logging
+
+from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
 from pymodbus import ModbusException
 
 from zentral.util_constants_haus import SpPosition
-from zentral.util_modbus_wrapper import ModbusWrapper
-from micropython.portable_modbus_registers import EnumModbusRegisters, IREGS_ALL
-from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_influx import InfluxRecords
+from zentral.util_modbus_gpio import ModbusIregsAll2
+from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_uploadinterval import UploadInterval
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ class PcbDezentral:
         return None if both ds18 failed. See DS18_REDUNDANCY_FATAL_C.
         """
         if self.modbus_iregs_all2 is None:
-            raise MissingModbusDataException(f"No modbus data address {self.modbus_address}!")
+            raise MissingModbusDataException(f"No modbus data address {self.modbus_slave_addr}!")
 
         pair = self._dict_label_2_pair[label]
         pair_ds18 = self.modbus_iregs_all2.get_ds18_pair(pair.sp_position)
