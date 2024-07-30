@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 
 from zentral.constants import HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
+from zentral.util_sp_ladung import SpTemperatur
 from zentral.util_uploadinterval import UploadInterval
 
 MODBUS_OFFSET_HAUS = 100
@@ -90,6 +91,25 @@ class Haus:
     @property
     def influx_tag(self) -> str:
         return f"haus_{self.config_haus.nummer:02d}"
+
+    def get_sp_temperatur(self) -> SpTemperatur | None:
+        """
+        Return SpTemperatur
+        Return None:
+          * If hsm_dezentral != state_ok
+          * I other contidtions fail
+        """
+        assert self.status_haus is not None
+        hsm_dezentral = self.status_haus.hsm_dezentral
+        if not hsm_dezentral.is_state(hsm_dezentral.state_ok):
+            return None
+        modbus_iregs_all = hsm_dezentral.modbus_iregs_all
+        if modbus_iregs_all is None:
+            return None
+        sp_temperatur = modbus_iregs_all.sp_temperatur
+        if sp_temperatur is None:
+            return None
+        return sp_temperatur
 
 
 @dataclasses.dataclass(repr=True)

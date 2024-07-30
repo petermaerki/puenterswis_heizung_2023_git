@@ -4,7 +4,6 @@ import typing
 
 from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerABC
-from zentral.util_modbus_iregs_all import SpTemperatur
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -24,14 +23,7 @@ class ControllerSimple(ControllerABC):
             alle_haueser_zu_warm = True
 
         for haus in ctx.config_etappe.haeuser:
-            assert haus.status_haus is not None
-            hsm_dezentral = haus.status_haus.hsm_dezentral
-            if not hsm_dezentral.is_state(hsm_dezentral.state_ok):
-                continue
-            modbus_iregs_all = hsm_dezentral.modbus_iregs_all
-            if modbus_iregs_all is None:
-                continue
-            sp_temperatur: SpTemperatur = modbus_iregs_all.sp_temperatur
+            sp_temperatur = haus.get_sp_temperatur()
             if sp_temperatur is None:
                 continue
             if WHILE_HARGASSNER:
@@ -45,9 +37,9 @@ class ControllerSimple(ControllerABC):
                         alle_haueser_zu_warm = False
             else:
                 if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
-                    hsm_dezentral.dezentral_gpio.relais_valve_open = True
+                    haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
                 elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
-                    hsm_dezentral.dezentral_gpio.relais_valve_open = False
+                    haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
         if WHILE_HARGASSNER:
             if ein_haus_zu_kalt:

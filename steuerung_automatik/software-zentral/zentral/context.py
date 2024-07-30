@@ -9,6 +9,7 @@ from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
+from zentral.util_persistence_legionellen import PersistenceLegionellen
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl_update_scenarios
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ class Context:
         self.hsm_zentral.write_mermaid_md(DIRECTORY_LOG / f"statemachine_{self.hsm_zentral.__class__.__name__}.md")
         influx_logger = HsmZentralInfluxLogger(influx=self.influx, ctx=self)
         self.hsm_zentral.add_logger(hsm_logger=influx_logger)
+        self._persistence_legionellen = PersistenceLegionellen(ctx=self)
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
@@ -36,6 +38,8 @@ class Context:
         for haus in self.config_etappe.haeuser:
             if haus.status_haus is not None:
                 haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
+
+        self._persistence_legionellen.save(force=True, why="Exiting app")
 
     async def init(self) -> None:
         self.config_etappe.init()
@@ -86,6 +90,8 @@ class Context:
                         haus=haus,
                         state=haus.status_haus.hsm_dezentral.get_state(),
                     )
+
+                self._persistence_legionellen.update()
 
                 await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
 
