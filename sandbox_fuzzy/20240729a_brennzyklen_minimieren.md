@@ -1,6 +1,6 @@
 # Konzept Brennzyklen minimieren
 ```
-energiemangel = ladung_minimum von einem Haus < 0% and  Tsz4 < 60C
+energiemangel = ladung_minimum von einem Haus < 0% and  TPO_C < 60C
 ```
 ## Zünden verhindern
 Brenner dürfen nur bei energiemangel anlaufen.
@@ -14,26 +14,40 @@ else:
     relais_2 False # brenner_1 nicht sperren
     relais_4 False # brenner_2 nicht sperren
 ```
-
+TPO_ein_C = 65
+TPO_mod_30_C # ab dieser Temperatur moduliert der Brenner auf 30%
+TPM_aus_C = 60
 
 ## Zentralspeicher nicht unterkühlen durch zu viel Energiebezug vom zentralen Speicher
 
-Tsz4 hat normalerweise über 65C. Falls Tsz4 unter 60 geht, so kann der brenner nicht genügend Wärme liefern.
+TPO_C hat normalerweise über 65C. Falls TPO_C zu tief geht, so kann der brenner nicht genügend Wärme liefern.
 ```
 falls geladen wird und die Pumpe läuft
-    if Tsz4 < 60C: Pumpe aus
-    if Tsz4 > 60+2: Pumpe wieder ein
+    if TPO_C < TPO_ein_C -2.0: Pumpe aus
+    if TPO_C > TPO_ein_C -2.0: wieder ein
 ```
-Bei energiemangel wird Oekofen den ersten brenner starten falls Tsz4 unter 60 ist oder nach zwei Stunden den zweiten brenner starten.
+Bei energiemangel wird Oekofen den ersten brenner starten falls TPO_C unter 60 ist oder nach zwei Stunden den zweiten brenner starten.
+
+## Modulation optimal
+Falls alle Häuser ladung_minimum > 0
+Modulation optimal halten.
+```
+falls mindestens ein Brenner brennt und geladen wird und die Pumpe läuft
+    if TPO_C < TPO_mod_30_C : Pumpe aus
+    if TPO_C > TPO_mod_30_C : Pumpe wieder ein
+
+alternativ
+    weniger oder mehr Energie beziehen zu und wegschalten von Häusern
+```
 
 ## Auslöschen verhindern
 
-Wenn der zentrale Speicher bei Tsz2 zu warm ist, so löscht Oekofen einen Brenner, später den zweiten.
+Wenn der zentrale Speicher bei TPM_C zu warm ist, so löscht Oekofen einen Brenner, später den zweiten.
 
 Mir ist noch unklar ob ich mit einer Wärmeanforderung über relais_3 das verhindern kann.
 
 ```
-if Tsz2 > 45 C:
+if TPM_C > 45 C:
     mehr Energie beziehen durch Laden zusätzliche Häuser
 ```
 
@@ -62,7 +76,7 @@ stateDiagram-v2
 * Einfluss: 'ein': State 'TPO < 65C'
 * Einfluss: 'ein2': State 'TPO < 65C' für mehr als 2h
 
-TPOlZentraler Speicher TPO
+Zentraler Speicher oben TPO
 ```mermaid
 stateDiagram-v2
     state "TPO > 65C" as TPOgt65
@@ -84,3 +98,5 @@ stateDiagram-v2
     TPMgt60 --> TPMlt60
     TPMlt60 --> TPMgt60
 ```
+
+
