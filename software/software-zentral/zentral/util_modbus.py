@@ -1,8 +1,8 @@
 import logging
 
-from mp.util_serial import find_serial_port, FindArguments, SerialPortNotFoundException
-from pymodbus.client import AsyncModbusSerialClient
+from mp.util_serial import FindArguments, SerialPortNotFoundException, find_serial_port
 from pymodbus import Framer
+from pymodbus.client import AsyncModbusSerialClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,14 @@ Maximum of 125 registers:
 """
 
 
-def get_serial_port2():
+def get_serial_port2(n: int):
+    """
+    n=0: first port
+    n=1: second port
+    """
     for args in (
         # Waveshare "USB TO 4CH RS485"
-        FindArguments(vid=0x1A86, pid=0x55D5, n=0),
+        FindArguments(vid=0x1A86, pid=0x55D5, n=n),
         # Waveshare "USB TO RS485"
         FindArguments(vid=0x0403, pid=0x6001, n=0),
     ):
@@ -39,15 +43,21 @@ def get_serial_port2():
     raise AttributeError("No Modbus USB found!")
 
 
-def get_modbus_client() -> AsyncModbusSerialClient:
+def get_modbus_client(n: int, baudrate: int) -> AsyncModbusSerialClient:
     """
     Return serial.Serial instance, ready to use for RS485.
-    """
-    port = get_serial_port2()
 
-    # class MyClient(AsyncModbusSerialClient):
-    #     def close(self, reconnect: bool = False) -> None:
-    #         super().close(reconnect=False)
+    n=0: first port
+    n=1: second port
+
+    baudrate=9600
+    baudrate=19200
+    """
+    assert isinstance(n, int)
+    assert n in (0, 1)
+    assert isinstance(baudrate, int)
+    assert baudrate in (9600, 19200)
+    port = get_serial_port2(n=n)
 
     class MyAsyncModbusSerialClient(AsyncModbusSerialClient):
         def close(self, reconnect: bool = False) -> None:
@@ -59,38 +69,10 @@ def get_modbus_client() -> AsyncModbusSerialClient:
                 return
             super().close(reconnect=False)
 
-        # async def async_execute(self, request=None):
-        #     # await super().async_execute(request)
-        #     request.transaction_id = self.transaction.getNextTID()
-        #     packet = self.framer.buildPacket(request)
-
-        #     count = 0
-        #     while count <= self.retries:
-        #         req = self.build_response(request.transaction_id)
-        #         if not count or not self.no_resend_on_retry:
-        #             self.transport_send(packet)
-        #         if self.broadcast_enable and not request.slave_id:
-        #             resp = b"Broadcast write sent - no response expected"
-        #             break
-        #         try:
-        #             resp = await asyncio.wait_for(
-        #                 req, timeout=self.comm_params.timeout_connect
-        #             )
-        #             break
-        #         except asyncio.exceptions.TimeoutError:
-        #             count += 1
-        #     if count > self.retries:
-        #         self.close(reconnect=True)
-        #         raise ModbusIOException(
-        #             f"ERROR: No response received after {self.retries} retries"
-        #         )
-
-        #     return resp
-
     client = MyAsyncModbusSerialClient(
         port=port,
         framer=Framer.RTU,
-        baudrate=9600,
+        baudrate=baudrate,
         bytesize=8,
         parity="N",
         stopbits=1,

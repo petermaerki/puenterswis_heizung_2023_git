@@ -3,9 +3,8 @@ import logging
 import typing
 
 from pymodbus import ModbusException
-from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -13,6 +12,7 @@ from zentral.util_modbus_dac import Dac
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
+from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais2bis5, ScenarioZentralDrehschalterManuell
@@ -57,7 +57,8 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self._context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client())
+        self._modbus = ModbusWrapper(context=context, modbus_client=get_modbus_client(n=0, baudrate=9600))
+        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=get_modbus_client(n=1, baudrate=9600))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
 
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
@@ -65,15 +66,15 @@ class ModbusCommunication:
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
         self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale()
         self.drehschalter = Drehschalter()
-
-    def _get_modbus_client(self) -> AsyncModbusSerialClient:
-        return get_modbus_client()
+        self.o = Oekofen(self._modbus_oekofen, MODBUS_ADDRESS_OEKOFEN)
 
     async def connect(self):
         await self._modbus.connect()
+        await self._modbus_oekofen.connect()
 
     async def close(self):
         await self._modbus.close()
+        await self._modbus_oekofen.close()
 
     async def modbus_haueser_loop(self) -> None:
         from zentral.util_modbus_haus import ModbusHaus
@@ -165,6 +166,18 @@ class ModbusCommunication:
                 self.drehschalter.no_response()
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
                 logger.warning(f"Relais: {e}")
+
+        if True:
+            try:
+                with self._watchdog_modbus_zentral.activity("oekofen"):
+                    all_registers = await self.o.all_registers
+                self._context.hsm_zentral.modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
+                self._context.hsm_zentral.modbus_oekofen_registers.append_to_file()
+                logger.debug(f"oekofen: {all_registers=}")
+            except ModbusException as e:
+                self._context.hsm_zentral.modbus_oekofen_registers = None
+
+                logger.warning(f"Oekofen: {e}")
 
     async def task_modbus(self) -> None:
         async with exception_handler_and_exit(ctx=self._context, task_name="modbus", exit_code=42):

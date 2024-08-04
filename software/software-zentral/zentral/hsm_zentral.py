@@ -12,6 +12,7 @@ from zentral.controller_simple import controller_factory
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
+from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
 from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeEin
 
@@ -86,10 +87,11 @@ class HsmZentral(hsm.HsmMixin):
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
         self.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
-        self.solltemperatur_Tfv = 0.0
-        self.controller: ControllerABC = None
+        self.solltemperatur_Tfv: float = 0.0
+        self.controller: ControllerABC | None = None
         self.grundzustand_manuell()
-        self.modbus_mischventil_registers: MischventilRegisters = None
+        self.modbus_mischventil_registers: MischventilRegisters | None = None
+        self.modbus_oekofen_registers: OekofenRegisters | None = None
         self._programm_start_s = time.monotonic()
         self._state_error_last_error_s: float = 0.0
 
