@@ -130,19 +130,25 @@ class PcbsDezentralHeizzentrale:
         self._pcb11 = PcbDezentral(
             modbus_slave_addr=11,
             list_ds_pair=[
+                DsPair(_DS0_DS1, "Tfv_C"),
+                DsPair(_DS2_DS3, "Tfr_C"),
+                DsPair(_DS4_DS5, "Taussen_C"),
+            ],
+        )
+        self._pcb12 = PcbDezentral(
+            modbus_slave_addr=12,
+            list_ds_pair=[
                 DsPair(_DS0_DS1, "Tsz1_C"),
                 DsPair(_DS2_DS3, "Tsz2_C"),
                 DsPair(_DS4_DS5, "Tsz3_C"),
                 DsPair(_DS6_DS7, "Tsz4_C"),
             ],
         )
-        self._pcb12 = PcbDezentral(
-            modbus_slave_addr=12,
-            list_ds_pair=[
-                DsPair(_DS0_DS1, "Tfv_C"),
-                DsPair(_DS2_DS3, "Tfr_C"),
-                DsPair(_DS4_DS5, "Taussen_C"),
-            ],
+        self._pcb13 = PcbDezentral(
+            modbus_slave_addr=13,
+            list_ds_pair=[],
+            # Relais ventillator
+
         )
 
         self.pcbs = (self._pcb10, self._pcb11, self._pcb12)
