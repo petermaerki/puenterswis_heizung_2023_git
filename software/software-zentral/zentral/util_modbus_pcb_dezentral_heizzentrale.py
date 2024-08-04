@@ -1,7 +1,8 @@
 import dataclasses
 import logging
+import typing
 
-from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
+from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters, GpioBits
 from pymodbus import ModbusException
 
 from zentral.util_constants_haus import SpPosition
@@ -11,6 +12,9 @@ from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_uploadinterval import UploadInterval
 
 logger = logging.getLogger(__name__)
+
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
 
 
 class MissingModbusDataException(Exception):
@@ -56,7 +60,7 @@ class PcbDezentral:
     def modbus_label(self) -> str:
         return f"PcbDezentralHeizzentrale(modbus={self.modbus_slave_addr})"
 
-    async def read(self, ctx: "Context", modbus: "ModbusWrapper") -> None:
+    async def read(self, ctx: "Context", modbus: ModbusWrapper) -> None:
         """
         See also:
         async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
@@ -89,6 +93,14 @@ class PcbDezentral:
             r = InfluxRecords(ctx=ctx)
             r.add_fields(fields=fields)
             await ctx.influx.write_records(records=r)
+
+    async def write_gpio(self, ctx: "Context", modbus: ModbusWrapper, gpio: GpioBits) -> None:
+        _rsp = await modbus.write_registers(
+            slave=self.modbus_slave_addr,
+            slave_label=self.modbus_label,
+            address=EnumModbusRegisters.SETGET16BIT_GPIO,
+            values=[gpio.value],
+        )
 
     def get_temperature_C(self, label: str) -> float | None:
         """
@@ -147,8 +159,7 @@ class PcbsDezentralHeizzentrale:
         self._pcb13 = PcbDezentral(
             modbus_slave_addr=13,
             list_ds_pair=[],
-            # Relais ventillator
-
+            # Relais ventilator
         )
 
         self.pcbs = (self._pcb10, self._pcb11, self._pcb12)
@@ -157,6 +168,15 @@ class PcbsDezentralHeizzentrale:
         for pcb in self.pcbs:
             for pair in pcb.list_ds_pair:
                 self._dict_label_2_pcb[pair.label] = pcb
+
+    async def update_ventilator(self, ctx: "Context", modbus: ModbusWrapper) -> None:
+        """
+        Ventilator ein: Falls Taussen_C kalt:
+        """
+        ventilator_on = self.Taussen_C >= 25.0
+        gpio = GpioBits(0)
+        gpio.relais_valve_open = ventilator_on
+        await self._pcb13.write_gpio(ctx=ctx, modbus=modbus, gpio=gpio)
 
     def __getattr__(self, attribute_name: str) -> float:
         """

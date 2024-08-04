@@ -115,6 +115,12 @@ class ModbusCommunication:
                     logger.warning(f"{pcb.modbus_label}: {e}")
 
         if True:
+            try:
+                await self.pcbs_dezentral_heizzentrale.update_ventilator(ctx=self, modbus=self._modbus)
+            except ModbusException as e:
+                logger.warning(f"pcb13-ventilator: {e}")
+
+        if True:
             if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
                 raise SystemExit(f"ScenarioMischventilModbusSystemExit({self.m._modbus_label})")
             try:
