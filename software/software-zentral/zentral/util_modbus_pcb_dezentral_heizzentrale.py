@@ -129,6 +129,7 @@ class PcbsDezentralHeizzentrale:
         if None: read temperatures via modbus
         Otherwise: mocked temperatures
         """
+        self._ventilator_on = False
 
         self._pcb10 = PcbDezentral(
             modbus_slave_addr=10,
@@ -145,6 +146,7 @@ class PcbsDezentralHeizzentrale:
                 DsPair(_DS0_DS1, "Tfv_C"),
                 DsPair(_DS2_DS3, "Tfr_C"),
                 DsPair(_DS4_DS5, "Taussen_C"),
+                DsPair(_DS6_DS7, "Tinnen_C"),
             ],
         )
         self._pcb12 = PcbDezentral(
@@ -171,11 +173,20 @@ class PcbsDezentralHeizzentrale:
 
     async def update_ventilator(self, ctx: "Context", modbus: ModbusWrapper) -> None:
         """
-        Ventilator ein: Falls Taussen_C kalt:
+        Ventilator ein falls innen zu warm und aussen kuehler.
         """
-        ventilator_on = self.Taussen_C >= 25.0
+        hysterese_C = 2.0
+        innen_zu_warm_C = 22.0
+        differenz_innen_aussen_C = 2.0
+        aussen_kuehler_C = self.Tinnen_C - self.Taussen_C
+        ausschalten = self.Tinnen_C < innen_zu_warm_C or aussen_kuehler_C < differenz_innen_aussen_C
+        einschalten = self.Tinnen_C > innen_zu_warm_C + hysterese_C and aussen_kuehler_C > differenz_innen_aussen_C + hysterese_C
+        if ausschalten:
+            self._ventilator_on = False
+        if einschalten:
+            self._ventilator_on = True
         gpio = GpioBits(0)
-        gpio.relais_valve_open = ventilator_on
+        gpio.relais_valve_open = self._ventilator_on
         await self._pcb13.write_gpio(ctx=ctx, modbus=modbus, gpio=gpio)
 
     def __getattr__(self, attribute_name: str) -> float:
