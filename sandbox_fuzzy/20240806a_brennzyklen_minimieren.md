@@ -76,27 +76,4 @@ stateDiagram-v2
 * Einfluss: 'ein': State 'TPO < 65C'
 * Einfluss: 'ein2': State 'TPO < 65C' für mehr als 2h
 
-Zentraler Speicher oben TPO
-```mermaid
-stateDiagram-v2
-    state "TPO > 65C" as TPOgt65
-    state "TPO 60 ... 65C" as TPO_60_65
-    state "TPO < 60C" as TPOlt60
-    %% Transitions
-    TPOgt65 --> TPO_60_65
-    TPO_60_65 --> TPOgt65
-    TPO_60_65 --> TPOlt60
-    TPOlt60 --> TPO_60_65
-```
-
-Zentraler Speicher TPM
-```mermaid
-stateDiagram-v2
-    state "TPM > 60C" as TPMgt60
-    state "TPM < 60C" as TPMlt60
-    %% Transitions
-    TPMgt60 --> TPMlt60
-    TPMlt60 --> TPMgt60
-```
-
 
