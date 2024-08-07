@@ -1,17 +1,14 @@
-import subprocess
-import matplotlib.pyplot as plt
-
 import pathlib
+import subprocess
+
+import matplotlib.pyplot as plt
 import pytest
-from zentral.util_controller_haus_ladung import HausLadung, HaeuserLadung
-from zentral.util_controller_verbrauch_schaltschwelle import (
-    VerbrauchLadungSchaltschwellen,
-)
+
+from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
+from zentral.util_controller_verbrauch_schaltschwelle import VerbrauchLadungSchaltschwellen
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
-DIRECTORY_TESTRESULTS = (
-    DIRECTORY_OF_THIS_FILE / "util_controller_verbrauch_schaltschwelle_testresults"
-)
+DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "util_controller_verbrauch_schaltschwelle_testresults"
 
 
 class Plot:
@@ -49,14 +46,13 @@ class Plot:
         )
         plt.plot(verbrauch_prozent_values, ein_values, label="ein", color="blue")
         plt.plot(verbrauch_prozent_values, aus_values, label="aus", color="red")
-        plt.title(
-            f"Ladung, Verbrauch, Schaltschwellen bei anhebung_prozent {vls.anhebung_prozent}"
-        )
+        plt.title(f"Ladung, Verbrauch, Schaltschwellen bei anhebung_prozent {vls.anhebung_prozent}")
         plt.xlabel("Verbrauch Prozent")
         plt.ylabel("Ladung")
         plt.grid(True)
         plt.legend()
-        plt.ylim(0, 100)
+        current_ylim = plt.ylim()
+        plt.ylim(0, current_ylim[1])
         self.plt = plt
 
     def scatter(self, haus_ladung: HausLadung) -> None:
@@ -73,10 +69,7 @@ class Plot:
         self.plt.scatter(x=x, y=y, color=color, s=100)
 
     def save(self, do_show_plot: bool) -> pathlib.Path:
-        filename_png = (
-            DIRECTORY_TESTRESULTS
-            / f"do_schaltschwelle_{self.vls.anhebung_prozent:0.0f}.png"
-        )
+        filename_png = DIRECTORY_TESTRESULTS / f"do_schaltschwelle_{self.vls.anhebung_prozent:0.0f}.png"
         DIRECTORY_TESTRESULTS.mkdir(parents=True, exist_ok=True)
         self.plt.savefig(filename_png)
         if do_show_plot:
@@ -91,7 +84,6 @@ def test_schaltschwelle(anhebung_prozent: float):
 
 
 def do_schaltschwelle(anhebung_prozent: float, do_show_plot: bool):
-
     haeuser_ladung = HaeuserLadung(
         (
             HausLadung(
@@ -154,9 +146,7 @@ def do_schaltschwelle(anhebung_prozent: float, do_show_plot: bool):
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        raise AssertionError(
-            f"{filename_png}:\nstderr:{e.stderr}\nstdout:{e.stdout}\nExit code {e.returncode}: If this is 1, then the file has changed."
-        ) from e
+        raise AssertionError(f"{filename_png}:\nstderr:{e.stderr}\nstdout:{e.stdout}\nExit code {e.returncode}: If this is 1, then the file has changed.") from e
 
     # do_open, do_close = vlr.veraenderung(haus_ladung=haeuser_ladung[0])
     # assert do_open

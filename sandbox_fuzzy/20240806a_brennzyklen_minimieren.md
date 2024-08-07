@@ -77,3 +77,12 @@ stateDiagram-v2
 * Einfluss: 'ein2': State 'TPO < 65C' für mehr als 2h
 
 
+# Legionellen
+
+    # bestehend:
+    do_close = ladung_prozent > self.aus_prozent
+
+    if fällig in weniger als 1 Tage und Anhebung > 5%:
+        do_close = False # so lange nicht schliessen bis legionellen erledigt
+
+  

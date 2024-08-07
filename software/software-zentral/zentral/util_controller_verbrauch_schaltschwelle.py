@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import dataclasses
-from .util_controller_haus_ladung import HausLadung, HaeuserLadung
+
+from .util_controller_haus_ladung import HaeuserLadung, HausLadung
 
 
 @dataclasses.dataclass
@@ -16,8 +18,13 @@ class SchaltschwellenResult:
         """
         do_close = ladung_prozent > self.aus_prozent
         do_open = ladung_prozent < self.ein_prozent
-        # print(f'Die Ladung von {self.ladung_prozent} ist groesser als die Schwelle aus {self.aus}: Haus ausschalten, valve zu')
-        # print(f'Die Ladung von {self.ladung_prozent} ist kleiner als  die Schwelle ein {self.ein}: Haus einschalten, valve auf')
+
+        """
+        Todo:
+        if Legionellen fällig in weniger als 1 Tage und Anhebung > 5%:
+        do_close = False # so lange nicht schliessen bis Legionellen erledigt
+        """
+
         assert not (do_close and do_open)
         return do_close, do_open
 
@@ -28,39 +35,40 @@ class VerbrauchLadungSchaltschwellen:
     sandbox_fuzzy/20240806c_verbrauch_ladung.IPYNB
     """
 
-    hysterese: float = 20.0
-    aus_max_rechts: float = 100.0
+    """kleine Hysterese fuert zu vielen Zyklen im blauen Ventil, dafuer kann die Ladung tief gehalten werden."""
+    hysterese_prozent: float = 20.0
+    """Die maximal moegliche Ladung. Werte von z.B. 60 bis 130%. Je hoeher, desto laengere Brennpausen aber mehr Speicherverluste."""
+    ladung_maximal_prozent: float = 120.0
 
     def __init__(self, anhebung_prozent: float, verbrauch_max_W: float) -> None:
-        assert self.aus_max_rechts == 100.0
         assert verbrauch_max_W > 0.0
         self.anhebung_prozent = anhebung_prozent
         self.verbrauch_max_W = verbrauch_max_W
 
     @property
     def anhebung_prozent2(self) -> float:
-        v = self.anhebung_prozent * (self.aus_max_rechts - self.hysterese) / 100.0
+        v = self.anhebung_prozent * (self.ladung_maximal_prozent - self.hysterese_prozent) / 100.0
         assert 0.0 <= v <= 100.0
         return v
 
     def diagram(self, verbrauch_prozent: float) -> SchaltschwellenResult:
         def aus_max_prozent() -> float:
-            aus_max_links = 30
-            aus_max_min = 40
-            steigung = (self.aus_max_rechts - aus_max_links) / 100.0
-            aus = verbrauch_prozent * steigung + aus_max_links
-            return max(aus, aus_max_min)
+            aus_max_links_prozent = 30
+            aus_max_min_prozent = 40
+            steigung = (self.ladung_maximal_prozent - aus_max_links_prozent) / 100.0
+            aus_prozent = verbrauch_prozent * steigung + aus_max_links_prozent
+            return max(aus_prozent, aus_max_min_prozent)
 
         def ein_max_prozent() -> float:
-            return aus_max_prozent() - self.hysterese
+            return aus_max_prozent() - self.hysterese_prozent
 
         def aus_prozent() -> float:
-            aus = 0 + self.hysterese + self.anhebung_prozent2
-            return min(aus, aus_max_prozent())
+            aus_prozent = 0 + self.hysterese_prozent + self.anhebung_prozent2
+            return min(aus_prozent, aus_max_prozent())
 
         def ein_prozent() -> float:
-            ein = 0 + self.anhebung_prozent
-            return min(ein, ein_max_prozent())
+            ein_prozent = 0 + self.anhebung_prozent
+            return min(ein_prozent, ein_max_prozent())
 
         r = SchaltschwellenResult(
             aus_max_prozent=aus_max_prozent(),
@@ -125,9 +133,7 @@ class Evaluate:
             if do_schliessen:
                 self.hvv.schliessen(haus_ladung)
 
-        self.valve_open_count = (
-            haeuser_ladung.valve_open_count + self.hvv.ventile_geoeffnet_count
-        )
+        self.valve_open_count = haeuser_ladung.valve_open_count + self.hvv.ventile_geoeffnet_count
 
 
 @dataclasses.dataclass
@@ -167,29 +173,21 @@ class Controller:
                 return self._process_1_2_loescht_bald(haeuser_ladung=haeuser_ladung)
             if ladung_zentral_prozent < -10.0:
                 # Tabelle Zeile 6: brenner kommen nicht nach
-                return self._process_1_2_brenner_kommen_nicht_nach(
-                    haeuser_ladung=haeuser_ladung
-                )
+                return self._process_1_2_brenner_kommen_nicht_nach(haeuser_ladung=haeuser_ladung)
 
         # Tabelle Zeile 8
         return self._process_leistung_ok(haeuser_ladung=haeuser_ladung)
 
-    def _process_leistung_ok(
-        self, haeuser_ladung: HaeuserLadung
-    ) -> HauserValveVariante:
+    def _process_leistung_ok(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
         """
         Tabelle Zeile 8
         """
-        evaluate = Evaluate(
-            anhebung_prozent=self.last_anhebung_prozent, haeuser_ladung=haeuser_ladung
-        )
+        evaluate = Evaluate(anhebung_prozent=self.last_anhebung_prozent, haeuser_ladung=haeuser_ladung)
         self.last_anhebung_prozent -= 1.0
         self.last_valve_open_count = evaluate.valve_open_count
         return evaluate.hvv
 
-    def _process_1_2_loescht_bald(
-        self, haeuser_ladung: HaeuserLadung
-    ) -> HauserValveVariante:
+    def _process_1_2_loescht_bald(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
         """
         # Tabelle Zeile 4: Loescht bald
         """
@@ -198,9 +196,7 @@ class Controller:
             valve_open_count_soll=self.last_valve_open_count + 1,
         )
 
-    def _process_1_2_brenner_kommen_nicht_nach(
-        self, haeuser_ladung: HaeuserLadung
-    ) -> HauserValveVariante:
+    def _process_1_2_brenner_kommen_nicht_nach(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
         """
         Tabelle Zeile 6: brenner kommen nicht nach
         """
@@ -209,10 +205,7 @@ class Controller:
             valve_open_count_soll=self.last_valve_open_count - 1,
         )
 
-    def _find_anhebung(
-        self, haeuser_ladung: HaeuserLadung, valve_open_count_soll: int
-    ) -> HauserValveVariante:
-
+    def _find_anhebung(self, haeuser_ladung: HaeuserLadung, valve_open_count_soll: int) -> HauserValveVariante:
         for anhebung_prozent in range(100):
             evaluate = Evaluate(
                 anhebung_prozent=anhebung_prozent,

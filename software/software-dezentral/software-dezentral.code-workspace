@@ -185,6 +185,11 @@
 				"request": "launch",
 				"program": "${file}",
 				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder:zentral}",
+				"env": {
+					// Windows ;, Linux :
+					"PYTHONPATH": "${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}",
+				},
 				"justMyCode": false
 			}
 		]
@@ -209,6 +214,9 @@
 		],
 		"terminal.integrated.env.linux": {
 			"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}"
+		},
+		"terminal.integrated.env.windows": {
+			"PYTHONPATH": "${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}"
 		},
 		"[python]": {
 			"editor.formatOnSave": true,
