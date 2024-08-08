@@ -1,6 +1,4 @@
-uvicorn[standard]
-fastapi[all]
-Jinja2
+fastapi[standard]
 
 hsm @ git+https://github.com/hmaerki/HierarchicalStateMachine.git
 
@@ -11,9 +9,10 @@ hsm @ git+https://github.com/hmaerki/HierarchicalStateMachine.git
 influxdb-client
 aiohttp # Required by influxdb-client
 
-pymodbus
+pymodbus==3.6.9
 # aiomonitor
 # aioconsole
 ptpython
 asyncssh
 mpfshell2
+scipy
