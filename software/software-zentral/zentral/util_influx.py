@@ -182,11 +182,27 @@ class Influx:
             fields["mischventil_fluss_m3_s"] = registers.fluss_m3_s
 
         def mischventil_automatik():
-            key = "relais_0_mischventil_automatik"
-            fields[key] = int(ctx.hsm_zentral.relais.relais_0_mischventil_automatik)
-            manuell, relais_0_mischventil_automatik = ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite
-            if manuell:
-                fields[key + "_overwrite"] = int(relais_0_mischventil_automatik)
+            def overwrite(key: str, relais: bool, overwrite: tuple[bool, bool]) -> None:
+                fields[key] = int(relais)
+                manuell, relais_0_mischventil_automatik = overwrite
+                if manuell:
+                    fields[key + "_overwrite"] = int(relais_0_mischventil_automatik)
+
+            overwrite(
+                key="relais_0_mischventil_automatik",
+                relais=ctx.hsm_zentral.relais.relais_0_mischventil_automatik,
+                overwrite=ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite,
+            )
+            fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
+            fields["relais_3_waermeanforderung_beide"] = int(ctx.hsm_zentral.relais.relais_3_waermeanforderung_beide)
+            fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
+            fields["relais_5_keine_funktion"] = int(ctx.hsm_zentral.relais.relais_5_keine_funktion)
+            overwrite(
+                key="relais_6_pumpe_ein",
+                relais=ctx.hsm_zentral.relais.relais_6_pumpe_ein,
+                overwrite=ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite,
+            )
+            # fields["relais_7_automatik"]=int(ctx.hsm_zentral.relais.relais_7_automatik)
 
         def mischventil_stellwert_100():
             key = "mischventil_stellwert_100"
