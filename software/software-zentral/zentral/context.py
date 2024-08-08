@@ -44,8 +44,8 @@ class Context:
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
 
-    async def close_and_flush_influx(self) -> None:
-        await self.influx.close_and_flush()
+    def close_and_flush_influx(self) -> None:
+        self.influx.close_and_flush()
         for haus in self.config_etappe.haeuser:
             if haus.status_haus is not None:
                 haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
@@ -123,5 +123,5 @@ class Context:
 
     async def __aexit__(self, *exc):
         await self.modbus_communication.close()
-        await self.close_and_flush_influx()
+        self.close_and_flush_influx()
         return False

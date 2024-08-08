@@ -145,12 +145,14 @@
 				"cwd": "${workspaceFolder:zentral}",
 				"args": [
 					"zentral.run_zentral_fastapi:app",
-					"--reload",
+					// "--reload",
 					"--workers=1",
-					"--reload-dir=${workspaceFolder:repo}"
+					// "--reload-dir=${workspaceFolder:repo}"
 				],
 				"env": {
-					"HEIZUNG2023_MOCKED": "1"
+					"HEIZUNG2023_MOCKED": "1",
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
+					"PYDEVD_DISABLE_FILE_VALIDATION": "1"
 				},
 				"console": "integratedTerminal",
 				"jinja": true,

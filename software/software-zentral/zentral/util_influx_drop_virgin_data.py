@@ -5,7 +5,7 @@ from zentral.util_influx import Influx
 async def main():
     influx = Influx()
     await influx.delete_bucket_virgin()
-    await influx.close_and_flush()
+    influx.close_and_flush()
 
 
 if __name__ == "__main__":

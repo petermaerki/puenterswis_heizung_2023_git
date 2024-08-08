@@ -77,7 +77,7 @@ class Influx:
         self._api = self._client.write_api()
         # self.interval_haus_temperatures = UploadInterval(interval_s=1 * 60)
 
-    async def close_and_flush(self):
+    def close_and_flush(self):
         self._client.close()
 
     async def delete_bucket_virgin(self) -> None:

@@ -22,13 +22,13 @@ async def exception_handler_and_exit(ctx: Context, task_name: str, exit_code: in
     assert isinstance(task_name, str)
     assert isinstance(exit_code, int)
 
-    async def cleanup_tasks() -> None:
-        await ctx.close_and_flush_influx()
+    def cleanup_tasks() -> None:
+        ctx.close_and_flush_influx()
 
-    async def do_exit(e: BaseException, prefix: str) -> typing.NoReturn:
+    def do_exit(e: BaseException, prefix: str) -> typing.NoReturn:
         logger.error(f"{prefix}. Exit code {exit_code}, Task '{task_name}', Unexpected {e!r}")
         logger.exception(e)
-        await cleanup_tasks()
+        cleanup_tasks()
         os._exit(exit_code)
 
     try:
