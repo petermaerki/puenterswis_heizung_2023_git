@@ -7,7 +7,7 @@ class HausLadung:
     verbrauch_W: float | None
     ladung_Prozent: float
     valve_open: bool
-    last_legionellen_kill_s: float
+    next_legionellen_kill_s: float
 
 
 class HaeuserLadung(list[HausLadung]):

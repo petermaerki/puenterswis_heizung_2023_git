@@ -25,10 +25,6 @@ class TimeSignal(SignalZentralBase):
     pass
 
 
-class LegionellenLadungSignal(SignalZentralBase):
-    pass
-
-
 class SignalError(SignalZentralBase):
     """
     Important:

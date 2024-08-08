@@ -9,6 +9,11 @@ if typing.TYPE_CHECKING:
     from zentral.context import Context
 
 LEGIONELLEN_KILLED_C = 60.0
+LEGIONELLEN_KILL_INTERVAL_S = 7 * 24 * 3600
+"""
+Entscheid 2024-03-27
+Mindestens einmal in der Woche Temperatur in der Mitte auf 60C. Peter Schaer, Peter Maerki
+"""
 
 
 class PersistenceLegionellen:
@@ -16,7 +21,7 @@ class PersistenceLegionellen:
         self._ctx = ctx
         self._persistence = Persistence(tag="legionellen", period_s=3600.0)
         self._load_data()
-        self._haueser_last_legionenellen_killed: dict[str, float] = {}
+        self._haueser_last_legionellen_killed_s: dict[str, float] = {}
         """
         time.time() als das letzte Mal LEGIONELLEN_KILLED_C erreicht wurde.
         """
@@ -34,7 +39,7 @@ class PersistenceLegionellen:
             assert isinstance(haus_influx_tag, str)
             assert isinstance(temperature_C, float)
 
-        self._haueser_last_legionenellen_killed = data
+        self._haueser_last_legionellen_killed_s = data
 
     def update(self) -> None:
         """
@@ -50,11 +55,11 @@ class PersistenceLegionellen:
             if sp_temperatur is None:
                 continue
             if sp_temperatur.mitte_C > LEGIONELLEN_KILLED_C:
-                self._haueser_last_legionenellen_killed[haus.influx_tag] = time.time()
+                self._haueser_last_legionellen_killed_s[haus.influx_tag] = time.time()
                 dirty = True
 
         if dirty:
-            self._persistence.push_data(data=self._haueser_last_legionenellen_killed)
+            self._persistence.push_data(data=self._haueser_last_legionellen_killed_s)
 
         self._persistence.save()
 

@@ -12,18 +12,28 @@ class SchaltschwellenResult:
     aus_prozent: float
     ein_prozent: float
 
-    def open_close(self, ladung_prozent: float) -> tuple[bool, bool]:
+    def open_close(self, haus_ladung: HausLadung, anhebung_prozent: float) -> tuple[bool, bool]:
         """
         Return do_close, do_open
         """
-        do_close = ladung_prozent > self.aus_prozent
-        do_open = ladung_prozent < self.ein_prozent
+        assert isinstance(haus_ladung, HausLadung)
+        assert isinstance(anhebung_prozent, float)
 
-        """
-        Todo:
-        if Legionellen fällig in weniger als 1 Tage und Anhebung > 5%:
-        do_close = False # so lange nicht schliessen bis Legionellen erledigt
-        """
+        do_close = haus_ladung.ladung_Prozent > self.aus_prozent
+        do_open = haus_ladung.ladung_Prozent < self.ein_prozent
+
+        if haus_ladung.next_legionellen_kill_s < 1 * 24 * 3600.0:
+            if anhebung_prozent > 5.0:
+                if do_close:
+                    # if Legionellen fällig in weniger als 1 Tage und Anhebung > 5%:
+                    # do_close = False # so lange nicht schliessen bis Legionellen erledigt
+                    do_close = False
+
+        if haus_ladung.next_legionellen_kill_s < -2 * 24 * 3600.0:
+            if do_close:
+                # if Legionellen überfällig mehr als 2 Tage:
+                # do_close = False # so lange nicht schliessen bis Legionellen erledigt
+                do_close = False
 
         assert not (do_close and do_open)
         return do_close, do_open

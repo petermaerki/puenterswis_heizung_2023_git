@@ -60,7 +60,7 @@ class Plot:
         y = haus_ladung.ladung_Prozent
 
         r = self.vls.veraenderung(haus_ladung=haus_ladung)
-        do_close, do_open = r.open_close(haus_ladung.ladung_Prozent)
+        do_close, do_open = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=self.vls.anhebung_prozent)
         color = {
             (False, False): "black",
             (True, False): "red",
@@ -91,35 +91,42 @@ def do_schaltschwelle(anhebung_prozent: float, do_show_plot: bool):
                 verbrauch_W=1_000,
                 ladung_Prozent=50.0,
                 valve_open=False,
-                last_legionellen_kill_s=0.0,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="14",
+                verbrauch_W=1_500,
+                ladung_Prozent=50.0,
+                valve_open=False,
+                next_legionellen_kill_s=0.5 * 24 * 3600.0,
             ),
             HausLadung(
                 label="50",
                 verbrauch_W=5_000,
                 ladung_Prozent=10.0,
                 valve_open=False,
-                last_legionellen_kill_s=0.0,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
                 label="51",
                 verbrauch_W=5_000,
                 ladung_Prozent=40.0,
                 valve_open=False,
-                last_legionellen_kill_s=0.0,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
                 label="52",
                 verbrauch_W=5_000,
                 ladung_Prozent=50.0,
                 valve_open=False,
-                last_legionellen_kill_s=0.0,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
                 label="99",
                 verbrauch_W=10_000,
                 ladung_Prozent=35.0,
                 valve_open=False,
-                last_legionellen_kill_s=0.0,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
         )
     )
