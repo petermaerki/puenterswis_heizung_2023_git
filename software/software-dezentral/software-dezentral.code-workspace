@@ -17,6 +17,17 @@
 			"path": "../software-zero"
 		}
 	],
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Print Environment Variables",
+				"type": "shell",
+				"command": "echo PYTHONPATH=${PYTHONPATH}",
+				"problemMatcher": []
+			}
+		]
+	},
 	"launch": {
 		"version": "0.2.0",
 		"configurations": [
@@ -174,23 +185,36 @@
 				"console": "integratedTerminal",
 				"env": {
 					"PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
-					// "PYTHONPATH": "${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}",
-					// "PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
 				},
 				"justMyCode": false
 			},
 			{
-				"name": "Current File",
+				"name": "Current File (Linux)",
 				"type": "debugpy",
 				"request": "launch",
 				"program": "${file}",
 				"console": "integratedTerminal",
 				"cwd": "${workspaceFolder:zentral}",
 				"env": {
-					// Windows ;, Linux :
+					// "PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
+					"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}",
+					// "PYTHONPATH": "${env:OS:Windows_NT} == 'Windows_NT' ? '${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}' : '${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}'"
+				},
+				"justMyCode": false,
+				"preLaunchTask": "Print Environment Variables"
+			},
+			{
+				"name": "Current File (Windows)",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"cwd": "${workspaceFolder:zentral}",
+				"env": {
 					"PYTHONPATH": "${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}",
 				},
-				"justMyCode": false
+				"justMyCode": false,
+				"preLaunchTask": "Print Environment Variables"
 			}
 		]
 	},

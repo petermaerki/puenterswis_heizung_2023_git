@@ -1,7 +1,7 @@
 import dataclasses
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True, repr=True)
 class HausLadung:
     label: str
     verbrauch_W: float | None

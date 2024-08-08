@@ -3,6 +3,7 @@ import logging
 import typing
 
 from pymodbus import ModbusException
+from pymodbus.client import AsyncModbusSerialClient
 
 from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
@@ -57,8 +58,8 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self._context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=get_modbus_client(n=0, baudrate=9600))
-        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=get_modbus_client(n=1, baudrate=9600))
+        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=0, baudrate=9600))
+        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=1, baudrate=9600))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
 
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
@@ -67,6 +68,9 @@ class ModbusCommunication:
         self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale()
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, MODBUS_ADDRESS_OEKOFEN)
+
+    def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
+        return get_modbus_client(n=n, baudrate=baudrate)
 
     async def connect(self):
         await self._modbus.connect()

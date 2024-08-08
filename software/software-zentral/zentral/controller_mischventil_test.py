@@ -1,11 +1,12 @@
 import asyncio
 import dataclasses
 import pathlib
-import subprocess
 import sys
 
 import matplotlib.pyplot as plt
 import pytest
+
+from zentral.util_pytest_git import assert_git_unchanged
 
 from .constants import DIRECTORY_ZENTRAL
 
@@ -167,20 +168,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
 
         p.plot(title=testparam.label, filename=testparam.filename_png, do_show_plot=do_show_plot)
 
-        try:
-            subprocess.run(
-                args=[
-                    "git",
-                    "diff",
-                    "--exit-code",
-                    str(testparam.filename_png),
-                ],
-                text=True,
-                capture_output=True,
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            raise AssertionError(f"{testparam.filename_stem}:\nstderr:{e.stderr}\nstdout:{e.stdout}\nExit code {e.returncode}: If this is 1, then the file has changed.") from e
+        assert_git_unchanged(filename_png=testparam.filename_png)
 
 
 _TESTPARAMS = [

@@ -5,7 +5,7 @@ import dataclasses
 from .util_controller_haus_ladung import HaeuserLadung, HausLadung
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True, repr=True)
 class SchaltschwellenResult:
     aus_max_prozent: float
     ein_max_prozent: float
@@ -105,27 +105,33 @@ class VerbrauchLadungSchaltschwellen:
         return self.diagram(verbrauch_prozent=verbrauch_prozent)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True, repr=True)
 class HauserValveVariante:
     """
     Ein Vorschlag, welche Ventile geöffnet/geschlossen werden sollen.
     """
 
-    haeuser_valve_open: list[str] = dataclasses.field(default_factory=list)
-    haeuser_valve_close: list[str] = dataclasses.field(default_factory=list)
+    anhebung_prozent: float
+    haeuser_valve_to_open: list[str] = dataclasses.field(default_factory=list)
+    haeuser_valve_to_close: list[str] = dataclasses.field(default_factory=list)
 
-    def oeffnen(self, haus_ladung: HausLadung) -> None:
+    def to_open(self, haus_ladung: HausLadung) -> None:
         if haus_ladung.valve_open:
             return
-        self.haeuser_valve_open.append(haus_ladung.label)
+        self.haeuser_valve_to_open.append(haus_ladung.label)
 
-    def schliessen(self, haus_ladung: HausLadung) -> None:
-        if haus_ladung.valve_open:
-            self.haeuser_valve_open.append(haus_ladung.label)
+    def to_close(self, haus_ladung: HausLadung) -> None:
+        if not haus_ladung.valve_open:
+            return
+        self.haeuser_valve_to_close.append(haus_ladung.label)
 
     @property
-    def ventile_geoeffnet_count(self) -> int:
-        return len(self.haeuser_valve_open) - len(self.haeuser_valve_close)
+    def valve_open_change(self) -> int:
+        """
+        Postive: More valves to_open then to_close
+        Negative: More valves to_close then to_open
+        """
+        return len(self.haeuser_valve_to_open) - len(self.haeuser_valve_to_close)
 
 
 class Evaluate:
@@ -134,16 +140,23 @@ class Evaluate:
     """
 
     def __init__(self, anhebung_prozent: float, haeuser_ladung: HaeuserLadung) -> None:
-        self.hvv = HauserValveVariante()
-        vr = VerbrauchLadungSchaltschwellen(anhebung_prozent=anhebung_prozent)
-        for haus_ladung in haeuser_ladung:
-            do_open, do_schliessen = vr.veraenderung(haus_ladung=haus_ladung)
-            if do_open:
-                self.hvv.oeffnen(haus_ladung)
-            if do_schliessen:
-                self.hvv.schliessen(haus_ladung)
+        assert isinstance(anhebung_prozent, float)
+        assert isinstance(haeuser_ladung, HaeuserLadung)
 
-        self.valve_open_count = haeuser_ladung.valve_open_count + self.hvv.ventile_geoeffnet_count
+        self.hvv = HauserValveVariante(anhebung_prozent=anhebung_prozent)
+        vls = VerbrauchLadungSchaltschwellen(
+            anhebung_prozent=anhebung_prozent,
+            verbrauch_max_W=haeuser_ladung.max_verbrauch_W,
+        )
+        for haus_ladung in haeuser_ladung:
+            r = vls.veraenderung(haus_ladung=haus_ladung)
+            do_close, do_open = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=vls.anhebung_prozent)
+            if do_open:
+                self.hvv.to_open(haus_ladung)
+            if do_close:
+                self.hvv.to_close(haus_ladung)
+
+        self.valve_open_count = haeuser_ladung.valve_open_count + self.hvv.valve_open_change
 
 
 @dataclasses.dataclass
@@ -166,9 +179,9 @@ class Controller:
             ladung_zentral_prozent=ladung_zentral_prozent,
             haeuser_ladung=haeuser_ladung,
         )
-        for valve_open in hvv.haeuser_valve_open:
+        for valve_open in hvv.haeuser_valve_to_open:
             hsm_dezental.valve_open = True
-        for valve_close in hvv.haeuser_valve_close:
+        for valve_close in hvv.haeuser_valve_to_close:
             hsm_dezental.valve_close = True
 
     def _process(
@@ -215,14 +228,36 @@ class Controller:
             valve_open_count_soll=self.last_valve_open_count - 1,
         )
 
-    def _find_anhebung(self, haeuser_ladung: HaeuserLadung, valve_open_count_soll: int) -> HauserValveVariante:
-        for anhebung_prozent in range(100):
+    def find_anhebung_plus_ein_haus(self, haeuser_ladung: HaeuserLadung, anhebung_prozent: float) -> HauserValveVariante:
+        while True:
+            if anhebung_prozent > 99.0:
+                anhebung_prozent = 100.0
+
             evaluate = Evaluate(
                 anhebung_prozent=anhebung_prozent,
                 haeuser_ladung=haeuser_ladung,
             )
-            if evaluate.valve_open_count >= valve_open_count_soll:
-                self.last_valve_open_count = evaluate.valve_open_count
+
+            if anhebung_prozent > 99.0:
+                return evaluate.hvv
+            if len(evaluate.hvv.haeuser_valve_to_open) > 0:
                 return evaluate.hvv
 
-        raise ValueError("Programming error: No solution found")
+            anhebung_prozent += 1.0
+
+    def find_anhebung_minus_ein_haus(self, haeuser_ladung: HaeuserLadung, anhebung_prozent: float) -> HauserValveVariante:
+        while True:
+            if anhebung_prozent < 1.0:
+                anhebung_prozent = 0.0
+
+            evaluate = Evaluate(
+                anhebung_prozent=float(anhebung_prozent),
+                haeuser_ladung=haeuser_ladung,
+            )
+
+            if anhebung_prozent < 1.0:
+                return evaluate.hvv
+            if len(evaluate.hvv.haeuser_valve_to_close) > 0:
+                return evaluate.hvv
+
+            anhebung_prozent -= 1.0
