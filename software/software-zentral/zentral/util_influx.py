@@ -153,6 +153,7 @@ class Influx:
         influx_offset08 = haus.config_haus.influx_offset05
         fields = {}
         fields["hsm_state_value"] = state.value + influx_offset08
+        fields["next_legionellen_kill_d"] = hsm_dezentral.next_legionellen_kill_s / 24.0 / 3600.0
         if hsm_dezentral.modbus_history.percent < 100:
             # Do not flood grafana with 100 procent values.
             # The legend will now just contain the sensors with errors!
@@ -162,6 +163,7 @@ class Influx:
             fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
         except AttributeError:
             pass
+
         r.add_fields(fields=fields)
         await self.write_records(records=r)
 

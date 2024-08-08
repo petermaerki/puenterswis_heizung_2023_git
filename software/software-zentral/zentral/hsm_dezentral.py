@@ -70,6 +70,10 @@ class HsmDezentral(hsm.HsmMixin):
             return None
         return self.modbus_iregs_all.sp_temperatur.energie_absolut_J
 
+    @property
+    def next_legionellen_kill_s(self) -> float:
+        return self.context._persistence_legionellen.get_next_legionellen_kill_s(haus_influx_tag=self._haus.influx_tag)
+
     async def handle_history_verbrauch(self) -> None:
         await self.verbrauch.update_valve(hsm_dezentral=self, context=self.context)
 

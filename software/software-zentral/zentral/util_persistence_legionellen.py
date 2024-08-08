@@ -20,11 +20,11 @@ class PersistenceLegionellen:
     def __init__(self, ctx: "Context") -> None:
         self._ctx = ctx
         self._persistence = Persistence(tag="legionellen", period_s=3600.0)
-        self._load_data()
         self._haueser_last_legionellen_killed_s: dict[str, float] = {}
         """
         time.time() als das letzte Mal LEGIONELLEN_KILLED_C erreicht wurde.
         """
+        self._load_data()
 
     def _load_data(self) -> None:
         """
@@ -62,6 +62,12 @@ class PersistenceLegionellen:
             self._persistence.push_data(data=self._haueser_last_legionellen_killed_s)
 
         self._persistence.save()
+
+    def get_next_legionellen_kill_s(self, haus_influx_tag: str) -> float:
+        last_legionellen_killed_s = self._haueser_last_legionellen_killed_s.get(haus_influx_tag, None)
+        if last_legionellen_killed_s is None:
+            return 0.0
+        return LEGIONELLEN_KILL_INTERVAL_S + last_legionellen_killed_s - time.time()
 
     def save(self, force: bool, why: str) -> None:
         self._persistence.save(force=force, why=why)
