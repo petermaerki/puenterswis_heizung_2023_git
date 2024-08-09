@@ -91,29 +91,54 @@ class Persistence:
         print(f"expected_history:\n{expected_history}")
         assert False
 
+    def expect_dirty(self) -> None:
+        assert self._dirty_s is not None
+        assert self._unsaved_s < self.period_s
+
+    def expect_dirty_time_over(self) -> None:
+        assert self._dirty_s is not None
+        assert self._unsaved_s > self.period_s
+
+    def expect_not_dirty(self) -> None:
+        assert self._dirty_s is None
+
     def push_data(self, data: Any) -> None:
+        assert data is not None
         if self._data == data:
             return
         self._data = data
+        self.set_dirty()
+
+    def set_dirty(self) -> None:
+        if self._dirty_s is not None:
+            # Do not update _dirty_s if already set.
+            # To prevent never saving the file.
+            return
         self._dirty_s = self._time_base.monotonic_s
 
     def get_data(self) -> Any:
-        assert self._dirty_s is None, "Call get_data() BEFORE data has been written!"
+        # assert self._dirty_s is None, "Call get_data() BEFORE data has been written!"
         return self._data
 
-    def save(self, force: bool = False, why: str = "forced") -> None:
+    @property
+    def _unsaved_s(self) -> float:
+        assert self._dirty_s is not None
+        return self._time_base.monotonic_s - self._dirty_s
+
+    def save(self, force: bool = False, why: str | None = None) -> bool:
         """
         Store the data, but not before 'period_s'.
+        Return True if file was written.
         """
         if self._dirty_s is None:
-            return
+            return False
         if force:
+            assert why is not None
             self._add_history(why=why)
         else:
-            unsaved_s = self._time_base.monotonic_s - self._dirty_s
-            if unsaved_s < self.period_s:
-                return
-            self._add_history(f"{unsaved_s:0.0f}s over")
+            if self._unsaved_s < self.period_s:
+                return False
+            self._add_history(f"{self._unsaved_s:0.0f}s over")
 
         # Save file
         with self.filename.open("w") as fp:
@@ -124,6 +149,7 @@ class Persistence:
             }
             json.dump(obj=dict_file, sort_keys=True, indent=4, fp=fp)
         self._dirty_s = None
+        return True
 
     def _load_file(self) -> None | Any:
         """

@@ -12,7 +12,7 @@ from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
-from zentral.util_persistence_legionellen import PersistenceLegionellen
+from zentral.util_persistence_legionellen import LEGIONELLEN_KILLED_C, PersistenceLegionellen
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl_update_scenarios
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class Context:
         self.hsm_zentral.write_mermaid_md(DIRECTORY_LOG / f"statemachine_{self.hsm_zentral.__class__.__name__}.md")
         influx_logger = HsmZentralInfluxLogger(influx=self.influx, ctx=self)
         self.hsm_zentral.add_logger(hsm_logger=influx_logger)
-        self._persistence_legionellen = PersistenceLegionellen(ctx=self)
+        self._persistence_legionellen = PersistenceLegionellen()
 
         def sigterm_handler(_signo, _stack_frame) -> typing.NoReturn:
             logger.warning("Received SIGTERM. Cleaning up...")
@@ -102,7 +102,23 @@ class Context:
                         state=haus.status_haus.hsm_dezentral.get_state(),
                     )
 
-                self._persistence_legionellen.update()
+                def update() -> None:
+                    """
+                    Find all hauses 'with > LEGIONELLEN_KILLED_C'
+                    and update '_haueser_last_legionenellen_killed'.
+                    """
+                    for haus in self.config_etappe.haeuser:
+                        assert haus.status_haus is not None
+
+                        sp_temperatur = haus.get_sp_temperatur()
+                        if sp_temperatur is None:
+                            continue
+                        if sp_temperatur.mitte_C > LEGIONELLEN_KILLED_C:
+                            self._persistence_legionellen.set_last_legionellen_killed_s(haus.influx_tag)
+
+                    self._persistence_legionellen.save(force=False, why="...")
+
+                update()
 
                 await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
 
