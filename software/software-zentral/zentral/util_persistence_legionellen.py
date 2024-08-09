@@ -49,7 +49,7 @@ class PersistenceLegionellen:
         try:
             return self.persistence.get_data()[haus_influx_tag]
         except KeyError:
-            return 0.0
+            return time.time() - LEGIONELLEN_KILL_INTERVAL_S
 
     def get_next_legionellen_kill_s(self, haus_influx_tag: str) -> float:
         return LEGIONELLEN_KILL_INTERVAL_S + self.get_last_legionellen_killed_s(haus_influx_tag) - time.time()
