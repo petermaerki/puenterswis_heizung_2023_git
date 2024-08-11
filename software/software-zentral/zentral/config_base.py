@@ -2,7 +2,7 @@ import dataclasses
 from enum import IntEnum
 from typing import Dict, List, Union
 
-from zentral.constants import HsmZentralStartupMode
+from zentral.constants import ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT, HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
 from zentral.util_sp_ladung import SpTemperatur
 from zentral.util_uploadinterval import UploadInterval
@@ -120,6 +120,22 @@ class ConfigEtappe:
     haus_enum: IntEnum | None = None
     lowest_haus_nummer: int | None = None
     hsm_mode: HsmZentralStartupMode = HsmZentralStartupMode.AutoSimple
+
+    @property
+    def is_puent(self) -> bool:
+        """
+        Wird nur in der Inbetriebnahme verwendet.
+        Sind beide Heizungen umgebaut: Dieses property löschen!
+        """
+        return self.tag == ETAPPE_TAG_PUENT
+
+    @property
+    def is_bochs(self) -> bool:
+        """
+        Wird nur in der Inbetriebnahme verwendet.
+        Sind beide Heizungen umgebaut: Dieses property löschen!
+        """
+        return self.tag == ETAPPE_TAG_BOCHS
 
     def append_haus(self, haus: Haus):
         assert self.lowest_haus_nummer is None

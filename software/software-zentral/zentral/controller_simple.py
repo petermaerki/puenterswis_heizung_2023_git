@@ -58,7 +58,8 @@ class ControllerSimple(ControllerABC):
 
     def process(self, ctx: "Context", now_s: float) -> None:
         # This will force a MissingModbusDataException()
-        _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
+        if not WHILE_HARGASSNER:
+            _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
 
         self.update_hauser_valve(ctx=ctx)
 

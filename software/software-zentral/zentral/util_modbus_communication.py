@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, WHILE_HARGASSNER, ModbusExceptionNoResponseReceived
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -110,7 +110,7 @@ class ModbusCommunication:
             except ModbusException as e:
                 logger.warning(f"Dac: {e}")
 
-        if True:
+        if not WHILE_HARGASSNER:
             for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
                 try:
                     with self._watchdog_modbus_zentral.activity(pcb.modbus_label):
@@ -118,13 +118,13 @@ class ModbusCommunication:
                 except ModbusException as e:
                     logger.warning(f"{pcb.modbus_label}: {e}")
 
-        if True:
+        if not WHILE_HARGASSNER:
             try:
                 await self.pcbs_dezentral_heizzentrale.update_ventilator(ctx=self, modbus=self._modbus)
             except ModbusException as e:
                 logger.warning(f"pcb13-ventilator: {e}")
 
-        if True:
+        if not WHILE_HARGASSNER:
             if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
                 raise SystemExit(f"ScenarioMischventilModbusSystemExit({self.m._modbus_label})")
             try:
@@ -177,7 +177,7 @@ class ModbusCommunication:
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
                 logger.warning(f"Relais: {e}")
 
-        if True:
+        if not WHILE_HARGASSNER:
             try:
                 with self._watchdog_modbus_zentral.activity("oekofen"):
                     all_registers = await self.o.all_registers
