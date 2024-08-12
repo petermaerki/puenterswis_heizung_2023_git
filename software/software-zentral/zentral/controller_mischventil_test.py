@@ -1,17 +1,16 @@
 import asyncio
 import dataclasses
 import pathlib
-import sys
 
 import matplotlib.pyplot as plt
 import pytest
 
+from zentral.constants import add_path_software_zero_dezentral
+from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
 
-from .constants import DIRECTORY_ZENTRAL
 
-sys.path.append(str(DIRECTORY_ZENTRAL.parent / "software-zero"))
-sys.path.append(str(DIRECTORY_ZENTRAL.parent / "software-dezentral"))
+add_path_software_zero_dezentral()
 
 from utils_common.utils_constants import ZERO_VIRGIN
 
@@ -88,6 +87,7 @@ class Plot:
         plt.savefig(filename)
         if do_show_plot:
             plt.show()
+        matplot_reset()
 
 
 @dataclasses.dataclass
@@ -100,7 +100,7 @@ class Ttestparam:
 
     @property
     def pytest_id(self) -> str:
-        return str(self.filename_stem.name)
+        return self.label.replace(" ", "-")
 
     @property
     def filename_stem(self) -> pathlib.Path:

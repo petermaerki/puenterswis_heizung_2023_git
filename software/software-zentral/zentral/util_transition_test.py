@@ -29,6 +29,7 @@ def demo_plot():
     plt.grid(True)
     plt.legend()
     plt.show()
+    matplot_reset()
 
 
 if __name__ == "__main__":

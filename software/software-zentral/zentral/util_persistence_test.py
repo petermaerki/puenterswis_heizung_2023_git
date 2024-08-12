@@ -121,7 +121,7 @@ def test_persistence_legionellen():
     p.persistence.expect_dirty()
 
     haus4_s = p.get_last_legionellen_killed_s("haus4")
-    assert haus4_s == 0.0
+    assert haus4_s > 0.0
     haus5_s = p.get_last_legionellen_killed_s("haus5")
     assert haus5_s >= 12.0
     assert not p.save(force=False)

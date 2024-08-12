@@ -191,6 +191,18 @@
 				"justMyCode": false
 			},
 			{
+				"name": "controller_intelligent_test",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "zentral.controller_intelligent_test",
+				"cwd": "${workspaceFolder:zentral}",
+				"console": "integratedTerminal",
+				"env": {
+					"PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
+				},
+				"justMyCode": false
+			},
+			{
 				"name": "Current File (Linux)",
 				"type": "debugpy",
 				"request": "launch",
@@ -203,7 +215,7 @@
 					// "PYTHONPATH": "${env:OS:Windows_NT} == 'Windows_NT' ? '${workspaceFolder:zentral};${workspaceFolder:dezentral};${workspaceFolder:zero}' : '${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}'"
 				},
 				"justMyCode": false,
-				"preLaunchTask": "Print Environment Variables"
+				// "preLaunchTask": "Print Environment Variables"
 			},
 			{
 				"name": "Current File (Windows)",

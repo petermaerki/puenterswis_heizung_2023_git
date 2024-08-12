@@ -1,60 +1,91 @@
+import dataclasses
 import pathlib
+from typing import Callable
 
 import matplotlib.pyplot as plt
 import pytest
 
+from zentral.controller_haeuser import ControllerHaeuserMock
 from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
-from zentral.util_controller_verbrauch_schaltschwelle import Controller, Evaluate, HauserValveVariante, VerbrauchLadungSchaltschwellen
+from zentral.util_controller_verbrauch_schaltschwelle import Evaluate, HauserValveVariante, VerbrauchLadungSchaltschwellen
+from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "util_controller_verbrauch_schaltschwelle_testresults"
 
-_HAEUSER_LADUNG = HaeuserLadung(
-    (
-        HausLadung(
-            label="H1",
-            verbrauch_W=1_000,
-            ladung_Prozent=50.0,
-            valve_open=False,
-            next_legionellen_kill_s=5 * 24 * 3600.0,
-        ),
-        HausLadung(
-            label="H2",
-            verbrauch_W=1_500,
-            ladung_Prozent=50.0,
-            valve_open=False,
-            next_legionellen_kill_s=0.5 * 24 * 3600.0,
-        ),
-        HausLadung(
-            label="H3",
-            verbrauch_W=5_000,
-            ladung_Prozent=10.0,
-            valve_open=True,
-            next_legionellen_kill_s=5 * 24 * 3600.0,
-        ),
-        HausLadung(
-            label="H4",
-            verbrauch_W=6_000,
-            ladung_Prozent=40.0,
-            valve_open=True,
-            next_legionellen_kill_s=5 * 24 * 3600.0,
-        ),
-        HausLadung(
-            label="H5",
-            verbrauch_W=5_000,
-            ladung_Prozent=45.0,
-            valve_open=False,
-            next_legionellen_kill_s=5 * 24 * 3600.0,
-        ),
-        HausLadung(
-            label="H6",
-            verbrauch_W=10_000,
-            ladung_Prozent=35.0,
-            valve_open=False,
-            next_legionellen_kill_s=5 * 24 * 3600.0,
-        ),
+
+@dataclasses.dataclass(frozen=True, repr=True)
+class HaeuserLadungFactory:
+    given_valve_open_count: int
+    given_anhebung_prozent: float
+    factory_raw: Callable[[], HaeuserLadung]
+
+    def get_haeuser_ladung(self) -> HaeuserLadung:
+        haeuser_ladung = self.factory_raw()
+
+        # Überprüfen, of vavles_open eingeschwungen
+        evaluate = Evaluate(
+            anhebung_prozent=self.given_anhebung_prozent,
+            haeuser_ladung=haeuser_ladung,
+        )
+        assert haeuser_ladung.valve_open_count == evaluate.valve_open_count, "valves_open NICHT eingeschwungen!"
+        return haeuser_ladung
+
+
+def _factory_2_30() -> HaeuserLadung:
+    return HaeuserLadung(
+        (
+            HausLadung(
+                label="H1",
+                verbrauch_W=1_000.0,
+                ladung_Prozent=50.0,
+                valve_open=False,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="H2",
+                verbrauch_W=1_500.0,
+                ladung_Prozent=50.0,
+                valve_open=False,
+                next_legionellen_kill_s=0.5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="H3",
+                verbrauch_W=5_000.0,
+                ladung_Prozent=10.0,
+                valve_open=True,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="H4",
+                verbrauch_W=6_000.0,
+                ladung_Prozent=40.0,
+                valve_open=True,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="H5",
+                verbrauch_W=5_000.0,
+                ladung_Prozent=45.0,
+                valve_open=False,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+            HausLadung(
+                label="H6",
+                verbrauch_W=10_000.0,
+                ladung_Prozent=35.0,
+                valve_open=False,
+                next_legionellen_kill_s=5 * 24 * 3600.0,
+            ),
+        )
     )
+
+
+HAEUSER_LADUNG_FACTORY_2_30 = HaeuserLadungFactory(
+    given_valve_open_count=2,
+    given_anhebung_prozent=30.0,
+    factory_raw=_factory_2_30,
 )
 
 
@@ -100,7 +131,6 @@ class Plot:
         plt.legend()
         current_ylim = plt.ylim()
         plt.ylim(0, current_ylim[1])
-        self.plt = plt
 
     def scatter(self, haus_ladung: HausLadung) -> None:
         x = self.vls.get_verbrauch_prozent(haus_ladung=haus_ladung)
@@ -114,29 +144,34 @@ class Plot:
             (False, True): "blue",
         }[(do_close, do_open)]
         marker = "o" if haus_ladung.valve_open else "x"
-        self.plt.scatter(x=x, y=y, color=color, s=100, marker=marker)
+        plt.scatter(x=x, y=y, color=color, s=100, marker=marker)
 
         # Annotate each point with its label
-        self.plt.annotate(haus_ladung.label, (x, y), textcoords="offset points", xytext=(10, 10), ha="center")
+        plt.annotate(haus_ladung.label, (x, y), textcoords="offset points", xytext=(10, 10), ha="center")
 
     def save(self, do_show_plot: bool, filename_png: pathlib.Path) -> None:
         assert isinstance(do_show_plot, bool)
         assert isinstance(filename_png, pathlib.Path)
 
         filename_png.parent.mkdir(parents=True, exist_ok=True)
-        self.plt.savefig(filename_png)
+        plt.savefig(filename_png)
         if do_show_plot:
-            self.plt.show()
-        self.plt.clf()
+            plt.show()
+        matplot_reset()
 
 
-def plot_and_save(anhebung_prozent: float, do_show_plot: bool, filename_png: pathlib.Path) -> None:
+def plot_and_save(
+    haeuser_ladung: HaeuserLadung,
+    anhebung_prozent: float,
+    do_show_plot: bool,
+    filename_png: pathlib.Path,
+) -> None:
     vlr = VerbrauchLadungSchaltschwellen(
         anhebung_prozent=anhebung_prozent,
-        verbrauch_max_W=_HAEUSER_LADUNG.max_verbrauch_W,
+        verbrauch_max_W=haeuser_ladung.max_verbrauch_W,
     )
     plot = Plot(vlr)
-    for haus_ladung in _HAEUSER_LADUNG:
+    for haus_ladung in haeuser_ladung:
         plot.scatter(haus_ladung)
 
     plot.save(do_show_plot=do_show_plot, filename_png=filename_png)
@@ -144,13 +179,24 @@ def plot_and_save(anhebung_prozent: float, do_show_plot: bool, filename_png: pat
 
 @pytest.mark.parametrize("anhebung_prozent", (0.0, 30.0, 70.0, 100.0))
 def test_schaltschwelle(anhebung_prozent: float):
-    do_schaltschwelle(anhebung_prozent=anhebung_prozent, do_show_plot=False)
+    hlf = HAEUSER_LADUNG_FACTORY_2_30
+    haeuser_ladung = hlf.get_haeuser_ladung()
+    do_schaltschwelle(
+        haeuser_ladung=haeuser_ladung,
+        anhebung_prozent=anhebung_prozent,
+        do_show_plot=False,
+    )
 
 
-def do_schaltschwelle(anhebung_prozent: float, do_show_plot: bool):
+def do_schaltschwelle(haeuser_ladung: HaeuserLadung, anhebung_prozent: float, do_show_plot: bool):
     filename_png = DIRECTORY_TESTRESULTS / f"do_schaltschwelle_{anhebung_prozent:0.0f}.png"
 
-    plot_and_save(anhebung_prozent=anhebung_prozent, do_show_plot=do_show_plot, filename_png=filename_png)
+    plot_and_save(
+        haeuser_ladung=haeuser_ladung,
+        anhebung_prozent=anhebung_prozent,
+        do_show_plot=do_show_plot,
+        filename_png=filename_png,
+    )
     assert_git_unchanged(filename_png=filename_png)
 
 
@@ -160,30 +206,42 @@ def test_find_anhebung(testfall: str):
 
 
 def do_find_anhebung(testfall: str):
-    last_valve_open_count = _HAEUSER_LADUNG.valve_open_count
-    last_anhebung_prozent = 30.0
-
-    # Überprüfen, of vavles_open eingeschwungen
-    evaluate = Evaluate(
-        anhebung_prozent=last_anhebung_prozent,
-        haeuser_ladung=_HAEUSER_LADUNG,
-    )
-    assert last_valve_open_count == evaluate.valve_open_count, "valves_open NICHT eingeschwungen!"
+    hlf = HAEUSER_LADUNG_FACTORY_2_30
+    haeuser_ladung = hlf.get_haeuser_ladung()
 
     if testfall == "vorher":
-        hvv = HauserValveVariante(anhebung_prozent=last_anhebung_prozent)
+        hvv = HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent)
 
     if testfall == "plus_ein_haus":
-        controller = Controller(last_anhebung_prozent=last_anhebung_prozent, last_valve_open_count=last_valve_open_count)
-        hvv = controller.find_anhebung_plus_ein_haus(_HAEUSER_LADUNG, anhebung_prozent=last_anhebung_prozent)
+        controller = ControllerHaeuserMock(
+            now_s=0.0,
+            last_anhebung_prozent=hlf.given_anhebung_prozent,
+            last_valve_open_count=haeuser_ladung.valve_open_count,
+        )
+        hvv = controller.find_anhebung_plus_ein_haus(
+            haeuser_ladung=haeuser_ladung,
+            anhebung_prozent=hlf.given_anhebung_prozent,
+        )
 
     if testfall == "minus_ein_haus":
-        controller = Controller(last_anhebung_prozent=last_anhebung_prozent, last_valve_open_count=last_valve_open_count)
-        hvv = controller.find_anhebung_minus_ein_haus(_HAEUSER_LADUNG, anhebung_prozent=last_anhebung_prozent)
+        controller = ControllerHaeuserMock(
+            now_s=0.0,
+            last_anhebung_prozent=hlf.given_anhebung_prozent,
+            last_valve_open_count=haeuser_ladung.valve_open_count,
+        )
+        hvv = controller.find_anhebung_minus_ein_haus(
+            haeuser_ladung=haeuser_ladung,
+            anhebung_prozent=hlf.given_anhebung_prozent,
+        )
 
     print(hvv)
     filename_png = DIRECTORY_TESTRESULTS / f"do_find_anhebung_{testfall}.png"
-    plot_and_save(anhebung_prozent=hvv.anhebung_prozent, do_show_plot=False, filename_png=filename_png)
+    plot_and_save(
+        haeuser_ladung=haeuser_ladung,
+        anhebung_prozent=hvv.anhebung_prozent,
+        do_show_plot=False,
+        filename_png=filename_png,
+    )
     assert_git_unchanged(filename_png=filename_png)
 
 

@@ -51,7 +51,12 @@ class VerbrauchLadungSchaltschwellen:
     ladung_maximal_prozent: float = 120.0
 
     def __init__(self, anhebung_prozent: float, verbrauch_max_W: float) -> None:
+        assert isinstance(anhebung_prozent, float)
+        assert isinstance(verbrauch_max_W, float)
         assert verbrauch_max_W > 0.0
+        assert 0.0 <= anhebung_prozent <= 100.0
+        assert verbrauch_max_W >= 0.0
+
         self.anhebung_prozent = anhebung_prozent
         self.verbrauch_max_W = verbrauch_max_W
 
@@ -157,107 +162,3 @@ class Evaluate:
                 self.hvv.to_close(haus_ladung)
 
         self.valve_open_count = haeuser_ladung.valve_open_count + self.hvv.valve_open_change
-
-
-@dataclasses.dataclass
-class Controller:
-    """
-    Abbildung der Logik in sandbox_fuzzy/20240806a_diagramm_idee.ods
-    """
-
-    last_anhebung_prozent: float
-    last_valve_open_count: int
-
-    def process(
-        self,
-        kessel_ein_1: int,
-        ladung_zentral_prozent: float,
-        haeuser_ladung: HaeuserLadung,
-    ) -> None:
-        hvv = self._process(
-            kessel_ein_1=kessel_ein_1,
-            ladung_zentral_prozent=ladung_zentral_prozent,
-            haeuser_ladung=haeuser_ladung,
-        )
-        for valve_open in hvv.haeuser_valve_to_open:
-            hsm_dezental.valve_open = True
-        for valve_close in hvv.haeuser_valve_to_close:
-            hsm_dezental.valve_close = True
-
-    def _process(
-        self,
-        kessel_ein_1: int,
-        ladung_zentral_prozent: float,
-        haeuser_ladung: HaeuserLadung,
-    ) -> HauserValveVariante:
-        if kessel_ein_1 >= 0:
-            if ladung_zentral_prozent > 80.0:
-                # Tabelle Zeile 4: Loescht bald
-                return self._process_1_2_loescht_bald(haeuser_ladung=haeuser_ladung)
-            if ladung_zentral_prozent < -10.0:
-                # Tabelle Zeile 6: brenner kommen nicht nach
-                return self._process_1_2_brenner_kommen_nicht_nach(haeuser_ladung=haeuser_ladung)
-
-        # Tabelle Zeile 8
-        return self._process_leistung_ok(haeuser_ladung=haeuser_ladung)
-
-    def _process_leistung_ok(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
-        """
-        Tabelle Zeile 8
-        """
-        evaluate = Evaluate(anhebung_prozent=self.last_anhebung_prozent, haeuser_ladung=haeuser_ladung)
-        self.last_anhebung_prozent -= 1.0
-        self.last_valve_open_count = evaluate.valve_open_count
-        return evaluate.hvv
-
-    def _process_1_2_loescht_bald(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
-        """
-        # Tabelle Zeile 4: Loescht bald
-        """
-        return self._find_anhebung(
-            haeuser_ladung=haeuser_ladung,
-            valve_open_count_soll=self.last_valve_open_count + 1,
-        )
-
-    def _process_1_2_brenner_kommen_nicht_nach(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
-        """
-        Tabelle Zeile 6: brenner kommen nicht nach
-        """
-        return self._find_anhebung(
-            haeuser_ladung=haeuser_ladung,
-            valve_open_count_soll=self.last_valve_open_count - 1,
-        )
-
-    def find_anhebung_plus_ein_haus(self, haeuser_ladung: HaeuserLadung, anhebung_prozent: float) -> HauserValveVariante:
-        while True:
-            if anhebung_prozent > 99.0:
-                anhebung_prozent = 100.0
-
-            evaluate = Evaluate(
-                anhebung_prozent=anhebung_prozent,
-                haeuser_ladung=haeuser_ladung,
-            )
-
-            if anhebung_prozent > 99.0:
-                return evaluate.hvv
-            if len(evaluate.hvv.haeuser_valve_to_open) > 0:
-                return evaluate.hvv
-
-            anhebung_prozent += 1.0
-
-    def find_anhebung_minus_ein_haus(self, haeuser_ladung: HaeuserLadung, anhebung_prozent: float) -> HauserValveVariante:
-        while True:
-            if anhebung_prozent < 1.0:
-                anhebung_prozent = 0.0
-
-            evaluate = Evaluate(
-                anhebung_prozent=float(anhebung_prozent),
-                haeuser_ladung=haeuser_ladung,
-            )
-
-            if anhebung_prozent < 1.0:
-                return evaluate.hvv
-            if len(evaluate.hvv.haeuser_valve_to_close) > 0:
-                return evaluate.hvv
-
-            anhebung_prozent -= 1.0

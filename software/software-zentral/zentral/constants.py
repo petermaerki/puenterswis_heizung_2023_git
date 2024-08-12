@@ -1,4 +1,5 @@
 import enum
+import sys
 import logging
 import pathlib
 
@@ -42,6 +43,19 @@ ETAPPE_TAG_PUENT = "puent"
 ETAPPE_TAGS = (ETAPPE_TAG_VIRGIN, ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT)
 
 DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN = 103
+
+
+def add_to_path(directory: pathlib.Path) -> None:
+    directory_text = str(directory)
+    for _dir in sys.path:
+        if _dir == directory_text:
+            return
+    sys.path.append(str(directory))
+
+
+def add_path_software_zero_dezentral() -> None:
+    add_to_path(DIRECTORY_ZENTRAL.parent / "software-zero")
+    add_to_path(DIRECTORY_ZENTRAL.parent / "software-dezentral")
 
 
 class HsmZentralStartupMode(enum.IntEnum):

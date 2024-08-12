@@ -11,7 +11,13 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ControllerSimple(ControllerABC):
+class ControllerMischventilSimple(ControllerABC):
+    """
+    Stellgrössen:
+    * Pumpe ein/aus
+    * Mischventil auf
+    """
+
     grenze_mitte_ein_C = 46.0
     grenze_mitte_aus_C = 60.0
     if WHILE_HARGASSNER:
@@ -73,5 +79,6 @@ class ControllerSimple(ControllerABC):
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
 
-def controller_factory() -> ControllerABC:
-    return ControllerSimple(time.monotonic())
+def controller_mischventil_factory() -> ControllerABC:
+    return ControllerMischventilSimple(time.monotonic())
+    # return ControllerMischventil(time.monotonic())

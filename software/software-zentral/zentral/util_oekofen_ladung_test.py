@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from zentral.util_matplotlib import matplot_reset
 from zentral.util_oekofen_ladung import InterpolatorInput, Interpolatoren
 
 
@@ -15,6 +16,7 @@ def plot1(t: Interpolatoren) -> None:
     plt.title("Ein- und Auschalttemperaturen erster brenner_A und zweiter brenner_B")
     plt.grid(axis="y", linestyle="--", linewidth=0.7, alpha=0.7)
     plt.show()
+    matplot_reset()
 
 
 def plot2(interpolator_input: InterpolatorInput) -> None:
@@ -42,6 +44,7 @@ def plot2(interpolator_input: InterpolatorInput) -> None:
     plt.plot([0, 100], [0, 100], color="red", linewidth=1)
     plt.fill_between(x=np.linspace(0, 100, 500), y1=0, y2=np.linspace(0, 100, 500), where=(np.linspace(0, 100, 500) <= np.linspace(0, 100, 500)), facecolor="none", hatch=("\\"), edgecolor="red", alpha=1, zorder=4)
     plt.show()
+    matplot_reset()
 
 
 def main() -> None:

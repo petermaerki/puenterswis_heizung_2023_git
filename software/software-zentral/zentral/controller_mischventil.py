@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from zentral.controller_simple import ControllerSimple
+from zentral.controller_mischventil_simple import ControllerMischventilSimple
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -127,7 +127,7 @@ class NextControl:
         self.next_s += add_s
 
 
-class ControllerMischventil(ControllerSimple):
+class ControllerMischventil(ControllerMischventilSimple):
     _STEILHEIT_MISCHVENTIL_PRO_V = 0.25
     """
     abgeschaetzt anhand Datenblatt, 20240506a_spannung_zu_winkel.ods"""
