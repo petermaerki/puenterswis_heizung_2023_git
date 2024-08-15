@@ -1,7 +1,7 @@
 from __future__ import annotations
+
 import dataclasses
 import typing
-
 
 if typing.TYPE_CHECKING:
     from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
@@ -9,14 +9,14 @@ if typing.TYPE_CHECKING:
 
 @dataclasses.dataclass(repr=True)
 class HausLadung:
-    label: str
+    nummer: int
     verbrauch_W: float | None
     ladung_Prozent: float
     valve_open: bool
     next_legionellen_kill_s: float
 
     def __post_init__(self) -> None:
-        assert isinstance(self.label, str)
+        assert isinstance(self.nummer, int)
         assert isinstance(self.verbrauch_W, float | None)
         assert isinstance(self.ladung_Prozent, float)
         assert isinstance(self.valve_open, bool)
@@ -34,20 +34,18 @@ class HaeuserLadung(list[HausLadung]):
     def valve_open_count(self) -> int:
         return len([h for h in self if h.valve_open])
 
-    def get_haus(self, label: str) -> HausLadung:
+    def get_haus(self, nummer: int) -> HausLadung:
         for h in self:
-            if h.label == label:
+            if h.nummer == nummer:
                 return h
-        raise ValueError(f"Label '{label}' not found!")
+        raise ValueError(f"Haus number '{nummer}' not found!")
 
     def update_hvv(self, hvv: "HauserValveVariante") -> None:
-        def set_valve(label: str, do_open: bool) -> None:
-            self.get_haus(label=label).valve_open = do_open
+        def set_valve(nummer: int, do_open: bool) -> None:
+            self.get_haus(nummer=nummer).valve_open = do_open
 
-        for label_valve_open in hvv.haeuser_valve_to_open:
-            # hsm_dezental.valve_open = True
-            set_valve(label=label_valve_open, do_open=True)
+        for nummer in hvv.haeuser_valve_to_open:
+            set_valve(nummer=nummer, do_open=True)
 
-        for label_valve_close in hvv.haeuser_valve_to_close:
-            # hsm_dezental.valve_close = True
-            set_valve(label=label_valve_close, do_open=False)
+        for nummer in hvv.haeuser_valve_to_close:
+            set_valve(nummer=nummer, do_open=False)

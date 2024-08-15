@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 import logging
-import time
 import typing
 
 from zentral.controller_base import ControllerHaeuserABC
@@ -33,27 +33,12 @@ class ControllerHaeuserSimple(ControllerHaeuserABC):
         for haus_ladung in params.haeuser_ladung:
             if haus_ladung.ladung_Prozent < self.GRENZE_LADUNG_EIN_PROZENT:
                 hvv.to_open(haus_ladung=haus_ladung)
-                # haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
+
             if haus_ladung.ladung_Prozent > self.GRENZE_LADUNG_AUS_PROZENT:
                 hvv.to_close(haus_ladung=haus_ladung)
-                # haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
         return hvv
-
-        # for haus in ctx.config_etappe.haeuser:
-        #     sp_temperatur = haus.get_sp_temperatur()
-        #     if sp_temperatur is None:
-        #         continue
-        #     if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
-        #         haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
-        #     elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
-        #         haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
     def process(self, params: "ProcessParams") -> HauserValveVariante:
         hvv = self.update_hauser_valve(params=params)
         return hvv
-
-
-def controller_haeuser_factory() -> ControllerHaeuserABC:
-    return ControllerHaeuserSimple(time.monotonic())
-    # return ControllerHaeuser(time.monotonic())

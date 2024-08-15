@@ -7,11 +7,13 @@ from hsm import hsm
 
 from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerHaeuserABC, ControllerMischventilABC
-from zentral.controller_haeuser import ProcessParams
-from zentral.controller_haeuser_simple import ControllerHaeuserNone, controller_haeuser_factory
-from zentral.controller_mischventil import ControllerMischventil
-from zentral.controller_mischventil_simple import ControllerMischventilNone, controller_mischventil_factory
+from zentral.controller_haeuser import PeriodNotOverException, ProcessParams, controller_haeuser_factory
+from zentral.controller_haeuser_simple import ControllerHaeuserNone
+from zentral.controller_mischventil import ControllerMischventil, controller_mischventil_factory
+from zentral.controller_mischventil_simple import ControllerMischventilNone
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
+from zentral.util_controller_haus_ladung import HaeuserLadung
+from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
@@ -129,12 +131,48 @@ class HsmZentral(hsm.HsmMixin):
 
         try:
             # TODO: Add remaining parameters
-            params = ProcessParams(now_s=time.monotonic())
-            self.controller_haeuser.process(params=params)
+            TODO_ANZAHL_BRENNER_EIN = 1
+            TODO_LADUNG_ZENTRAL_PROZENT = 30.0
+            TODO_TPO_C = 55.0
+
+            haeuser_ladung = HaeuserLadung()
+            for haus in self.ctx.config_etappe.haeuser:
+                assert haus.status_haus is not None
+                haus_ladung = haus.status_haus.hsm_dezentral.haus_ladung
+                if haus_ladung is None:
+                    continue
+                haeuser_ladung.append(haus_ladung)
+
+            params = ProcessParams(
+                now_s=time.monotonic(),
+                anzahl_brenner_ein_1=TODO_ANZAHL_BRENNER_EIN,
+                ladung_zentral_prozent=TODO_LADUNG_ZENTRAL_PROZENT,
+                haeuser_ladung=haeuser_ladung,
+                TPO_C=TODO_TPO_C,
+            )
+            try:
+                hvv = self.controller_haeuser.process(params=params)
+                self._update_hvv(hvv=hvv)
+            except PeriodNotOverException:
+                pass
+
         except MissingModbusDataException as e:
             if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
                 raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
             logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
+
+    def _update_hvv(self, hvv: HauserValveVariante) -> None:
+        def set_valve(nummer: int, valve_open: bool) -> None:
+            haus = self.ctx.config_etappe.get_haus_by_nummer(nummer=nummer)
+            status_haus = haus.status_haus
+            assert status_haus is not None
+            status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
+
+        for nummer in hvv.haeuser_valve_to_open:
+            set_valve(nummer=nummer, valve_open=True)
+
+        for nummer in hvv.haeuser_valve_to_close:
+            set_valve(nummer=nummer, valve_open=False)
 
     def grundzustand_manuell(self) -> None:
         now_s = time.monotonic()

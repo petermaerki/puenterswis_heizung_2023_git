@@ -8,10 +8,9 @@ import pytest
 from zentral.constants import add_path_software_zero_dezentral
 from zentral.controller_haeuser import ControllerHaeuser, PeriodNotOverException, ProcessParams, TemperaturZentral
 from zentral.controller_haeuser_simple import ControllerHaeuserSimple
+from zentral.util_controller_verbrauch_schaltschwelle_test import HAEUSER_LADUNG_FACTORY_2_30
 from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
-from zentral.util_controller_verbrauch_schaltschwelle_test import HAEUSER_LADUNG_FACTORY_2_30
-
 
 add_path_software_zero_dezentral()
 
@@ -86,6 +85,11 @@ class Plot:
 
 @dataclasses.dataclass(frozen=True, repr=True)
 class GrindingValue:
+    """
+    now_s <= 0.0: The value is 'start'.
+    now_s > 0.0: The value is grinding from 'start' to 'start+difference'.
+    """
+
     start: float
     difference: float
 
@@ -215,7 +219,7 @@ async def run_haeuser_simple(testparam: Ttestparam, do_show_plot: bool) -> None:
 
         p = Plot()
         for now_s in range(start_s, end_s):
-            haus_H3 = haeuser_ladung.get_haus("H3")
+            haus_H3 = haeuser_ladung.get_haus(3)
             haus_H3.ladung_Prozent = haus_H3_ladung_Prozent.get(now_s, end_s=end_s)
 
             params = ProcessParams(

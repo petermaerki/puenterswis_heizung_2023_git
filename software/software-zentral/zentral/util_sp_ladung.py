@@ -53,7 +53,7 @@ class LadungBase:
         return 1.0
 
 
-class LadungHeizung(LadungBase):
+class LadungBodenheizung(LadungBase):
     """
     Fuer Heizung minimale Speichertemperatur
     heizkurve_heizungswasser_C = (20.0 - self.stimuli.umgebungstemperatur_C) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
@@ -139,8 +139,8 @@ class LadungMinimum(LadungBase):
     def __init__(self, sp_temperatur: SpTemperatur, temperatur_aussen_C: float):
         self.sp_temperatur = sp_temperatur
         self.ladung_baden = LadungBaden(sp_temperatur)
-        self.ladung_heizung = LadungHeizung(sp_temperatur, temperatur_aussen_C)
+        self.ladung_bodenheizung = LadungBodenheizung(sp_temperatur, temperatur_aussen_C)
 
     @property
     def ladung_prozent(self) -> float:
-        return min(self.ladung_baden.ladung_prozent, self.ladung_heizung.ladung_prozent)
+        return min(self.ladung_baden.ladung_prozent, self.ladung_bodenheizung.ladung_prozent)

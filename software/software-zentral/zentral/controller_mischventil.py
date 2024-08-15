@@ -1,6 +1,8 @@
 import logging
+import time
 import typing
 
+from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_mischventil_simple import ControllerMischventilSimple
 
 if typing.TYPE_CHECKING:
@@ -251,3 +253,9 @@ class ControllerMischventil(ControllerMischventilSimple):
         # assert -1 < stellwert_100 <= 101
         stellwert_V = stellwert_100 / 100.0 * (ControllerMischventil._STELLWERT_V_MAX - ControllerMischventil._STELLWERT_V_MIN) + ControllerMischventil._STELLWERT_V_MIN
         return stellwert_V
+
+
+def controller_mischventil_factory() -> ControllerMischventilABC:
+    if False:
+        return ControllerMischventil(time.monotonic())
+    return ControllerMischventilSimple(time.monotonic())

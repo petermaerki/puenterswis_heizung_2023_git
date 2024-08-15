@@ -37,42 +37,42 @@ def _factory_2_30() -> HaeuserLadung:
     return HaeuserLadung(
         (
             HausLadung(
-                label="H1",
+                nummer=1,
                 verbrauch_W=1_000.0,
                 ladung_Prozent=50.0,
                 valve_open=False,
                 next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
-                label="H2",
+                nummer=2,
                 verbrauch_W=1_500.0,
                 ladung_Prozent=50.0,
                 valve_open=False,
                 next_legionellen_kill_s=0.5 * 24 * 3600.0,
             ),
             HausLadung(
-                label="H3",
+                nummer=3,
                 verbrauch_W=5_000.0,
                 ladung_Prozent=10.0,
                 valve_open=True,
                 next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
-                label="H4",
+                nummer=4,
                 verbrauch_W=6_000.0,
                 ladung_Prozent=40.0,
                 valve_open=True,
                 next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
-                label="H5",
+                nummer=5,
                 verbrauch_W=5_000.0,
                 ladung_Prozent=45.0,
                 valve_open=False,
                 next_legionellen_kill_s=5 * 24 * 3600.0,
             ),
             HausLadung(
-                label="H6",
+                nummer=6,
                 verbrauch_W=10_000.0,
                 ladung_Prozent=35.0,
                 valve_open=False,
@@ -147,7 +147,7 @@ class Plot:
         plt.scatter(x=x, y=y, color=color, s=100, marker=marker)
 
         # Annotate each point with its label
-        plt.annotate(haus_ladung.label, (x, y), textcoords="offset points", xytext=(10, 10), ha="center")
+        plt.annotate(f"H{haus_ladung.nummer}", (x, y), textcoords="offset points", xytext=(10, 10), ha="center")
 
     def save(self, do_show_plot: bool, filename_png: pathlib.Path) -> None:
         assert isinstance(do_show_plot, bool)

@@ -1,5 +1,4 @@
 import logging
-import time
 import typing
 
 from zentral.constants import WHILE_HARGASSNER
@@ -64,8 +63,3 @@ class ControllerMischventilSimple(ControllerMischventilABC):
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
         ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx=ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
-
-
-def controller_mischventil_factory() -> ControllerMischventilABC:
-    return ControllerMischventilSimple(time.monotonic())
-    # return ControllerMischventil(time.monotonic())

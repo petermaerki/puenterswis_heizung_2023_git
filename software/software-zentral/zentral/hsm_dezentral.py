@@ -9,11 +9,13 @@ from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
 from zentral.hsm_dezentral_signal import SignalDezentralBase, SignalModbusFailed, SignalModbusSuccess
 from zentral.hsm_zentral_signal import SignalHardwaretestBegin, SignalHardwaretestEnd
 from zentral.util_constants_haus import SpPosition
+from zentral.util_controller_haus_ladung import HausLadung
 from zentral.util_history_modbus import HistoryModbus
 from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_persistence import Persistence
+from zentral.util_sp_ladung import LadungBodenheizung
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -34,6 +36,14 @@ class HsmDezentral(hsm.HsmMixin):
         self.modbus_history = HistoryModbus()
         self.modbus_iregs_all: ModbusIregsAll2 | None = None
         self.dezentral_gpio = GpioBits(0)
+        """
+        Why this variable? 
+        Couldn't it be a property to self.modbus_iregs_all.relais_gpio.relais_valve_open ?
+
+        There is some code:
+          changed = hsm.dezentral_gpio.changed(hsm.modbus_iregs_all.relais_gpio)
+        It looks like that we have to update 'self.dezentral_gpio' which then will update via modbus.
+        """
         self._persistence = Persistence(tag=f"verbrauch_{haus.influx_tag}", period_s=60.0)
         self.verbrauch = VerbrauchHaus(persistence=self._persistence)
         self._time_begin_s = 0.0
@@ -54,6 +64,29 @@ class HsmDezentral(hsm.HsmMixin):
     @property
     def timer_duration_s(self) -> float:
         return time.monotonic() - self._time_begin_s
+
+    @property
+    def haus_ladung(self) -> HausLadung | None:
+        modbus_iregs_all = self.modbus_iregs_all
+        if modbus_iregs_all is None:
+            return None
+        sp_temperatur = modbus_iregs_all.sp_temperatur
+        if sp_temperatur is None:
+            return None
+
+        TODO_TEMPERATUR_AUSSEN_C = 0.0
+        ladung_bodenheizung = LadungBodenheizung(
+            sp_temperatur=sp_temperatur,
+            temperatur_aussen_C=TODO_TEMPERATUR_AUSSEN_C,
+        )
+
+        return HausLadung(
+            nummer=self.haus.config_haus.nummer,
+            verbrauch_W=self.verbrauch.verbrauch_avg_W,
+            ladung_Prozent=ladung_bodenheizung.ladung_prozent,
+            valve_open=self.dezentral_gpio.relais_valve_open,
+            next_legionellen_kill_s=self.next_legionellen_kill_s,
+        )
 
     def timer_start(self) -> None:
         self._time_begin_s = time.monotonic()

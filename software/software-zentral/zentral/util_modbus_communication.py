@@ -101,7 +101,6 @@ class ModbusCommunication:
             await self.modbus_haueser_loop()
 
         self._context.hsm_zentral.controller_process(ctx=self._context)
-
         if True:
             try:
                 _manuell, output_100 = self._context.hsm_zentral.mischventil_stellwert_100_overwrite

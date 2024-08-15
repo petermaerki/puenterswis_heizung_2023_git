@@ -117,18 +117,18 @@ class HauserValveVariante:
     """
 
     anhebung_prozent: float
-    haeuser_valve_to_open: list[str] = dataclasses.field(default_factory=list)
-    haeuser_valve_to_close: list[str] = dataclasses.field(default_factory=list)
+    haeuser_valve_to_open: list[int] = dataclasses.field(default_factory=list)
+    haeuser_valve_to_close: list[int] = dataclasses.field(default_factory=list)
 
     def to_open(self, haus_ladung: HausLadung) -> None:
         if haus_ladung.valve_open:
             return
-        self.haeuser_valve_to_open.append(haus_ladung.label)
+        self.haeuser_valve_to_open.append(haus_ladung.nummer)
 
     def to_close(self, haus_ladung: HausLadung) -> None:
         if not haus_ladung.valve_open:
             return
-        self.haeuser_valve_to_close.append(haus_ladung.label)
+        self.haeuser_valve_to_close.append(haus_ladung.nummer)
 
     @property
     def valve_open_change(self) -> int:

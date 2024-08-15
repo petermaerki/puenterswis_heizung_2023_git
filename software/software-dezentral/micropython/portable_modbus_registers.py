@@ -24,7 +24,8 @@ class GpioBits:
             self.value |= mask
 
     def _get(self, bit: int) -> bool:
-        return 0x01 & (self.value >> bit)
+        v = 0x01 & (self.value >> bit)
+        return v != 0
 
     def changed(self, other: "GpioBits") -> bool:
         """

@@ -138,7 +138,7 @@ class Influx:
         ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
         if ladung_minimum is not None:
             fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
-            fields["ladung_heizung_prozent"] = ladung_minimum.ladung_heizung.ladung_prozent
+            fields["ladung_heizung_prozent"] = ladung_minimum.ladung_bodenheizung.ladung_prozent
             fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
 
         r = InfluxRecords(haus=haus)
@@ -147,6 +147,7 @@ class Influx:
 
     async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)
+        assert haus.status_haus is not None
         hsm_dezentral = haus.status_haus.hsm_dezentral
         influx_offset08 = haus.config_haus.influx_offset05
         fields = {}
@@ -157,8 +158,9 @@ class Influx:
             # The legend will now just contain the sensors with errors!
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
         try:
-            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
-            fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
+            if hsm_dezentral.modbus_iregs_all is not None:
+                fields["relais_valve_open"] = int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
         except AttributeError:
             pass
 
