@@ -99,7 +99,7 @@ class ControllerHaeuser(ControllerHaeuserSimple):
     #     haeuser_ladung: HaeuserLadung,
     # ) -> None:
     def process(self, ctx: "Context", now_s: float) -> None:
-        pass
+        self.update_hauser_valve(ctx=ctx)
 
     def process_mock(self, ctx: "Context", now_s: float, process_params: ProcessParams) -> None:
         try:

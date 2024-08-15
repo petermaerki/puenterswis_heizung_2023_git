@@ -230,8 +230,6 @@ class ControllerMischventil(ControllerMischventilSimple):
         if self.next_control.wait(now_s=now_s):
             return
 
-        self.update_hauser_valve(ctx=ctx)
-
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
         ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
