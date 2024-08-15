@@ -3,7 +3,7 @@ import time
 import typing
 
 from zentral.constants import WHILE_HARGASSNER
-from zentral.controller_base import ControllerABC
+from zentral.controller_base import ControllerMischventilABC
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -11,7 +11,18 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ControllerMischventilSimple(ControllerABC):
+class ControllerMischventilNone(ControllerMischventilABC):
+    def process(self, ctx: "Context", now_s: float) -> None:
+        pass
+
+    def get_credit_100(self) -> float | None:
+        """
+        Return None: If the controller simple or None does not calculate the credit
+        """
+        return None
+
+
+class ControllerMischventilSimple(ControllerMischventilABC):
     """
     Stellgrössen:
     * Pumpe ein/aus
@@ -20,6 +31,12 @@ class ControllerMischventilSimple(ControllerABC):
 
     grenze_mitte_ein_C = 46.0
     grenze_mitte_aus_C = 60.0
+
+    def get_credit_100(self) -> float | None:
+        """
+        Return None: If the controller simple or None does not calculate the credit
+        """
+        return None
 
     def update_hauser_valve(self, ctx: "Context"):
         for haus in ctx.config_etappe.haeuser:
@@ -55,6 +72,6 @@ class ControllerMischventilSimple(ControllerABC):
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
 
-def controller_mischventil_factory() -> ControllerABC:
+def controller_mischventil_factory() -> ControllerMischventilABC:
     return ControllerMischventilSimple(time.monotonic())
     # return ControllerMischventil(time.monotonic())

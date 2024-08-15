@@ -211,8 +211,6 @@ class Influx:
                 fields[key + "_overwrite"] = mischventil_stellwert_100
 
         def mischventil_credit():
-            if ctx.hsm_zentral.controller_mischventil is None:
-                return
             credit_100 = ctx.hsm_zentral.controller_mischventil.get_credit_100()
             if credit_100 is None:
                 return

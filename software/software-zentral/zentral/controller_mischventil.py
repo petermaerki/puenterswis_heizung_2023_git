@@ -167,6 +167,9 @@ class ControllerMischventil(ControllerMischventilSimple):
         self.last_stellwert_aenderung_V = 0.0
 
     def get_credit_100(self) -> float | None:
+        """
+        Return None: If the controller simple or None does not calculate the credit
+        """
         return self.credit.mischventil_actuation_credit_100
 
     def update_mischventil(self, ctx: "Context", now_s: float) -> None:

@@ -6,10 +6,10 @@ import typing
 from hsm import hsm
 
 from zentral.constants import WHILE_HARGASSNER
-from zentral.controller_base import ControllerABC
-from zentral.controller_haeuser_simple import controller_haeuser_factory
+from zentral.controller_base import ControllerMischventilABC
+from zentral.controller_haeuser_simple import ControllerHaeuserNone, controller_haeuser_factory
 from zentral.controller_mischventil import ControllerMischventil
-from zentral.controller_mischventil_simple import controller_mischventil_factory
+from zentral.controller_mischventil_simple import ControllerMischventilNone, controller_mischventil_factory
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
@@ -87,12 +87,12 @@ class HsmZentral(hsm.HsmMixin):
         self.relais = Relais()
         self.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
         self.solltemperatur_Tfv: float = 0.0
-        self.controller_mischventil: ControllerABC | None = None
-        self.controller_haeuser: ControllerABC | None = None
+        self._programm_start_s = time.monotonic()
+        self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
+        self.controller_haeuser: ControllerMischventilABC = ControllerHaeuserNone(now_s=self._programm_start_s)
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None
         self.modbus_oekofen_registers: OekofenRegisters | None = None
-        self._programm_start_s = time.monotonic()
         self._state_error_last_error_s: float = 0.0
 
     @property
@@ -116,26 +116,27 @@ class HsmZentral(hsm.HsmMixin):
         return False, self.mischventil_stellwert_100
 
     def controller_process(self, ctx: "Context") -> None:
-        if not self.is_state(self.state_hardwaretest):
-            if self.controller_mischventil is not None:
-                try:
-                    self.controller_mischventil.process(ctx=ctx, now_s=time.monotonic())
-                except MissingModbusDataException as e:
-                    if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
-                        raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
-                    logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
+        if self.is_state(self.state_hardwaretest):
+            return
 
-        if self.controller_haeuser is not None:
-            try:
-                self.controller_haeuser.process(ctx=ctx, now_s=time.monotonic())
-            except MissingModbusDataException as e:
-                if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
-                    raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
-                logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
+        try:
+            self.controller_mischventil.process(ctx=ctx, now_s=time.monotonic())
+        except MissingModbusDataException as e:
+            if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
+                raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
+            logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
+
+        try:
+            self.controller_haeuser.process(ctx=ctx, now_s=time.monotonic())
+        except MissingModbusDataException as e:
+            if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
+                raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
+            logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
 
     def grundzustand_manuell(self) -> None:
-        self.controller_mischventil = None
-        self.controller_haeuser = None
+        now_s = time.monotonic()
+        self.controller_mischventil = ControllerMischventilNone(now_s=now_s)
+        self.controller_haeuser = ControllerHaeuserNone(now_s=now_s)
         self.relais.relais_0_mischventil_automatik = False
         self.relais.relais_6_pumpe_ein = True
         self.relais.relais_7_automatik = False
@@ -196,8 +197,6 @@ class HsmZentral(hsm.HsmMixin):
 
     def entry_hardwaretest(self, signal: SignalZentralBase):
         self.grundzustand_manuell()
-        assert self.controller_mischventil is None
-        assert self.controller_haeuser is None
         if isinstance(signal, SignalHardwaretestBegin):
             self.relais.relais_7_automatik = signal.relais_7_automatik
 
