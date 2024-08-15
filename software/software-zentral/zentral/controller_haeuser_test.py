@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
-from zentral.controller_haeuser import ControllerHaeuser, ProcessParams, TemperaturZentral
+from zentral.controller_haeuser import ControllerHaeuser, PeriodNotOverException, ProcessParams, TemperaturZentral
+from zentral.controller_haeuser_simple import ControllerHaeuserSimple
 from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
 from zentral.util_controller_verbrauch_schaltschwelle_test import HAEUSER_LADUNG_FACTORY_2_30
@@ -92,7 +93,7 @@ class GrindingValue:
         assert isinstance(self.start, float)
         assert isinstance(self.difference, float)
 
-    def get(self, now_s: float, end_s: int) -> float:
+    def get(self, now_s: int, end_s: int) -> float:
         assert isinstance(now_s, int)
         assert isinstance(end_s, int)
         assert now_s <= end_s
@@ -122,7 +123,7 @@ class Ttestparam:
 
     @property
     def filename_stem(self) -> pathlib.Path:
-        f = "controller_intelligent_test_scenario_" + self.label.replace(" ", "-")
+        f = "test_" + self.label.replace(" ", "-")
         return DIRECTORY_TESTRESULTS / f
 
     @property
@@ -146,7 +147,7 @@ class Ttestparam:
         return dict_temperatures_C
 
 
-async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
+async def run_haeuser(testparam: Ttestparam, do_show_plot: bool) -> None:
     async with ContextMock(config_etappe.create_config_etappe(hostname=ZERO_VIRGIN)) as ctx:
         await ctx.init()
         ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
@@ -165,7 +166,8 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
 
         p = Plot()
         for i, now_s in enumerate(range(start_s, end_s)):
-            process_params = ProcessParams(
+            params = ProcessParams(
+                now_s=float(now_s),
                 anzahl_brenner_ein_1=testparam.anzahl_brenner_ein_1,
                 ladung_zentral_prozent=testparam.ladung_zentral_prozent.get(now_s, end_s),
                 haeuser_ladung=haeuser_ladung,
@@ -173,21 +175,75 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
             )
             p.point(
                 now_s=now_s,
-                ladung_zentral_prozent=process_params.ladung_zentral_prozent,
+                ladung_zentral_prozent=params.ladung_zentral_prozent,
                 anhebung_prozent=ctl.last_anhebung_prozent,
-                TPO_C=process_params.TPO_C,
-                valve_open_count=process_params.haeuser_ladung.valve_open_count,
+                TPO_C=params.TPO_C,
+                valve_open_count=params.haeuser_ladung.valve_open_count,
                 temperatur_zentral=ctl.debug_temperatur_zentral,
-                anzahl_brenner_ein_1=process_params.anzahl_brenner_ein_1,
+                anzahl_brenner_ein_1=params.anzahl_brenner_ein_1,
             )
 
-            ctl.process_mock(ctx=ctx, now_s=float(now_s), process_params=process_params)
+            try:
+                hvv = ctl.process(params=params)
+                haeuser_ladung.update_hvv(hvv=hvv)
+            except PeriodNotOverException:
+                pass
+
             if i == 0:
                 assert testparam.expected_temperatur_zentral == ctl.debug_temperatur_zentral
 
         p.plot(title=testparam.label, filename=testparam.filename_png, do_show_plot=do_show_plot)
 
         assert_git_unchanged(filename_png=testparam.filename_png)
+
+
+async def run_haeuser_simple(testparam: Ttestparam, do_show_plot: bool) -> None:
+    async with ContextMock(config_etappe.create_config_etappe(hostname=ZERO_VIRGIN)) as ctx:
+        await ctx.init()
+        ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
+
+        start_s = -120
+        end_s = 30 * 60
+        last_anhebung_prozent = 0.0
+        debug_temperatur_zentral = 0
+
+        hlf = HAEUSER_LADUNG_FACTORY_2_30
+        haeuser_ladung = hlf.get_haeuser_ladung()
+
+        ctl = ControllerHaeuserSimple(now_s=float(start_s))
+        haus_H3_ladung_Prozent = GrindingValue(10.0, 120.0)
+
+        p = Plot()
+        for now_s in range(start_s, end_s):
+            haus_H3 = haeuser_ladung.get_haus("H3")
+            haus_H3.ladung_Prozent = haus_H3_ladung_Prozent.get(now_s, end_s=end_s)
+
+            params = ProcessParams(
+                now_s=float(now_s),
+                anzahl_brenner_ein_1=testparam.anzahl_brenner_ein_1,
+                ladung_zentral_prozent=testparam.ladung_zentral_prozent.get(now_s, end_s),
+                haeuser_ladung=haeuser_ladung,
+                TPO_C=testparam.TPO_C.get(now_s, end_s),
+            )
+            p.point(
+                now_s=now_s,
+                ladung_zentral_prozent=params.ladung_zentral_prozent,
+                anhebung_prozent=last_anhebung_prozent,
+                TPO_C=params.TPO_C,
+                valve_open_count=params.haeuser_ladung.valve_open_count,
+                temperatur_zentral=debug_temperatur_zentral,
+                anzahl_brenner_ein_1=params.anzahl_brenner_ein_1,
+            )
+
+            try:
+                hvv = ctl.process(params=params)
+                haeuser_ladung.update_hvv(hvv=hvv)
+            except PeriodNotOverException:
+                pass
+
+        p.plot(title=testparam.label, filename=testparam.filename_png, do_show_plot=do_show_plot)
+
+    assert_git_unchanged(filename_png=testparam.filename_png)
 
 
 _TESTPARAMS = [
@@ -215,15 +271,32 @@ _TESTPARAMS = [
 ]
 
 
+_TESTPARAMS_SIMPLE = [
+    Ttestparam(
+        label="simple_ladung_sinkt",
+        anzahl_brenner_ein_1=1,
+        expected_temperatur_zentral=TemperaturZentral.WARM,
+        ladung_zentral_prozent=GrindingValue(30.0, 0.0),
+        TPO_C=GrindingValue(60.0, 0.0),
+    ),
+]
+
+
 @pytest.mark.parametrize("testparam", _TESTPARAMS, ids=lambda testparam: testparam.pytest_id)
 @pytest.mark.asyncio
-async def test_controller_intelligent(testparam: Ttestparam):
-    await run_scenario(testparam=testparam, do_show_plot=False)
+async def test_controller_haeuser(testparam: Ttestparam):
+    await run_haeuser(testparam=testparam, do_show_plot=False)
+
+
+@pytest.mark.parametrize("testparam", _TESTPARAMS_SIMPLE, ids=lambda testparam: testparam.pytest_id)
+@pytest.mark.asyncio
+async def test_controller_haeuser_simple(testparam: Ttestparam):
+    await run_haeuser_simple(testparam=testparam, do_show_plot=False)
 
 
 async def main():
     for testparam in _TESTPARAMS:
-        await run_scenario(testparam=testparam, do_show_plot=True)
+        await run_haeuser(testparam=testparam, do_show_plot=True)
 
 
 if __name__ == "__main__":

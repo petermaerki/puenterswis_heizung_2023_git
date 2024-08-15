@@ -29,9 +29,6 @@ class ControllerMischventilSimple(ControllerMischventilABC):
     * Mischventil auf
     """
 
-    grenze_mitte_ein_C = 46.0
-    grenze_mitte_aus_C = 60.0
-
     def get_credit_100(self) -> float | None:
         """
         Return None: If the controller simple or None does not calculate the credit

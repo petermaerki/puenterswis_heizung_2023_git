@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import typing
 
@@ -6,6 +7,8 @@ from abc import ABC
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
+    from zentral.controller_haeuser import ProcessParams
+    from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 
 
 logger = logging.getLogger(__name__)
@@ -30,5 +33,5 @@ class ControllerHaeuserABC(ABC):
     def __init__(self, now_s: float) -> None:
         ...
 
-    def process(self, ctx: "Context", now_s: float) -> None:
+    def process(self, params: "ProcessParams") -> "HauserValveVariante":
         ...

@@ -6,7 +6,8 @@ import typing
 from hsm import hsm
 
 from zentral.constants import WHILE_HARGASSNER
-from zentral.controller_base import ControllerMischventilABC
+from zentral.controller_base import ControllerHaeuserABC, ControllerMischventilABC
+from zentral.controller_haeuser import ProcessParams
 from zentral.controller_haeuser_simple import ControllerHaeuserNone, controller_haeuser_factory
 from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_mischventil_simple import ControllerMischventilNone, controller_mischventil_factory
@@ -127,7 +128,9 @@ class HsmZentral(hsm.HsmMixin):
             logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
 
         try:
-            self.controller_haeuser.process(ctx=ctx, now_s=time.monotonic())
+            # TODO: Add remaining parameters
+            params = ProcessParams(now_s=time.monotonic())
+            self.controller_haeuser.process(params=params)
         except MissingModbusDataException as e:
             if self.uptime_s > _UPTIME_MODBUS_SILENT_S:
                 raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
@@ -135,8 +138,8 @@ class HsmZentral(hsm.HsmMixin):
 
     def grundzustand_manuell(self) -> None:
         now_s = time.monotonic()
-        self.controller_mischventil = ControllerMischventilNone(now_s=now_s)
-        self.controller_haeuser = ControllerHaeuserNone(now_s=now_s)
+        self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=now_s)
+        self.controller_haeuser: ControllerHaeuserABC = ControllerHaeuserNone(now_s=now_s)
         self.relais.relais_0_mischventil_automatik = False
         self.relais.relais_6_pumpe_ein = True
         self.relais.relais_7_automatik = False
