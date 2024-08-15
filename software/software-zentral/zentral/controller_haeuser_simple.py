@@ -25,10 +25,11 @@ class ControllerHaeuserSimple(ControllerHaeuserABC):
     GRENZE_LADUNG_AUS_PROZENT = 100.0
 
     def __init__(self, now_s: float):
-        self.start_s = now_s
+        super().__init__(now_s=now_s)
 
     def update_hauser_valve(self, params: "ProcessParams") -> HauserValveVariante:
-        hvv = HauserValveVariante(anhebung_prozent=0.0)
+        TODO_ANHEBUNG_PROZENT = 0.0
+        hvv = HauserValveVariante(anhebung_prozent=TODO_ANHEBUNG_PROZENT)
 
         for haus_ladung in params.haeuser_ladung:
             if haus_ladung.ladung_Prozent < self.GRENZE_LADUNG_EIN_PROZENT:

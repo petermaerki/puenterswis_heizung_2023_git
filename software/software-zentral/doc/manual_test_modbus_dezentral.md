@@ -18,7 +18,7 @@ Fehler bei der Kommunikation mit den Häusern.
   * a) `ScenarioHausModbusNoResponseReceived`
 
     * Haus: 13
-    * duration_s: 120
+    * duration_s: 240
 
   * b) Haus ausstecken
 
@@ -32,6 +32,7 @@ Fehler bei der Kommunikation mit den Häusern.
 
 * Tests
   * 2024-07-28: success
+  * 2024-08-15: success
 
 ## Modbus funktioniert wieder
 
@@ -50,3 +51,4 @@ Fehler bei der Kommunikation mit den Häusern.
 
 * Tests
   * 2024-07-28: success
+  * 2024-08-15: success
