@@ -11,11 +11,17 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerHaeuserNone(ControllerHaeuserABC):
+    def __init__(self, now_s: float):
+        pass
+
     def process(self, ctx: "Context", now_s: float) -> None:
         pass
 
 
 class ControllerHaeuserSimple(ControllerHaeuserABC):
+    def __init__(self, now_s: float):
+        self.start_s = now_s
+
     def update_hauser_valve(self, ctx: "Context"):
         for haus in ctx.config_etappe.haeuser:
             sp_temperatur = haus.get_sp_temperatur()

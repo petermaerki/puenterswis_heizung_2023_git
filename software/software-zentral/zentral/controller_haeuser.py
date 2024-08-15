@@ -70,10 +70,14 @@ class ControllerHaeuser(ControllerHaeuserSimple):
     INTERVAL_HAUS_PLUS_S = 3 * 60.0
     INTERVAL_HAUS_MINUS_S = 10 * 60.0
 
-    def __init__(self, now_s: float):
-        assert isinstance(now_s, float)
-        self.last_anhebung_prozent: float
-        self.last_valve_open_count: int
+    def __init__(self, now_s: float, last_anhebung_prozent: float, last_valve_open_count: int):
+        assert isinstance(last_anhebung_prozent, float)
+        assert isinstance(last_valve_open_count, int)
+        self.last_anhebung_prozent = last_anhebung_prozent
+        self.last_valve_open_count = last_valve_open_count
+
+        super().__init__(now_s=now_s)
+
         self.debug_temperatur_zentral = TemperaturZentral.ZU_KALT
         self.interval_anhebung = ProcessInterval(now_s=now_s)
         self.interval_haus = ProcessInterval(now_s=now_s)
@@ -82,6 +86,7 @@ class ControllerHaeuser(ControllerHaeuserSimple):
         """
         Return True every 'PROCESS_INITERVAL_S'.
         """
+        1 / 0
         time_since_last_process_s = now_s - self.last_process_s
         if time_since_last_process_s >= self.INTERVAL_ANHEBUNG_S:
             self.last_process_s += self.INTERVAL_ANHEBUNG_S
@@ -206,16 +211,3 @@ class ControllerHaeuser(ControllerHaeuserSimple):
                 return evaluate.hvv
 
             anhebung_prozent -= 1.0
-
-
-class ControllerHaeuserMock(ControllerHaeuser):
-    """
-    Abbildung der Logik in sandbox_fuzzy/20240806a_diagramm_idee.ods
-    """
-
-    def __init__(self, now_s: float, last_anhebung_prozent: float, last_valve_open_count: int):
-        super().__init__(now_s=now_s)
-        assert isinstance(last_anhebung_prozent, float)
-        assert isinstance(last_valve_open_count, int)
-        self.last_anhebung_prozent = last_anhebung_prozent
-        self.last_valve_open_count = last_valve_open_count

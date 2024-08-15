@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
-from zentral.controller_haeuser import ControllerHaeuserMock, ProcessParams, TemperaturZentral
+from zentral.controller_haeuser import ControllerHaeuser, ProcessParams, TemperaturZentral
 from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
 from zentral.util_controller_verbrauch_schaltschwelle_test import HAEUSER_LADUNG_FACTORY_2_30
@@ -157,7 +157,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
         hlf = HAEUSER_LADUNG_FACTORY_2_30
         haeuser_ladung = hlf.get_haeuser_ladung()
 
-        ctl = ControllerHaeuserMock(
+        ctl = ControllerHaeuser(
             now_s=float(start_s),
             last_anhebung_prozent=hlf.given_anhebung_prozent,
             last_valve_open_count=haeuser_ladung.valve_open_count,
