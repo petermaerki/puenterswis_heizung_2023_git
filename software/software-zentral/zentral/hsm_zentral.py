@@ -61,7 +61,6 @@ class Relais:
         """
         sc = SCENARIOS.find(ScenarioOverwriteRelais6PumpeEin)
         if sc is not None:
-            sc.decrement()
             return True, sc.pumpe_ein
         return False, self.relais_6_pumpe_ein
 
@@ -74,7 +73,6 @@ class Relais:
         """
         sc = SCENARIOS.find(ScenarioOverwriteRelais0Automatik)
         if sc is not None:
-            sc.decrement()
             return True, sc.automatik
         return False, self.relais_0_mischventil_automatik
 
@@ -114,7 +112,6 @@ class HsmZentral(hsm.HsmMixin):
         """
         sc = SCENARIOS.find(ScenarioOverwriteMischventil)
         if sc is not None:
-            sc.decrement()
             return True, sc.stellwert_100
         return False, self.mischventil_stellwert_100
 

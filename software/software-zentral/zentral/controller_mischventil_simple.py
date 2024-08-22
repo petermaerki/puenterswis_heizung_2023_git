@@ -29,6 +29,9 @@ class ControllerMischventilSimple(ControllerABC):
             alle_haueser_zu_warm = True
 
         for haus in ctx.config_etappe.haeuser:
+            if WHILE_HARGASSNER:
+                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
+
             sp_temperatur = haus.get_sp_temperatur()
             if sp_temperatur is None:
                 continue
