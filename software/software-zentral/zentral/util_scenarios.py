@@ -90,7 +90,7 @@ class Scenarios:
             return
 
         logger.info(f"Scenario: Add {scenario!r}")
-        self.remove_if_present(scenario.__class__)
+        # self.remove_if_present(scenario.__class__)
         self._scenarios.append(scenario)
 
     def remove(self, scenario: ScenarioBase) -> None:
@@ -105,6 +105,7 @@ class Scenarios:
         """
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
+                scenario.decrement()
                 return scenario
         return None
 
@@ -131,7 +132,6 @@ class Scenarios:
             return False
 
         logger.info(f"Scenario: Apply {scenario!r}")
-        scenario.decrement()
         return True
 
     def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[ScenarioBase]:
@@ -193,6 +193,14 @@ class ScenarioHausModbusError(ScenarioBase):
 class ScenarioHausPicoRebootReset(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
+    """
+    """
+
+
+@dataclasses.dataclass
+class ScenarioHausValveOpenCloseOthers(ScenarioBase):
+    haus_nummer: int = 13
+    duration_s: float = 20.0
     """
     """
 

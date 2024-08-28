@@ -1,7 +1,7 @@
 import enum
-import sys
 import logging
 import pathlib
+import sys
 
 from pymodbus import ModbusException
 
