@@ -1,9 +1,6 @@
 import enum
 from typing import List
 
-from pymodbus.constants import Endian
-from pymodbus.payload import BinaryPayloadDecoder
-
 from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT, MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_wrapper import ModbusWrapper
 
@@ -31,7 +28,7 @@ class EnumRegisters(enum.IntEnum):
     "Absolute cooling power [kW]"
     ZENTRAL_HEATING_POWER_W = 33
     "Absolute heating power [kW]"
-    ABSOLUTE_POWER_kW = 166
+    ABSOLUTE_POWER_W = 166
     "Absolute Pmax [kW]"
 
 
@@ -79,21 +76,16 @@ class MischventilRegisters:
         return self._read_32bit(EnumRegisters.ZENTRAL_HEATING_POWER_W, factor=1.0)
 
     @property
-    def absolute_power_kW(self) -> float:
-        return self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
+    def absolute_power_W(self) -> float:
+        return self._read_32bit(EnumRegisters.ABSOLUTE_POWER_W, factor=1.0)
 
     def _read_16bit(self, address: int, factor: float) -> float:
         return self._registers[address] * factor
 
     def _read_32bit(self, address: int, factor: float) -> float:
         assert len(self._registers) > address + 2
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            self._registers[address : address + 2],
-            byteorder=Endian.LITTLE,
-            wordorder=Endian.LITTLE,
-        )
-
-        value = decoder.decode_32bit_uint()
+        # See page 2 of https://www.belimo.com/mam/general-documents/system_integration/Modbus/belimo_Modbus-Register_Energy-Valve_v4_01_en-gb.pdf
+        value = (self._registers[address + 1] << 16) + self._registers[address]
 
         return value * factor
 
@@ -157,12 +149,6 @@ class Mischventil:
         )
         assert not response.isError()
 
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            response.registers,
-            byteorder=Endian.LITTLE,
-            wordorder=Endian.LITTLE,
-        )
-
-        value = decoder.decode_32bit_uint()
-
+        # See page 2 of https://www.belimo.com/mam/general-documents/system_integration/Modbus/belimo_Modbus-Register_Energy-Valve_v4_01_en-gb.pdf
+        value = (response.registers[1] << 16) + response.registers[address]
         return value * factor
