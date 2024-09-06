@@ -40,7 +40,7 @@ _UPTIME_MODBUS_SILENT_S = 20.0
 @dataclasses.dataclass
 class Relais:
     relais_0_mischventil_automatik = False
-
+    relais_1_elektro_notheizung = False
     relais_2_brenner1_sperren = False
     relais_3_waermeanforderung_beide = False
     relais_4_brenner2_sperren = False

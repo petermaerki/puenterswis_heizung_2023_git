@@ -1,25 +1,17 @@
 import asyncio
 from typing import Any, List
 
-
-from zentral.constants import (
-    MODBUS_ADDRESS_DAC,
-    MODBUS_ADDRESS_BELIMO,
-    MODBUS_ADDRESS_RELAIS,
-)
-from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
-from pymodbus.pdu import ModbusResponse
-from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from micropython import util_constants
+from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.pdu import ModbusResponse
+
+from zentral import util_modbus_dac, util_modbus_gpio, util_modbus_mischventil
+from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
+from zentral.context import Context
 from zentral.util_modbus import MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
-from zentral.context import Context
-
-from zentral import util_modbus_mischventil
-from zentral import util_modbus_gpio
-from zentral import util_modbus_dac
-
 
 _DS_COUNT = 8
 
@@ -95,7 +87,7 @@ class ModbusMockClient:
                 rsp = ModbusResponse()
                 rsp.registers = [50]
                 return rsp
-            if address == util_modbus_mischventil.EnumRegisters.ABSOLUTE_POWER_kW:
+            if address == util_modbus_mischventil.EnumRegisters.ABSOLUTE_POWER_W:
                 rsp = ModbusResponse()
                 rsp.registers = [100, 100]
                 return rsp

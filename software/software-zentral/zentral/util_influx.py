@@ -191,6 +191,7 @@ class Influx:
                 relais=ctx.hsm_zentral.relais.relais_0_mischventil_automatik,
                 overwrite=ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite,
             )
+            fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
             fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
             fields["relais_3_waermeanforderung_beide"] = int(ctx.hsm_zentral.relais.relais_3_waermeanforderung_beide)
             fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)

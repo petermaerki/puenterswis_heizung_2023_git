@@ -16,7 +16,7 @@ from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais2bis5, ScenarioZentralDrehschalterManuell
+from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
@@ -110,7 +110,7 @@ class ModbusCommunication:
             except ModbusException as e:
                 logger.warning(f"Dac: {e}")
 
-        if not WHILE_HARGASSNER:
+        if True:
             for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
                 try:
                     with self._watchdog_modbus_zentral.activity(pcb.modbus_label):
@@ -118,13 +118,13 @@ class ModbusCommunication:
                 except ModbusException as e:
                     logger.warning(f"{pcb.modbus_label}: {e}")
 
-        if not WHILE_HARGASSNER:
+        if True:
             try:
                 await self.pcbs_dezentral_heizzentrale.update_ventilator(ctx=self, modbus=self._modbus)
             except ModbusException as e:
                 logger.warning(f"pcb13-ventilator: {e}")
 
-        if not WHILE_HARGASSNER:
+        if True:
             if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
                 raise SystemExit(f"ScenarioMischventilModbusSystemExit({self.m._modbus_label})")
             try:
@@ -146,9 +146,10 @@ class ModbusCommunication:
 
                 relais = self._context.hsm_zentral.relais
 
-                scenario = SCENARIOS.find(ScenarioSetRelais2bis5)
+                scenario = SCENARIOS.find(ScenarioSetRelais1bis5)
                 if scenario is not None:
-                    assert isinstance(scenario, ScenarioSetRelais2bis5)
+                    assert isinstance(scenario, ScenarioSetRelais1bis5)
+                    relais.relais_1_elektro_notheizung = scenario.relais_1_elektro_notheizung
                     relais.relais_2_brenner1_sperren = scenario.relais_2_brenner1_sperren
                     relais.relais_3_waermeanforderung_beide = scenario.relais_3_waermeanforderung_beide
                     relais.relais_4_brenner2_sperren = scenario.relais_4_brenner2_sperren
@@ -160,7 +161,7 @@ class ModbusCommunication:
                     await self.r.set(
                         list_gpio=(
                             automatik,
-                            False,
+                            relais.relais_1_elektro_notheizung,
                             relais.relais_2_brenner1_sperren,
                             relais.relais_3_waermeanforderung_beide,
                             relais.relais_4_brenner2_sperren,

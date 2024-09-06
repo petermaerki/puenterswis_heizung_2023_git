@@ -325,8 +325,9 @@ class ScenarioOverwriteMischventil(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioSetRelais2bis5(ScenarioBase):
+class ScenarioSetRelais1bis5(ScenarioBase):
     duration_s: float = 10 * 60.0
+    relais_1_elektro_notheizung: bool = False
     relais_2_brenner1_sperren: bool = False
     relais_3_waermeanforderung_beide: bool = False
     relais_4_brenner2_sperren: bool = False

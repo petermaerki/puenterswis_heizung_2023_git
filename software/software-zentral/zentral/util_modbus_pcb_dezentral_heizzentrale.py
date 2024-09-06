@@ -158,11 +158,6 @@ class PcbsDezentralHeizzentrale:
                 DsPair(_DS6_DS7, "Tsz4_C"),
             ],
         )
-        self._pcb13 = PcbDezentral(
-            modbus_slave_addr=13,
-            list_ds_pair=[],
-            # Relais ventilator
-        )
 
         self.pcbs = (self._pcb10, self._pcb11, self._pcb12)
 
@@ -187,7 +182,7 @@ class PcbsDezentralHeizzentrale:
             self._ventilator_on = True
         gpio = GpioBits(0)
         gpio.relais_valve_open = self._ventilator_on
-        await self._pcb13.write_gpio(ctx=ctx, modbus=modbus, gpio=gpio)
+        await self._pcb11.write_gpio(ctx=ctx, modbus=modbus, gpio=gpio)
 
     def __getattr__(self, attribute_name: str) -> float:
         """
