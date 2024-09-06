@@ -233,7 +233,7 @@ class ControllerMischventil(ControllerMischventilSimple):
             return
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
-        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = self.get_pumpe_gesperrt(ctx)
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
         self.update_mischventil(ctx=ctx, now_s=now_s)

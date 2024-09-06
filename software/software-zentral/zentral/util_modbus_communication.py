@@ -154,18 +154,18 @@ class ModbusCommunication:
                     relais.relais_4_brenner2_sperren = scenario.relais_4_brenner2_sperren
                     relais.relais_5_keine_funktion = scenario.relais_5_keine_funktion
 
-                _overwrite, pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
-                _overwrite, automatik = relais.relais_0_mischventil_automatik_overwrite
+                _overwrite, relais_6_pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
+                _overwrite, relais_0_mischventil_automatik = relais.relais_0_mischventil_automatik_overwrite
                 with self._watchdog_modbus_zentral.activity("relais"):
                     await self.r.set(
                         list_gpio=(
-                            automatik,
+                            relais_0_mischventil_automatik,
                             relais.relais_1_elektro_notheizung,
                             relais.relais_2_brenner1_sperren,
                             relais.relais_3_waermeanforderung_beide,
                             relais.relais_4_brenner2_sperren,
                             relais.relais_5_keine_funktion,
-                            not pumpe_gesperrt,
+                            relais_6_pumpe_gesperrt,
                             relais.relais_7_automatik,
                         )
                     )

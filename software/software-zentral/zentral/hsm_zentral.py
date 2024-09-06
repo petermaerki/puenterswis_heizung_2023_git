@@ -47,12 +47,7 @@ class Relais:
     relais_3_waermeanforderung_beide = False
     relais_4_brenner2_sperren = False
     relais_5_keine_funktion = False
-
     relais_6_pumpe_gesperrt = False
-    """
-    True: Pumpe gesperrt
-    False: Pumpe ein
-    """
     relais_7_automatik = False
 
     @property

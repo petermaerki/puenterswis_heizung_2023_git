@@ -184,9 +184,9 @@ class Influx:
         def mischventil_automatik():
             def overwrite(key: str, relais: bool, overwrite: tuple[bool, bool]) -> None:
                 fields[key] = int(relais)
-                manuell, relais_0_mischventil_automatik = overwrite
+                manuell, relais_x = overwrite
                 if manuell:
-                    fields[key + "_overwrite"] = int(relais_0_mischventil_automatik)
+                    fields[key + "_overwrite"] = int(relais_x)
 
             overwrite(
                 key="relais_0_mischventil_automatik",
@@ -219,11 +219,11 @@ class Influx:
             fields["mischventil_credit_100"] = credit_100
 
         def pumpe():
-            key = "hsm_zentral_relais_6_pumpe_ein"
-            fields[key] = int(ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
+            key = "hsm_zentral_pumpe_ein"
+            fields[key] = int(not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
             manuell, relais_6_pumpe_gesperrt = ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite
             if manuell:
-                fields[key + "_overwrite"] = int(relais_6_pumpe_gesperrt)
+                fields[key + "_overwrite"] = int(not relais_6_pumpe_gesperrt)
 
         mischventil_registers()
         mischventil_automatik()
