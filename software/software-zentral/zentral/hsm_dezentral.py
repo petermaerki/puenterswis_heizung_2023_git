@@ -15,7 +15,7 @@ from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_persistence import Persistence
-from zentral.util_sp_ladung import LadungBodenheizung
+from zentral.util_sp_ladung import LadungMinimum
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -75,7 +75,7 @@ class HsmDezentral(hsm.HsmMixin):
             return None
 
         TODO_TEMPERATUR_AUSSEN_C = 0.0
-        ladung_bodenheizung = LadungBodenheizung(
+        ladung_minimum = LadungMinimum(
             sp_temperatur=sp_temperatur,
             temperatur_aussen_C=TODO_TEMPERATUR_AUSSEN_C,
         )
@@ -83,7 +83,7 @@ class HsmDezentral(hsm.HsmMixin):
         return HausLadung(
             nummer=self.haus.config_haus.nummer,
             verbrauch_W=self.verbrauch.verbrauch_avg_W,
-            ladung_Prozent=ladung_bodenheizung.ladung_prozent,
+            ladung_Prozent=ladung_minimum.ladung_prozent,
             valve_open=self.dezentral_gpio.relais_valve_open,
             next_legionellen_kill_s=self.next_legionellen_kill_s,
         )

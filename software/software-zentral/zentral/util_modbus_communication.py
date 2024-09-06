@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, WHILE_HARGASSNER, ModbusExceptionNoResponseReceived
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -154,7 +154,7 @@ class ModbusCommunication:
                     relais.relais_4_brenner2_sperren = scenario.relais_4_brenner2_sperren
                     relais.relais_5_keine_funktion = scenario.relais_5_keine_funktion
 
-                _overwrite, pumpe_ein = relais.relais_6_pumpe_ein_overwrite
+                _overwrite, pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
                 _overwrite, automatik = relais.relais_0_mischventil_automatik_overwrite
                 with self._watchdog_modbus_zentral.activity("relais"):
                     await self.r.set(
@@ -165,7 +165,7 @@ class ModbusCommunication:
                             relais.relais_3_waermeanforderung_beide,
                             relais.relais_4_brenner2_sperren,
                             relais.relais_5_keine_funktion,
-                            not pumpe_ein,
+                            not pumpe_gesperrt,
                             relais.relais_7_automatik,
                         )
                     )
@@ -177,7 +177,7 @@ class ModbusCommunication:
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
                 logger.warning(f"Relais: {e}")
 
-        if not WHILE_HARGASSNER:
+        if False:  # TODO sobald Oekofen in Betrieb
             try:
                 with self._watchdog_modbus_zentral.activity("oekofen"):
                     all_registers = await self.o.all_registers

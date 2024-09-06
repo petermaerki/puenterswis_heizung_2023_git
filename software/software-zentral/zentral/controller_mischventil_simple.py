@@ -1,7 +1,6 @@
 import logging
 import typing
 
-from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerMischventilABC
 
 if typing.TYPE_CHECKING:
@@ -36,9 +35,6 @@ class ControllerMischventilSimple(ControllerMischventilABC):
 
     def update_hauser_valve(self, ctx: "Context"):
         for haus in ctx.config_etappe.haeuser:
-            if WHILE_HARGASSNER:
-                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
-
             sp_temperatur = haus.get_sp_temperatur()
             if sp_temperatur is None:
                 continue
@@ -47,7 +43,7 @@ class ControllerMischventilSimple(ControllerMischventilABC):
             elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
                 haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
-    def get_pumpe_ein(self, ctx: "Context"):
+    def get_pumpe_gesperrt(self, ctx: "Context"):
         for haus in ctx.config_etappe.haeuser:
             assert haus.status_haus is not None
             hsm_dezentral = haus.status_haus.hsm_dezentral
@@ -57,9 +53,8 @@ class ControllerMischventilSimple(ControllerMischventilABC):
 
     def process(self, ctx: "Context", now_s: float) -> None:
         # This will force a MissingModbusDataException()
-        if not WHILE_HARGASSNER:
-            _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
+        _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
-        ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx=ctx)
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = self.get_pumpe_gesperrt(ctx=ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True

@@ -225,7 +225,7 @@ class ControllerMischventil(ControllerMischventilSimple):
     def process(self, ctx: "Context", now_s: float) -> None:
         self.pumpe_anlaufzeit.pumpe(
             now_s=now_s,
-            ein=ctx.hsm_zentral.relais.relais_6_pumpe_ein,
+            ein=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
         )
         if not self.pumpe_anlaufzeit.pumpe_und_stabil(now_s=now_s):
             return
@@ -233,7 +233,7 @@ class ControllerMischventil(ControllerMischventilSimple):
             return
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
-        ctx.hsm_zentral.relais.relais_6_pumpe_ein = self.get_pumpe_ein(ctx)
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = self.get_pumpe_gesperrt(ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
         self.update_mischventil(ctx=ctx, now_s=now_s)

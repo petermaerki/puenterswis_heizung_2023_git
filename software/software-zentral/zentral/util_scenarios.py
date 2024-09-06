@@ -335,9 +335,9 @@ class ScenarioSetRelais1bis5(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioOverwriteRelais6PumpeEin(ScenarioBase):
+class ScenarioOverwriteRelais6PumpeGesperrt(ScenarioBase):
     duration_s: float = 10 * 60.0
-    pumpe_ein: bool = False
+    pumpe_gesperrt: bool = False
 
 
 @dataclasses.dataclass

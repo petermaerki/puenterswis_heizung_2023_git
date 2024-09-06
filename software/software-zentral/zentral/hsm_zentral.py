@@ -5,7 +5,6 @@ import typing
 
 from hsm import hsm
 
-from zentral.constants import WHILE_HARGASSNER
 from zentral.controller_base import ControllerHaeuserABC, ControllerMischventilABC
 from zentral.controller_haeuser import PeriodNotOverException, ProcessParams, controller_haeuser_factory
 from zentral.controller_haeuser_simple import ControllerHaeuserNone
@@ -18,7 +17,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
-from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeEin
+from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -49,23 +48,24 @@ class Relais:
     relais_4_brenner2_sperren = False
     relais_5_keine_funktion = False
 
-    relais_6_pumpe_ein = False
+    relais_6_pumpe_gesperrt = False
     """
-    While HARGASSNER: Der Wert is invertiert!
+    True: Pumpe gesperrt
+    False: Pumpe ein
     """
     relais_7_automatik = False
 
     @property
-    def relais_6_pumpe_ein_overwrite(self) -> tuple[bool, bool]:
+    def relais_6_pumpe_gesperrt_overwrite(self) -> tuple[bool, bool]:
         """
-        Same as 'self.relais_6_pumpe_ein' but
+        Same as 'self.relais_6_pumpe_gesperrt' but
         may be overwritten by 'ScenarioOverwriteRelais6PumpeEin'.
         return overwrite, value
         """
-        sc = SCENARIOS.find(ScenarioOverwriteRelais6PumpeEin)
+        sc = SCENARIOS.find(ScenarioOverwriteRelais6PumpeGesperrt)
         if sc is not None:
-            return True, sc.pumpe_ein
-        return False, self.relais_6_pumpe_ein
+            return True, sc.pumpe_gesperrt
+        return False, self.relais_6_pumpe_gesperrt
 
     @property
     def relais_0_mischventil_automatik_overwrite(self) -> tuple[bool, bool]:
@@ -179,15 +179,12 @@ class HsmZentral(hsm.HsmMixin):
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=now_s)
         self.controller_haeuser: ControllerHaeuserABC = ControllerHaeuserNone(now_s=now_s)
         self.relais.relais_0_mischventil_automatik = False
-        self.relais.relais_6_pumpe_ein = True
+        self.relais.relais_6_pumpe_gesperrt = True
         self.relais.relais_7_automatik = False
 
         for haus in self.ctx.config_etappe.haeuser:
             assert haus.status_haus is not None
-            if WHILE_HARGASSNER:
-                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
-            else:
-                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
+            haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
     def _drehschalter_switch_state(self) -> typing.NoReturn:
         """

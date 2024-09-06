@@ -5,7 +5,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, Optional
 
-from zentral.constants import WHILE_HARGASSNER
 from zentral.util_persistence import Persistence
 
 if TYPE_CHECKING:
@@ -13,10 +12,7 @@ if TYPE_CHECKING:
     from zentral.hsm_dezentral import HsmDezentral
 
 INTERVAL_VERBRAUCH_HAUS_S = 3600.0
-if WHILE_HARGASSNER:
-    LEAD_TIME_VERBRAUCH_HAUS_S = 3600.0
-else:
-    LEAD_TIME_VERBRAUCH_HAUS_S = 600.0
+LEAD_TIME_VERBRAUCH_HAUS_S = 600.0
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +90,7 @@ class VerbrauchHaus:
         Debug using: ssh -p 8022 localhost
         ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.verbrauch.next_interval_time_s
         ctx.config_etappe.haeuser[8].status_haus.hsm_dezentral.sp_energie_absolut_J
-        ctx.hsm_zentral.relais.relais_6_pumpe_ein
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt
         ctx.hsm_zentral._state_actual.full_name
         """
         self.history: HistoryVerbrauchHaus = HistoryVerbrauchHaus(persistence=persistence)
@@ -105,10 +101,7 @@ class VerbrauchHaus:
         Aktualisiert history sobald interval_s abgelaufen.
         """
         hsm_zentral = context.hsm_zentral
-        if WHILE_HARGASSNER:
-            valve_open = not hsm_zentral.relais.relais_6_pumpe_ein
-        else:
-            valve_open = hsm_dezentral.dezentral_gpio.relais_valve_open
+        valve_open = hsm_dezentral.dezentral_gpio.relais_valve_open
 
         if not hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
             self.next_interval_time_s = None

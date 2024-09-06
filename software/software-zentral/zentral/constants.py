@@ -7,11 +7,6 @@ from pymodbus import ModbusException
 
 logger = logging.getLogger(__name__)
 
-WHILE_HARGASSNER = True
-"""
-Solange ide Hargassner Heizung in Betrieb ist.
-Nachher auf 'False' setzen oder besser entfernen.
-"""
 
 DEVELOPMENT = True
 

@@ -9,7 +9,6 @@ from zentral.constants import add_path_software_zero_dezentral
 from zentral.util_matplotlib import matplot_reset
 from zentral.util_pytest_git import assert_git_unchanged
 
-
 add_path_software_zero_dezentral()
 
 from utils_common.utils_constants import ZERO_VIRGIN
@@ -142,14 +141,14 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
         Tfr_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfr_C
         ctx.hsm_zentral.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=1.0)
         ctx.hsm_zentral.solltemperatur_Tfv = testparam.Tfv_set_C
-        ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = True
 
         p = Plot()
         for now_s in range(30 * 60):
             if True:  # Todo "Set wechsel"
                 if now_s == 1000:
                     ctx.hsm_zentral.solltemperatur_Tfv = 30.0
-            ctx.hsm_zentral.relais.relais_6_pumpe_ein = True
+            ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = True
             ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C = modell_mischventil(
                 Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,

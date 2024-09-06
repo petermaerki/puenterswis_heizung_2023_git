@@ -199,9 +199,9 @@ class Influx:
             fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
             fields["relais_5_keine_funktion"] = int(ctx.hsm_zentral.relais.relais_5_keine_funktion)
             overwrite(
-                key="relais_6_pumpe_ein",
-                relais=ctx.hsm_zentral.relais.relais_6_pumpe_ein,
-                overwrite=ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite,
+                key="relais_6_pumpe_gesperrt",
+                relais=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
+                overwrite=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite,
             )
             # fields["relais_7_automatik"]=int(ctx.hsm_zentral.relais.relais_7_automatik)
 
@@ -220,10 +220,10 @@ class Influx:
 
         def pumpe():
             key = "hsm_zentral_relais_6_pumpe_ein"
-            fields[key] = int(ctx.hsm_zentral.relais.relais_6_pumpe_ein)
-            manuell, relais_6_pumpe_ein = ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite
+            fields[key] = int(ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
+            manuell, relais_6_pumpe_gesperrt = ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite
             if manuell:
-                fields[key + "_overwrite"] = int(relais_6_pumpe_ein)
+                fields[key + "_overwrite"] = int(relais_6_pumpe_gesperrt)
 
         mischventil_registers()
         mischventil_automatik()
