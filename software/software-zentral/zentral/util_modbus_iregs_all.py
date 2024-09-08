@@ -85,7 +85,7 @@ class ModbusIregsAll:
             oben_C=temperature_oben.temperature_C,
         )
 
-    def ladung_minimum(self, temperatur_aussen_C=-8.0) -> LadungMinimum:
+    def ladung_minimum(self, temperatur_aussen_C) -> LadungMinimum:
         sp_temperature = self.sp_temperatur
         if sp_temperature is None:
             return None

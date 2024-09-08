@@ -103,7 +103,7 @@ class Influx:
         # except TimeoutError:
         #     logger.exception("Failed to write to influx")
 
-    async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll") -> None:
+    async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll", temperatur_aussen_C: float) -> None:
         assert haus.status_haus is not None
 
         if not haus.status_haus.interval_haus_temperatures.time_over:
@@ -135,7 +135,7 @@ class Influx:
         # if haus.config_haus.nummer == 13:
         #     logger.info(fields)
 
-        ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
+        ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
         if ladung_minimum is not None:
             fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
             fields["ladung_heizung_prozent"] = ladung_minimum.ladung_bodenheizung.ladung_prozent

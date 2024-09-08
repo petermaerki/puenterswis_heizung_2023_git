@@ -21,6 +21,8 @@ class HausLadung:
         assert isinstance(self.ladung_Prozent, float)
         assert isinstance(self.valve_open, bool)
         assert isinstance(self.next_legionellen_kill_s, float)
+        if self.verbrauch_W is None:
+            self.verbrauch_W = 0.0
         if self.verbrauch_W < 0.0:
             self.verbrauch_W = 0.0
 

@@ -52,7 +52,7 @@ class ModbusHaus:
         except ModbusException as e:
             logger.warning(f"{haus.label}: TODO {e}")
 
-    async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
+    async def handle_haus(self, haus: "Haus", grafana: Influx, temperatur_aussen_C: float) -> bool:
         try:
             for _ in SCENARIOS.iter_by_class_haus(ScenarioHausModbusNoResponseReceived, haus=haus):
                 raise ModbusExceptionNoResponseReceived(ScenarioHausModbusNoResponseReceived.__name__)
@@ -77,7 +77,7 @@ class ModbusHaus:
         ):
             await self.reboot_reset(haus=haus)
 
-        await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2)
+        await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2, temperatur_aussen_C)
         haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))
 
         return True

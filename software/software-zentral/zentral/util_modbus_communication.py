@@ -80,12 +80,14 @@ class ModbusCommunication:
         await self._modbus.close()
         await self._modbus_oekofen.close()
 
-    async def modbus_haueser_loop(self) -> None:
+    async def modbus_haeuser_loop(self) -> None:
         from zentral.util_modbus_haus import ModbusHaus
 
+        # TODO: Verhalten falls 'class PcbDezentral': 'self.modbus_iregs_all2 is None'
+        temperatur_aussen_C = self._context.modbus_communication.pcbs_dezentral_heizzentrale.Taussen_C
         for haus in self._context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
-            success = await modbus_haus.handle_haus(haus, self._context.influx)
+            success = await modbus_haus.handle_haus(haus, self._context.influx, temperatur_aussen_C)
             if success:
                 await modbus_haus.handle_haus_gpio(haus)
 
@@ -98,7 +100,16 @@ class ModbusCommunication:
 
     async def _handle_modbus(self):
         if True:
-            await self.modbus_haueser_loop()
+            # The pcbs_dezentral are essential for the following calculations: Initialize it first!
+            for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
+                try:
+                    with self._watchdog_modbus_zentral.activity(pcb.modbus_label):
+                        await pcb.read(ctx=self._context, modbus=self._modbus)
+                except ModbusException as e:
+                    logger.warning(f"{pcb.modbus_label}: {e}")
+
+        if True:
+            await self.modbus_haeuser_loop()
 
         self._context.hsm_zentral.controller_process(ctx=self._context)
         if True:
@@ -110,18 +121,10 @@ class ModbusCommunication:
                 logger.warning(f"Dac: {e}")
 
         if True:
-            for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
-                try:
-                    with self._watchdog_modbus_zentral.activity(pcb.modbus_label):
-                        await pcb.read(ctx=self._context, modbus=self._modbus)
-                except ModbusException as e:
-                    logger.warning(f"{pcb.modbus_label}: {e}")
-
-        if True:
             try:
                 await self.pcbs_dezentral_heizzentrale.update_ventilator(ctx=self, modbus=self._modbus)
             except ModbusException as e:
-                logger.warning(f"pcb13-ventilator: {e}")
+                logger.warning(f"pcb11-ventilator: {e}")
 
         if True:
             if SCENARIOS.remove_if_present(ScenarioMischventilModbusSystemExit):
