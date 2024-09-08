@@ -96,7 +96,7 @@ class Influx:
         try:
             self._api.write(bucket=self._bucket, record=records._records)
         except Exception as e:
-            logger.exception("Failed to write to influx", e)
+            logger.exception("Failed to write to influx", exc_info=e)
         # TODO: Test the error handling!
         # except ClientConnectorError:
         #     logger.exception("Failed to write to influx")
@@ -137,8 +137,9 @@ class Influx:
 
         ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
         if ladung_minimum is not None:
+            if not ladung_minimum.ladung_bodenheizung.is_sommer:
+                fields["ladung_heizung_prozent"] = ladung_minimum.ladung_bodenheizung.ladung_prozent
             fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
-            fields["ladung_heizung_prozent"] = ladung_minimum.ladung_bodenheizung.ladung_prozent
             fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
 
         r = InfluxRecords(haus=haus)
