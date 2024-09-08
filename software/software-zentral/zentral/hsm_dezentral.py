@@ -74,7 +74,6 @@ class HsmDezentral(hsm.HsmMixin):
         if sp_temperatur is None:
             return None
 
-        # TODO: Verhalten falls 'class PcbDezentral': 'self.modbus_iregs_all2 is None'
         Taussen_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.Taussen_C
         ladung_minimum = LadungMinimum(
             sp_temperatur=sp_temperatur,

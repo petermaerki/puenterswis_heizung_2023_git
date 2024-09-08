@@ -9,6 +9,7 @@ from zentral.util_constants_haus import SpPosition
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
+from zentral.util_sp_ladung_zentral import LadungZentral, SpTemperaturZentral
 from zentral.util_uploadinterval import UploadInterval
 
 logger = logging.getLogger(__name__)
@@ -207,3 +208,14 @@ class PcbsDezentralHeizzentrale:
         for label in dict_temperatures_C:
             assert label in self._dict_label_2_pcb, f"Unknown label={label}! {','.join(self._dict_label_2_pcb)}"
         self.dict_mock_temperatures_C = dict_temperatures_C
+
+    @property
+    def sp_ladung_zentral_prozent(self) -> float:
+        sp_temperatur = SpTemperaturZentral(
+            Tsz1_C=self.Tsz1_C,
+            Tsz2_C=self.Tsz2_C,
+            Tsz3_C=self.Tsz3_C,
+            Tsz4_C=self.Tsz4_C,
+        )
+        ladung_zentral = LadungZentral(sp_temperatur=sp_temperatur)
+        return ladung_zentral.ladung_prozent

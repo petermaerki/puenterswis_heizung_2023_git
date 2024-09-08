@@ -83,7 +83,6 @@ class ModbusCommunication:
     async def modbus_haeuser_loop(self) -> None:
         from zentral.util_modbus_haus import ModbusHaus
 
-        # TODO: Verhalten falls 'class PcbDezentral': 'self.modbus_iregs_all2 is None'
         temperatur_aussen_C = self._context.modbus_communication.pcbs_dezentral_heizzentrale.Taussen_C
         for haus in self._context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
@@ -98,15 +97,28 @@ class ModbusCommunication:
 
             # await modbus_haus.reboot_reset(haus=haus)
 
+    async def read_modbus_pcbs_dezentral_heizzentrale(self):
+        # We wait for max 20s. This may happen if a pcb reboots.
+        retries = 10
+        sleep_s = 2.0
+
+        async def read_pcb(pcb: PcbsDezentralHeizzentrale) -> None:
+            for retry in range(retries):
+                try:
+                    await pcb.read(ctx=self._context, modbus=self._modbus)
+                    return
+                except ModbusException as e:
+                    logger.warning(f"Retry {retry+1}({retries}): {pcb.modbus_label}: {e}")
+                    await asyncio.sleep(sleep_s)
+
+            raise SystemExit(f"Failed to communicate with pcb {pcb.modbus_label}!")
+
+        for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
+            await read_pcb(pcb)
+
     async def _handle_modbus(self):
         if True:
-            # The pcbs_dezentral are essential for the following calculations: Initialize it first!
-            for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
-                try:
-                    with self._watchdog_modbus_zentral.activity(pcb.modbus_label):
-                        await pcb.read(ctx=self._context, modbus=self._modbus)
-                except ModbusException as e:
-                    logger.warning(f"{pcb.modbus_label}: {e}")
+            await self.read_modbus_pcbs_dezentral_heizzentrale()
 
         if True:
             await self.modbus_haeuser_loop()

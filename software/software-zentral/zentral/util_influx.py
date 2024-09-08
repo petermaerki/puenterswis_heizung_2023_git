@@ -226,11 +226,16 @@ class Influx:
             if manuell:
                 fields[key + "_overwrite"] = int(not relais_6_pumpe_gesperrt)
 
+        def ladung_zentral():
+            pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
+            fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
+
         mischventil_registers()
         mischventil_automatik()
         mischventil_stellwert_100()
         mischventil_credit()
         pumpe()
+        ladung_zentral()
         await self.write_records(records=r)
 
 

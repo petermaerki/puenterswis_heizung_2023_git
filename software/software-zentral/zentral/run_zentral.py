@@ -16,6 +16,9 @@ async def start_application(ctx: Context) -> None:
     await ctx.init()
     await ctx.create_ssh_repl()
 
+    # The pcbs_dezentral are essential for the following calculations: Initialize it first!
+    await ctx.modbus_communication.read_modbus_pcbs_dezentral_heizzentrale()
+
     asyncio.create_task(ctx.modbus_communication.task_modbus())
     asyncio.create_task(ctx.task_hsm())
     asyncio.create_task(ctx.task_verbrauch())
