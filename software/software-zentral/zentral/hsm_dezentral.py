@@ -15,7 +15,7 @@ from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_persistence import Persistence
-from zentral.util_sp_ladung import LadungMinimum
+from zentral.util_sp_ladung_dezentral import LadungMinimum
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus

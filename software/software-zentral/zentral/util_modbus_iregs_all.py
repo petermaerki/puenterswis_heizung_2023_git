@@ -5,7 +5,7 @@ from micropython.portable_modbus_registers import IREGS_ALL, GpioBits
 
 from zentral.util_ds18_pairs import DS18, DS18_COUNT, DS18_PAIR_COUNT, DS18_0C_cK, DS18_MEASUREMENT_FAILED_cK, DS18_Pair
 from zentral.util_scenarios import SpPosition
-from zentral.util_sp_ladung import LadungMinimum, SpTemperatur
+from zentral.util_sp_ladung_dezentral import LadungMinimum, SpTemperatur
 
 if TYPE_CHECKING:
     pass
