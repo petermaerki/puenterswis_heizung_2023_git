@@ -41,6 +41,7 @@ class ConfigHaus:
     addresse: str = dataclasses.field(hash=False, compare=False)
     bewohner: str = dataclasses.field(hash=False, compare=False)
     etappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
+    mbus_address: str = dataclasses.field(hash=False, compare=False)
 
     @property
     def haus_maerki(self) -> bool:

@@ -5,11 +5,13 @@ import signal
 import typing
 
 from zentral import util_ssh_repl
-from zentral.config_base import ConfigEtappe
+from zentral.config_base import ConfigEtappe, Haus
 from zentral.constants import DIRECTORY_LOG
 from zentral.hsm_zentral import HsmZentral
 from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
+from zentral.util_mbus import MBus, MBusMeasurement
+from zentral.util_modbus import get_serial_port2
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_persistence_legionellen import LEGIONELLEN_KILLED_C, PersistenceLegionellen
@@ -25,6 +27,8 @@ class Context:
     def __init__(self, config_etappe: ConfigEtappe):
         self.config_etappe = config_etappe
         self.modbus_communication = self._factory_modbus_communication()
+        port = get_serial_port2(n=2)
+        self.mbus = MBus(port=port)
         self.influx = Influx()
         self.hsm_zentral = HsmZentral(ctx=self)
         self.hsm_zentral.init()
@@ -132,6 +136,34 @@ class Context:
                     await haus.status_haus.hsm_dezentral.handle_history_verbrauch()
 
                 await asyncio.sleep(INTERVAL_VERBRAUCH_HAUS_S / 100.0)
+
+    async def task_mbus(self) -> None:
+        async with exception_handler_and_exit(ctx=self, task_name="mbus", exit_code=46):
+
+            async def read(haus: Haus) -> MBusMeasurement | None:
+                if haus.status_haus is None:
+                    relais_valve_open = False
+                else:
+                    relais_valve_open = haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open
+                max_retries = 5
+                for _ in range(max_retries):
+                    measurement = await self.mbus.read_mulical303_or_None(
+                        address=haus.config_haus.mbus_address,
+                        relais_valve_open=relais_valve_open,
+                    )
+                    if measurement is None:
+                        continue
+                    haus.status_haus.hsm_dezentral.mbus_measurement = measurement
+                    await self.influx.send_mbus(haus=haus, mbus_measurement=measurement)
+                    return
+
+                logger.warning(f"Haus {haus.config_haus.nummer}: Failed to read from mbus address {haus.config_haus.mbus_address}")
+
+            while True:
+                for haus in self.config_etappe.haeuser:
+                    await read(haus)
+
+                await asyncio.sleep(3600.0 / 2)
 
     async def __aenter__(self):
         await self.modbus_communication.connect()

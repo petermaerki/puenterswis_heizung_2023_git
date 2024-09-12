@@ -12,6 +12,7 @@ from zentral.config_secrets import InfluxSecrets
 from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
 from zentral.util_ds18_pairs import DS18
+from zentral.util_mbus import MBusMeasurement
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
 if TYPE_CHECKING:
@@ -166,6 +167,11 @@ class Influx:
             pass
 
         r.add_fields(fields=fields)
+        await self.write_records(records=r)
+
+    async def send_mbus(self, haus: Haus, mbus_measurement: MBusMeasurement) -> None:
+        r = InfluxRecords(haus=haus)
+        r.add_fields(fields=mbus_measurement.influx_fields("dezentral_mbus_tmp_"))
         await self.write_records(records=r)
 
     async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:

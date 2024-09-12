@@ -22,6 +22,7 @@ async def start_application(ctx: Context) -> None:
     asyncio.create_task(ctx.modbus_communication.task_modbus())
     asyncio.create_task(ctx.task_hsm())
     asyncio.create_task(ctx.task_verbrauch())
+    asyncio.create_task(ctx.task_mbus())
 
 
 async def main():

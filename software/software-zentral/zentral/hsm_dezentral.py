@@ -13,6 +13,7 @@ from zentral.util_controller_haus_ladung import HausLadung
 from zentral.util_history_modbus import HistoryModbus
 from zentral.util_history_verbrauch_haus import VerbrauchHaus
 from zentral.util_logger import HsmLoggingLogger
+from zentral.util_mbus import MBusMeasurement
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_persistence import Persistence
 from zentral.util_sp_ladung_dezentral import LadungMinimum
@@ -35,6 +36,7 @@ class HsmDezentral(hsm.HsmMixin):
         self.add_logger(HsmLoggingLogger(label=f"HsmHaus{haus.config_haus.nummer:02}"))
         self.modbus_history = HistoryModbus()
         self.modbus_iregs_all: ModbusIregsAll2 | None = None
+        self.mbus_measurement: MBusMeasurement | None = None
         self.dezentral_gpio = GpioBits(0)
         """
         Why this variable? 
