@@ -23,3 +23,4 @@ software/software-zero/keys/*/id_rsa
 software/software-zero/log/*
 software/software-zero/rootfs/etc/systemd/system/heizung-ssh-tunnel.service
 software/software-zentral/persistence/*.json
+software/software-zentral/zentral/mbus*/*

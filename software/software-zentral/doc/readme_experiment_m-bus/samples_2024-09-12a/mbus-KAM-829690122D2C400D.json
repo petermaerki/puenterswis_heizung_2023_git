@@ -1,0 +1,192 @@
+{
+    "body": {
+        "header": {
+            "access_no": 31,
+            "identification": "0x82, 0x96, 0x90, 0x12",
+            "manufacturer": "KAM",
+            "medium": "0xd",
+            "sign": "0x0, 0x0",
+            "status": "0x0",
+            "type": "0x72",
+            "version": "0x40"
+        },
+        "records": [
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.ENERGY_WH",
+                "unit": "MeasureUnit.WH",
+                "value": 4000
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.ENERGY_WH",
+                "unit": "MeasureUnit.WH",
+                "unit_enh": "VIFUnitEnhExt.NEGATIVE_ACCUMULATION",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.VOLUME",
+                "unit": "MeasureUnit.M3",
+                "value": 0.440000000000000002220446049250313080847263336181640625
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.MANUFACTURER_SPEC",
+                "unit": "MeasureUnit.NONE",
+                "unit_enh": "VIFUnitEnhExt.UNKNOWN_ENHANCEMENT",
+                "value": 26
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.MANUFACTURER_SPEC",
+                "unit": "MeasureUnit.NONE",
+                "unit_enh": "VIFUnitEnhExt.UNKNOWN_ENHANCEMENT",
+                "value": 22
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.ON_TIME",
+                "unit": "MeasureUnit.SECONDS",
+                "value": 14029200
+            },
+            {
+                "function": "FunctionType.ERROR_STATE_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.ON_TIME",
+                "unit": "MeasureUnit.SECONDS",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.FLOW_TEMPERATURE",
+                "unit": "MeasureUnit.C",
+                "value": 42.2300000000000039790393202565610408782958984375
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.RETURN_TEMPERATURE",
+                "unit": "MeasureUnit.C",
+                "value": 23.120000000000000994759830064140260219573974609375
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.TEMPERATURE_DIFFERENCE",
+                "unit": "MeasureUnit.K",
+                "value": 19.1099999999999994315658113919198513031005859375
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.POWER_W",
+                "unit": "MeasureUnit.W",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.MAXIMUM_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.POWER_W",
+                "unit": "MeasureUnit.W",
+                "value": 1700
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.VOLUME_FLOW",
+                "unit": "MeasureUnit.M3_H",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.MAXIMUM_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.VOLUME_FLOW",
+                "unit": "MeasureUnit.M3_H",
+                "value": 0.1600000000000000033306690738754696212708950042724609375
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 0,
+                "type": "VIFUnit.MANUFACTURER_SPEC",
+                "unit": "MeasureUnit.NONE",
+                "unit_enh": "VIFUnitEnhExt.PER_HOUR",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.ENERGY_WH",
+                "unit": "MeasureUnit.WH",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.ENERGY_WH",
+                "unit": "MeasureUnit.WH",
+                "unit_enh": "VIFUnitEnhExt.NEGATIVE_ACCUMULATION",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.VOLUME",
+                "unit": "MeasureUnit.M3",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.MANUFACTURER_SPEC",
+                "unit": "MeasureUnit.NONE",
+                "unit_enh": "VIFUnitEnhExt.UNKNOWN_ENHANCEMENT",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.MANUFACTURER_SPEC",
+                "unit": "MeasureUnit.NONE",
+                "unit_enh": "VIFUnitEnhExt.UNKNOWN_ENHANCEMENT",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.MAXIMUM_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.POWER_W",
+                "unit": "MeasureUnit.W",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.MAXIMUM_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.VOLUME_FLOW",
+                "unit": "MeasureUnit.M3_H",
+                "value": 0
+            },
+            {
+                "function": "FunctionType.INSTANTANEOUS_VALUE",
+                "storage_number": 1,
+                "type": "VIFUnit.DATE",
+                "unit": "MeasureUnit.DATE",
+                "value": "2024-07-01"
+            }
+        ]
+    },
+    "head": {
+        "a": "0xc",
+        "c": "0x8",
+        "crc": "0x5a",
+        "length": "0x88",
+        "start": "0x68",
+        "stop": "0x16"
+    }
+}
