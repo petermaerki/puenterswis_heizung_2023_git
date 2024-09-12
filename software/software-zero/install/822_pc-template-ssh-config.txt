@@ -1,0 +1,23 @@
+Host zero-vrigin_maerki.com
+  Port 8851
+  TCPKeepAlive No
+  ForwardAgent true
+  ServerAliveInterval 15
+  HostName localhost
+  User zero
+
+Host zero-bochs_maerki.com
+  Port 8852
+  TCPKeepAlive No
+  ForwardAgent true
+  ServerAliveInterval 15
+  HostName localhost
+  User zero
+
+Host zero-puent_maerki.com
+  Port 8853
+  TCPKeepAlive No
+  ForwardAgent true
+  ServerAliveInterval 15
+  HostName localhost
+  User zero
