@@ -24,6 +24,25 @@ class ControllerHaeuserSimple(ControllerHaeuserABC):
     GRENZE_LADUNG_EIN_PROZENT = 0.0
     GRENZE_LADUNG_AUS_PROZENT = 100.0
 
+    if False:
+        GRENZE_LADUNG_EIN_PROZENT = 60.0
+
+    if False:
+        GRENZE_LADUNG_EIN_PROZENT = -500.0
+        GRENZE_LADUNG_AUS_PROZENT = -40.0
+
+    if True:
+        GRENZE_LADUNG_EIN_PROZENT = 0.0
+        GRENZE_LADUNG_AUS_PROZENT = 25.0
+
+    if False:
+        GRENZE_LADUNG_EIN_PROZENT = 60.0
+        GRENZE_LADUNG_AUS_PROZENT = 100.0
+
+    if False:
+        GRENZE_LADUNG_EIN_PROZENT = 100.0
+        GRENZE_LADUNG_AUS_PROZENT = 120.0
+
     def __init__(self, now_s: float):
         super().__init__(now_s=now_s)
 

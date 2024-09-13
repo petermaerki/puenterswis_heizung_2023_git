@@ -101,17 +101,19 @@ class LadungBodenheizung(LadungBase):
     def ladung_prozent(self) -> float:
         uebergangsbereich_C = 2.0  # Uebergangsbereich damit kein abrupter Wechsel
         ladung_falls_heizperiode_prozent = self.energie_J / self.energie_100_J * 100.0
-        return linear_transition(
+        transition_prozent = linear_transition(
             x=self.temperatur_aussen_C,
             start_x=self.AUSSENTEMPERATURGENZE_HEIZEN_C,
             end_x=self.AUSSENTEMPERATURGENZE_HEIZEN_C + uebergangsbereich_C,
             start_y=ladung_falls_heizperiode_prozent,
             end_y=self.MAX_PROZENT,
         )
+        return max(transition_prozent, ladung_falls_heizperiode_prozent)
 
     @property
     def is_sommer(self) -> float:
-        return self.ladung_prozent > self.MAX_PROZENT - 1.0
+        # return self.ladung_prozent > self.MAX_PROZENT - 1.0
+        return self.temperatur_aussen_C > self.AUSSENTEMPERATURGENZE_HEIZEN_C
 
 
 def _baden_energie_J(sp_temperatur: SpTemperatur) -> float:
