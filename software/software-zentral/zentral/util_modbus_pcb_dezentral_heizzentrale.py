@@ -124,7 +124,7 @@ _DS6_DS7 = SpPosition.OBEN
 
 
 class PcbsDezentralHeizzentrale:
-    def __init__(self) -> None:
+    def __init__(self, is_bochs: bool) -> None:
         self.dict_mock_temperatures_C: dict[str, float] | None = None
         """
         if None: read temperatures via modbus
@@ -160,7 +160,16 @@ class PcbsDezentralHeizzentrale:
             ],
         )
 
-        self.pcbs = (self._pcb10, self._pcb11, self._pcb12)
+        self.pcbs: list[PcbDezentral] = [self._pcb10, self._pcb11, self._pcb12]
+
+        if is_bochs:
+            self._pcb13 = PcbDezentral(
+                modbus_slave_addr=13,
+                list_ds_pair=[
+                    DsPair(_DS0_DS1, "TinnenB_C"),
+                ],
+            )
+            self.pcbs.append(self._pcb13)
 
         self._dict_label_2_pcb: dict[str, PcbDezentral] = {}
         for pcb in self.pcbs:

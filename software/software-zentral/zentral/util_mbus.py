@@ -57,7 +57,7 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # type: VIFUnit.ENERGY_WH,
     # unit: MeasureUnit.WH,
     # value: 4000
-    MbusMeasurementSpec(1, 60, "Heat energy E1", 1, int, "energy_E1_Wh", VIFUnit.ENERGY_WH, MeasureUnit.WH),
+    MbusMeasurementSpec(1, 60, "Heat energy E1", 1, int, "energy_heating_E1_Wh", VIFUnit.ENERGY_WH, MeasureUnit.WH),
     # 2
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
@@ -65,7 +65,7 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # unit: MeasureUnit.WH,
     # unit_enh: VIFUnitEnhExt.NEGATIVE_ACCUMULATION,
     # value: 0
-    MbusMeasurementSpec(2, 63, "Cooling energy E3", 2, int, "energy_E3_Wh", VIFUnit.ENERGY_WH, MeasureUnit.WH),
+    MbusMeasurementSpec(2, 63, "Cooling energy E3", 2, int, "energy_cooling_E3_Wh", VIFUnit.ENERGY_WH, MeasureUnit.WH),
     # 3
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
@@ -297,8 +297,8 @@ class MBus:
 class MBusMeasurement:
     time_s: float
     relais_valve_open: bool
-    energy_E1_Wh: float
-    energy_E3_Wh: float
+    energy_heating_E1_Wh: float
+    energy_cooling_E3_Wh: float
     volume_m3: float
     energy_E8_XXX: float
     energy_E9_XXX: float
@@ -311,7 +311,9 @@ class MBusMeasurement:
     flow_v1_m3h: float
 
     def influx_fields(self, prefix: str) -> dict[str, typing.Any]:
-        dict_influx: dict[str, typing.Any] = {}
+        dict_influx: dict[str, typing.Any] = {
+            prefix + "energy_E1_minus_E3_Wh": self.energy_E1_minus_E3_Wh,
+        }
         for field in dataclasses.fields(self.__class__):
             if field.name == "time_s":
                 # influxdb will add its own timestamp
@@ -319,6 +321,10 @@ class MBusMeasurement:
             value = getattr(self, field.name)
             dict_influx[prefix + field.name] = value
         return dict_influx
+
+    @property
+    def energy_E1_minus_E3_Wh(self) -> float:
+        return self.energy_heating_E1_Wh - self.energy_cooling_E3_Wh
 
     @staticmethod
     def factory(records: list[dict[str, str]], time_s: float, relais_valve_open: bool) -> MBusMeasurement:

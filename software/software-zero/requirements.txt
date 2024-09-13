@@ -10,6 +10,7 @@ influxdb-client
 aiohttp # Required by influxdb-client
 
 pymodbus==3.6.9
+pyMeterBus
 # aiomonitor
 # aioconsole
 ptpython

@@ -65,7 +65,7 @@ class ModbusCommunication:
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
         self.r = Gpio(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
-        self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale()
+        self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, MODBUS_ADDRESS_OEKOFEN)
 
@@ -171,19 +171,20 @@ class ModbusCommunication:
 
                 _overwrite, relais_6_pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
                 _overwrite, relais_0_mischventil_automatik = relais.relais_0_mischventil_automatik_overwrite
-                with self._watchdog_modbus_zentral.activity("relais"):
-                    await self.r.set(
-                        list_gpio=(
-                            relais_0_mischventil_automatik,
-                            relais.relais_1_elektro_notheizung,
-                            relais.relais_2_brenner1_sperren,
-                            relais.relais_3_waermeanforderung_beide,
-                            relais.relais_4_brenner2_sperren,
-                            relais.relais_5_keine_funktion,
-                            relais_6_pumpe_gesperrt,
-                            relais.relais_7_automatik,
+                if self._context.hsm_zentral.relays_are_powered():
+                    with self._watchdog_modbus_zentral.activity("relais"):
+                        await self.r.set(
+                            list_gpio=(
+                                relais_0_mischventil_automatik,
+                                relais.relais_1_elektro_notheizung,
+                                relais.relais_2_brenner1_sperren,
+                                relais.relais_3_waermeanforderung_beide,
+                                relais.relais_4_brenner2_sperren,
+                                relais.relais_5_keine_funktion,
+                                relais_6_pumpe_gesperrt,
+                                relais.relais_7_automatik,
+                            )
                         )
-                    )
 
                 self.drehschalter.ok()
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())

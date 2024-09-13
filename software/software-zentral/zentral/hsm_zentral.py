@@ -101,6 +101,13 @@ class HsmZentral(hsm.HsmMixin):
     def mischventil_stellwert_V(self) -> float:
         return ControllerMischventil.calculate_valve_V(stellwert_100=self.mischventil_stellwert_100)
 
+    def relays_are_powered(self) -> bool:
+        if self.is_state(self.state_initializing):
+            return False
+        if self.is_state(self.state_ok_drehschaltermanuell):
+            return False
+        return True
+
     @property
     def mischventil_stellwert_100_overwrite(self) -> tuple[bool, float]:
         """

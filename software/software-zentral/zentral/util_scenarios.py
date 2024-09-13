@@ -231,6 +231,12 @@ class ScenarioHausModbusSystemExit(ScenarioBase):
 
 
 @dataclasses.dataclass
+class ScenarioMBusReadInterval(ScenarioBase):
+    duration_s: float = 10 * 60.0
+    sleep_s: float = 60.0
+
+
+@dataclasses.dataclass
 class ScenarioInfluxWriteCrazy(ScenarioBase):
     duration_s: float = 10 * 60.0
 

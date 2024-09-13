@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import signal
+import time
 import typing
 
 from zentral import util_ssh_repl
@@ -15,7 +16,7 @@ from zentral.util_modbus import get_serial_port2
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_persistence_legionellen import LEGIONELLEN_KILLED_C, PersistenceLegionellen
-from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ssh_repl_update_scenarios
+from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ScenarioMBusReadInterval, ssh_repl_update_scenarios
 
 logger = logging.getLogger(__name__)
 
@@ -159,11 +160,27 @@ class Context:
 
                 logger.warning(f"Haus {haus.config_haus.nummer}: Failed to read from mbus address {haus.config_haus.mbus_address}")
 
+            async def scenario_sleep(sleep_s: float):
+                """
+                Sleeps 'sleep_s' seconds.
+                However, `ScenarioMBusReadInterval` may reduce this time.
+                """
+                begin_s = time.monotonic()
+                while True:
+                    scenario = SCENARIOS.find(ScenarioMBusReadInterval)
+                    if scenario is not None:
+                        await asyncio.sleep(scenario.sleep_s)
+                        return
+                    duration_s = time.monotonic() - begin_s
+                    if duration_s > sleep_s:
+                        return
+                    await asyncio.sleep(10.0)
+
             while True:
                 for haus in self.config_etappe.haeuser:
                     await read(haus)
 
-                await asyncio.sleep(3600.0 / 2)
+                await scenario_sleep(sleep_s=3000.0 / 2)
 
     async def __aenter__(self):
         await self.modbus_communication.connect()
