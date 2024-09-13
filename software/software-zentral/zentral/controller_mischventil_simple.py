@@ -1,6 +1,7 @@
 import logging
 import typing
 
+from zentral.constants import BETRIEB_ELEKTRO_NOTHEIZUNG
 from zentral.controller_base import ControllerMischventilABC
 
 if typing.TYPE_CHECKING:
@@ -10,8 +11,26 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerMischventilNone(ControllerMischventilABC):
+    ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C = 65.0
+    ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C = 75.0
+
+    def process_elektro_notheizung(self, ctx: "Context") -> None:
+        if BETRIEB_ELEKTRO_NOTHEIZUNG:
+            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > self.ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C:
+                # Zu warm: Ausschalten
+                ctx.hsm_zentral.relais.relais_1_elektro_notheizung = False
+                return
+            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < self.ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C:
+                # Zu kalt: Einschalten
+                ctx.hsm_zentral.relais.relais_1_elektro_notheizung = True
+                return
+            return
+
+        # Kein Notheizbetrieb: Ausschalten
+        ctx.hsm_zentral.relais.relais_1_elektro_notheizung = None
+
     def process(self, ctx: "Context", now_s: float) -> None:
-        pass
+        self.process_elektro_notheizung(ctx=ctx)
 
     def get_credit_100(self) -> float | None:
         """
@@ -20,7 +39,7 @@ class ControllerMischventilNone(ControllerMischventilABC):
         return None
 
 
-class ControllerMischventilSimple(ControllerMischventilABC):
+class ControllerMischventilSimple(ControllerMischventilNone):
     """
     Stellgrössen:
     * Pumpe ein/aus
@@ -58,3 +77,4 @@ class ControllerMischventilSimple(ControllerMischventilABC):
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
         ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
+        self.process_elektro_notheizung(ctx=ctx)

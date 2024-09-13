@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 DEVELOPMENT = True
-
+BETRIEB_ELEKTRO_NOTHEIZUNG = True
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
