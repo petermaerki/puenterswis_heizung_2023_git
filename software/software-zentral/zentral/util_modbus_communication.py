@@ -11,10 +11,10 @@ from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_dac import Dac
 from zentral.util_modbus_exception import exception_handler_and_exit
-from zentral.util_modbus_gpio import Gpio
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
+from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
@@ -63,7 +63,7 @@ class ModbusCommunication:
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
 
         self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
-        self.r = Gpio(self._modbus, MODBUS_ADDRESS_RELAIS)
+        self.r = ModbusRelais(self._modbus, MODBUS_ADDRESS_RELAIS)
         self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
         self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
         self.drehschalter = Drehschalter()
@@ -171,27 +171,26 @@ class ModbusCommunication:
 
                 _overwrite, relais_6_pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
                 _overwrite, relais_0_mischventil_automatik = relais.relais_0_mischventil_automatik_overwrite
-                if self._context.hsm_zentral.relays_are_powered():
-                    with self._watchdog_modbus_zentral.activity("relais"):
-                        await self.r.set(
-                            list_gpio=(
-                                relais_0_mischventil_automatik,
-                                relais.relais_1_elektro_notheizung,
-                                relais.relais_2_brenner1_sperren,
-                                relais.relais_3_waermeanforderung_beide,
-                                relais.relais_4_brenner2_sperren,
-                                relais.relais_5_keine_funktion,
-                                relais_6_pumpe_gesperrt,
-                                relais.relais_7_automatik,
-                            )
-                        )
+                await self.r.set(
+                    list_gpio=(
+                        relais_0_mischventil_automatik,
+                        relais.relais_1_elektro_notheizung,
+                        relais.relais_2_brenner1_sperren,
+                        relais.relais_3_waermeanforderung_beide,
+                        relais.relais_4_brenner2_sperren,
+                        relais.relais_5_keine_funktion,
+                        relais_6_pumpe_gesperrt,
+                        relais.relais_7_automatik,
+                    )
+                )
 
                 self.drehschalter.ok()
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
             except ModbusException as e:
                 self.drehschalter.no_response()
                 self._context.hsm_zentral.dispatch(SignalDrehschalter())
-                logger.warning(f"Relais: {e}")
+                if not self.drehschalter.is_manuell:
+                    logger.warning(f"Relais: {e}")
 
         if False:  # TODO sobald Oekofen in Betrieb
             try:

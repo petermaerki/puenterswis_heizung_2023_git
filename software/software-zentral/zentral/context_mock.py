@@ -6,7 +6,7 @@ from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.pdu import ModbusResponse
 
-from zentral import util_modbus_dac, util_modbus_gpio, util_modbus_mischventil
+from zentral import util_modbus_dac, util_modbus_mischventil, util_modbus_relais
 from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
 from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
 from zentral.context import Context
@@ -133,7 +133,7 @@ class ModbusMockClient:
         **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
-        assert address in (util_modbus_gpio.Gpio.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
+        assert address in (util_modbus_relais.ModbusRelais.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
         assert slave == MODBUS_ADDRESS_RELAIS
 
         rsp = ModbusResponse()
