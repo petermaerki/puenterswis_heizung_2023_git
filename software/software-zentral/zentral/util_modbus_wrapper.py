@@ -60,10 +60,10 @@ class ModbusWrapper:
         assert isinstance(context, Context)
         assert isinstance(modbus_client, (AsyncModbusSerialClient, ModbusMockClient))
 
-        self._context = context
+        self.context = context
         self._modbus_client = modbus_client
 
-        self._dict_modbus_server_id_2_haus = {h.config_haus.modbus_server_id: h for h in self._context.config_etappe.haeuser}
+        self._dict_modbus_server_id_2_haus = {h.config_haus.modbus_server_id: h for h in self.context.config_etappe.haeuser}
 
         self._lock = asyncio.Lock()
         self._scope_trigger = ScopeTrigger()

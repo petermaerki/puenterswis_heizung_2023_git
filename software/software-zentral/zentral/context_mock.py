@@ -146,7 +146,7 @@ class ModbusCommunicationMock(ModbusCommunication):
         super().__init__(context=context)
 
     def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
-        return ModbusMockClient(self._context)
+        return ModbusMockClient(self.context)
 
     async def connect(self):
         return None

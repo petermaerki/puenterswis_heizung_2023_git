@@ -1,6 +1,5 @@
 import dataclasses
 import logging
-import typing
 
 from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters, GpioBits
 from pymodbus import ModbusException
@@ -13,9 +12,6 @@ from zentral.util_sp_ladung_zentral import LadungZentral, SpTemperaturZentral
 from zentral.util_uploadinterval import UploadInterval
 
 logger = logging.getLogger(__name__)
-
-if typing.TYPE_CHECKING:
-    from zentral.context import Context
 
 
 class MissingModbusDataException(Exception):
@@ -61,7 +57,7 @@ class PcbDezentral:
     def modbus_label(self) -> str:
         return f"PcbDezentralHeizzentrale(modbus={self.modbus_slave_addr})"
 
-    async def read(self, ctx: "Context", modbus: ModbusWrapper) -> None:
+    async def read(self, modbus: ModbusWrapper) -> None:
         """
         See also:
         async def handle_haus(self, haus: "Haus", grafana=Influx) -> bool:
@@ -91,11 +87,11 @@ class PcbDezentral:
                 if pair_ds18.error_C is not None:
                     fields[f"zentral_error_{ds_pair.label}"] = pair_ds18.error_C
 
-            r = InfluxRecords(ctx=ctx)
+            r = InfluxRecords(ctx=modbus.context)
             r.add_fields(fields=fields)
-            await ctx.influx.write_records(records=r)
+            await modbus.context.influx.write_records(records=r)
 
-    async def write_gpio(self, ctx: "Context", modbus: ModbusWrapper, gpio: GpioBits) -> None:
+    async def write_gpio(self, modbus: ModbusWrapper, gpio: GpioBits) -> None:
         _rsp = await modbus.write_registers(
             slave=self.modbus_slave_addr,
             slave_label=self.modbus_label,
@@ -170,36 +166,38 @@ class PcbsDezentralHeizzentrale:
                 ],
             )
             self.pcbs.append(self._pcb13)
-            """
-            Puent: 
-                TinnenA_C wirkt auf Ventillator welcher _pcb11 bei relais angeschlossen ist. 
-            Bochs: 
-                TinnenA_C wirkt auf Ventillator welcher _pcb10 bei relais angeschlossen ist.
-                TinnenB_C wirkt auf Ventillator welcher _pcb13 bei relais angeschlossen ist.
-            """
 
         self._dict_label_2_pcb: dict[str, PcbDezentral] = {}
         for pcb in self.pcbs:
             for pair in pcb.list_ds_pair:
                 self._dict_label_2_pcb[pair.label] = pcb
 
-    async def update_ventilator(self, ctx: "Context", modbus: ModbusWrapper) -> None:
+    async def update_ventilator(self, modbus: ModbusWrapper) -> None:
         """
         Ventilator ein falls innen zu warm und aussen kuehler.
         """
-        hysterese_C = 2.0
-        innen_zu_warm_C = 22.0
-        differenz_innen_aussen_C = 2.0
-        aussen_kuehler_C = self.TinnenA_C - self.TaussenU_C
-        ausschalten = self.TinnenA_C < innen_zu_warm_C or aussen_kuehler_C < differenz_innen_aussen_C
-        einschalten = self.TinnenA_C > innen_zu_warm_C + hysterese_C and aussen_kuehler_C > differenz_innen_aussen_C + hysterese_C
-        if ausschalten:
-            self._ventilator_on = False
-        if einschalten:
-            self._ventilator_on = True
-        gpio = GpioBits(0)
-        gpio.relais_valve_open = self._ventilator_on
-        await self._pcb11.write_gpio(ctx=ctx, modbus=modbus, gpio=gpio)
+        assert isinstance(modbus, ModbusWrapper)
+
+        async def update(pcb: PcbDezentral, innen_C: float) -> None:
+            hysterese_C = 2.0
+            innen_zu_warm_C = 22.0
+            differenz_innen_aussen_C = 2.0
+            aussen_kuehler_C = innen_C - self.TaussenU_C
+            ausschalten = innen_C < innen_zu_warm_C or aussen_kuehler_C < differenz_innen_aussen_C
+            einschalten = innen_C > innen_zu_warm_C + hysterese_C and aussen_kuehler_C > differenz_innen_aussen_C + hysterese_C
+            if ausschalten:
+                self._ventilator_on = False
+            if einschalten:
+                self._ventilator_on = True
+            gpio = GpioBits(0)
+            gpio.relais_valve_open = self._ventilator_on
+            await pcb.write_gpio(modbus=modbus, gpio=gpio)
+
+        if modbus.context.config_etappe.is_bochs:
+            await update(pcb=self._pcb10, innen_C=self.TinnenA_C)
+            await update(pcb=self._pcb13, innen_C=self.TinnenB_C)
+        else:
+            await update(pcb=self._pcb11, innen_C=self.TinnenA_C)
 
     def __getattr__(self, attribute_name: str) -> float:
         """

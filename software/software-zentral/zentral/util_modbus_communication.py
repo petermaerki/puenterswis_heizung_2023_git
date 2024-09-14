@@ -57,7 +57,7 @@ class Drehschalter:
 
 class ModbusCommunication:
     def __init__(self, context: "Context"):
-        self._context = context
+        self.context = context
         self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=0, baudrate=9600))
         self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=1, baudrate=9600))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
@@ -83,17 +83,17 @@ class ModbusCommunication:
     async def modbus_haeuser_loop(self) -> None:
         from zentral.util_modbus_haus import ModbusHaus
 
-        temperatur_aussen_C = self._context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
-        for haus in self._context.config_etappe.haeuser:
+        temperatur_aussen_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
+        for haus in self.context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
-            success = await modbus_haus.handle_haus(haus, self._context.influx, temperatur_aussen_C)
+            success = await modbus_haus.handle_haus(haus, self.context.influx, temperatur_aussen_C)
             if success:
                 await modbus_haus.handle_haus_gpio(haus)
 
             if False:
                 r = InfluxRecords(haus=haus)
                 r.add_fields(fields=haus.status_haus.get_influx_fields())
-                await self._context.influx.write_records(records=r)
+                await self.context.influx.write_records(records=r)
 
             # await modbus_haus.reboot_reset(haus=haus)
 
@@ -105,7 +105,7 @@ class ModbusCommunication:
         async def read_pcb(pcb: PcbsDezentralHeizzentrale) -> None:
             for retry in range(retries):
                 try:
-                    await pcb.read(ctx=self._context, modbus=self._modbus)
+                    await pcb.read(modbus=self._modbus)
                     return
                 except ModbusException as e:
                     logger.warning(f"Retry {retry+1}({retries}): {pcb.modbus_label}: {e}")
@@ -123,10 +123,10 @@ class ModbusCommunication:
         if True:
             await self.modbus_haeuser_loop()
 
-        self._context.hsm_zentral.controller_process(ctx=self._context)
+        self.context.hsm_zentral.controller_process(ctx=self.context)
         if True:
             try:
-                _manuell, output_100 = self._context.hsm_zentral.mischventil_stellwert_100_overwrite
+                _manuell, output_100 = self.context.hsm_zentral.mischventil_stellwert_100_overwrite
                 with self._watchdog_modbus_zentral.activity("dac"):
                     await self.a.set_dac_100(output_100=output_100)
             except ModbusException as e:
@@ -134,7 +134,7 @@ class ModbusCommunication:
 
         if True:
             try:
-                await self.pcbs_dezentral_heizzentrale.update_ventilator(ctx=self, modbus=self._modbus)
+                await self.pcbs_dezentral_heizzentrale.update_ventilator(modbus=self._modbus)
             except ModbusException as e:
                 logger.warning(f"pcb11-ventilator: {e}")
 
@@ -146,10 +146,10 @@ class ModbusCommunication:
                     raise ModbusExceptionNoResponseReceived(ScenarioMischventilModbusNoResponseReceived.__name__)
                 with self._watchdog_modbus_zentral.activity("mischventil"):
                     all_registers = await self.m.all_registers
-                self._context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
+                self.context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
                 logger.debug(f"mischventil: {all_registers=}")
             except ModbusException as e:
-                self._context.hsm_zentral.modbus_mischventil_registers = None
+                self.context.hsm_zentral.modbus_mischventil_registers = None
 
                 logger.warning(f"Mischventil: {e}")
 
@@ -158,7 +158,7 @@ class ModbusCommunication:
                 if SCENARIOS.is_present(ScenarioZentralDrehschalterManuell):
                     raise ModbusException(ScenarioZentralDrehschalterManuell.__name__)
 
-                relais = self._context.hsm_zentral.relais
+                relais = self.context.hsm_zentral.relais
 
                 scenario = SCENARIOS.find(ScenarioSetRelais1bis5)
                 if scenario is not None:
@@ -185,10 +185,10 @@ class ModbusCommunication:
                 )
 
                 self.drehschalter.ok()
-                self._context.hsm_zentral.dispatch(SignalDrehschalter())
+                self.context.hsm_zentral.dispatch(SignalDrehschalter())
             except ModbusException as e:
                 self.drehschalter.no_response()
-                self._context.hsm_zentral.dispatch(SignalDrehschalter())
+                self.context.hsm_zentral.dispatch(SignalDrehschalter())
                 if not self.drehschalter.is_manuell:
                     logger.warning(f"Relais: {e}")
 
@@ -196,19 +196,19 @@ class ModbusCommunication:
             try:
                 with self._watchdog_modbus_zentral.activity("oekofen"):
                     all_registers = await self.o.all_registers
-                self._context.hsm_zentral.modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
-                self._context.hsm_zentral.modbus_oekofen_registers.append_to_file()
+                self.context.hsm_zentral.modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
+                self.context.hsm_zentral.modbus_oekofen_registers.append_to_file()
                 logger.debug(f"oekofen: {all_registers=}")
             except ModbusException as e:
-                self._context.hsm_zentral.modbus_oekofen_registers = None
+                self.context.hsm_zentral.modbus_oekofen_registers = None
 
                 logger.warning(f"Oekofen: {e}")
 
     async def task_modbus(self) -> None:
-        async with exception_handler_and_exit(ctx=self._context, task_name="modbus", exit_code=42):
+        async with exception_handler_and_exit(ctx=self.context, task_name="modbus", exit_code=42):
             while True:
                 msg = self._watchdog_modbus_zentral.has_expired()
                 if msg is not None:
-                    self._context.hsm_zentral.dispatch(SignalError(why=msg))
+                    self.context.hsm_zentral.dispatch(SignalError(why=msg))
                 await self._handle_modbus()
                 await asyncio.sleep(MODBUS_SLEEP_S)
