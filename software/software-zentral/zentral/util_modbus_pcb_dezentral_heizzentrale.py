@@ -80,12 +80,19 @@ class PcbDezentral:
         if self.interval_grafana.time_over:
             fields: dict[str, float] = {}
 
+            prefix_temperature = "zentral_temperature_"
+            prefix_error = "zentral_error_"
+
+            hsm_zentral = modbus.context.hsm_zentral
+            if hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
+                fields[prefix_temperature + "solltemperatur_Tfv"] = hsm_zentral.solltemperatur_Tfv
+
             for ds_pair in self.list_ds_pair:
                 pair_ds18 = self.modbus_iregs_all2.get_ds18_pair(ds_pair.sp_position)
                 if pair_ds18.temperature_C is not None:
-                    fields[f"zentral_temperature_{ds_pair.label}"] = pair_ds18.temperature_C
+                    fields[prefix_temperature + ds_pair.label] = pair_ds18.temperature_C
                 if pair_ds18.error_C is not None:
-                    fields[f"zentral_error_{ds_pair.label}"] = pair_ds18.error_C
+                    fields[prefix_error + ds_pair.label] = pair_ds18.error_C
 
             r = InfluxRecords(ctx=modbus.context)
             r.add_fields(fields=fields)

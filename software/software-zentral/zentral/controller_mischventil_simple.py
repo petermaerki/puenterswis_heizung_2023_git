@@ -14,7 +14,7 @@ class ControllerMischventilNone(ControllerMischventilABC):
     ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C = 65.0
     ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C = 75.0
 
-    def process_elektro_notheizung(self, ctx: "Context") -> None:
+    def _process_elektro_notheizung(self, ctx: "Context") -> None:
         if BETRIEB_ELEKTRO_NOTHEIZUNG:
             if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > self.ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C:
                 # Zu warm: Ausschalten
@@ -30,7 +30,7 @@ class ControllerMischventilNone(ControllerMischventilABC):
         ctx.hsm_zentral.relais.relais_1_elektro_notheizung = None
 
     def process(self, ctx: "Context", now_s: float) -> None:
-        self.process_elektro_notheizung(ctx=ctx)
+        self._process_elektro_notheizung(ctx=ctx)
 
     def get_credit_100(self) -> float | None:
         """
@@ -52,17 +52,12 @@ class ControllerMischventilSimple(ControllerMischventilNone):
         """
         return None
 
-    def update_hauser_valve(self, ctx: "Context"):
-        for haus in ctx.config_etappe.haeuser:
-            sp_temperatur = haus.get_sp_temperatur()
-            if sp_temperatur is None:
-                continue
-            if sp_temperatur.mitte_C < self.grenze_mitte_ein_C:
-                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
-            elif sp_temperatur.mitte_C > self.grenze_mitte_aus_C:
-                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
-
     def get_pumpe_ein(self, ctx: "Context"):
+        """
+        Falls mindestens ein Haus das Ventil offen hat, muss die Zentrale die Pumpe starten.
+        return True: mindestens ein Haus hat ein Ventil offen
+        return False: Ventile aller Häuser sind zu
+        """
         for haus in ctx.config_etappe.haeuser:
             assert haus.status_haus is not None
             hsm_dezentral = haus.status_haus.hsm_dezentral
@@ -71,10 +66,10 @@ class ControllerMischventilSimple(ControllerMischventilNone):
         return False
 
     def process(self, ctx: "Context", now_s: float) -> None:
+        self._process_elektro_notheizung(ctx=ctx)
         # This will force a MissingModbusDataException()
         _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
         ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
-        self.process_elektro_notheizung(ctx=ctx)

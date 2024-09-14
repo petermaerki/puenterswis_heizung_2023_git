@@ -19,6 +19,7 @@
 
 import abc
 import dataclasses
+import enum
 import inspect
 import io
 import logging
@@ -87,6 +88,12 @@ class Scenarios:
         if isinstance(scenario, ScenarioClearScenarios):
             logger.info("Scenario: Clear")
             self._scenarios.clear()
+            return
+
+        func_action = getattr(scenario, "action")
+        if func_action is not None:
+            logger.info(f"Scenario: {scenario!r}: Execute 'action()'")
+            func_action()
             return
 
         logger.info(f"Scenario: Add {scenario!r}")
@@ -328,6 +335,32 @@ class ScenarioHausSpDs18ProcentOk(ScenarioBase):
 class ScenarioOverwriteMischventil(ScenarioBase):
     duration_s: float = 10 * 60.0
     stellwert_100: float = 0
+
+
+class LogLevel(enum.StrEnum):
+    ERROR = "ERROR"
+    WARNING = "WARNING"
+    INFO = "INFO"
+    DEBUG = "DEBUG"
+
+
+class LogModule(enum.StrEnum):
+    controller_mischventil = "zentral.controller_mischventil"
+    pymodbus_logging = "pymodbus.logging"
+    asyncssd = "asyncssh"
+
+
+@dataclasses.dataclass
+class ScenarioSetLogLevel(ScenarioBase):
+    module: LogModule = LogModule.controller_mischventil
+    level: LogLevel = LogLevel.INFO
+
+    def action(self) -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        logging.info(f"Action: module={self.module} level={self.level}")
+        logging.getLogger(self.module.value).setLevel(self.level.value)
 
 
 @dataclasses.dataclass

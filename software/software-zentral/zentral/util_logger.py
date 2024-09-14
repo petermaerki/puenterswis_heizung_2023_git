@@ -80,8 +80,7 @@ def initialize_logger() -> None:
     formatter_file = logging.Formatter(fmt="%(asctime)s " + fmt)
 
     handler_stream = logging.StreamHandler()
-    # ch.setLevel(level=logging.DEBUG)
-    handler_stream.setLevel(level=logging.INFO)
+    # handler_stream.setLevel(level=logging.INFO)
     handler_stream.setFormatter(formatter_stdout)
 
     handler_file = RotatingFileHandler(
@@ -90,15 +89,10 @@ def initialize_logger() -> None:
         maxBytes=100_000_000,
         backupCount=5,
     )
-    handler_file.setLevel(logging.INFO)
+    # handler_file.setLevel(logging.INFO)
     handler_file.setFormatter(formatter_file)
 
-    logging.basicConfig(
-        format=None,
-        level=logging.INFO,
-        handlers=[handler_stream, handler_file],
-        force=True,
-    )
+    logging.basicConfig(handlers=[handler_stream, handler_file], force=True)
 
     # logging.getLogger("zentral.util_logger").setLevel(logging.DEBUG)
     logging.getLogger("pymodbus.logging").setLevel(logging.INFO)

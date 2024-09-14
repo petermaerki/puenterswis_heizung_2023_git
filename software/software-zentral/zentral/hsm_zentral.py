@@ -84,7 +84,7 @@ class HsmZentral(hsm.HsmMixin):
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
         self.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
-        self.solltemperatur_Tfv: float = 0.0
+        self.solltemperatur_Tfv: float = 65.0
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
         self.controller_haeuser: ControllerMischventilABC = ControllerHaeuserNone(now_s=self._programm_start_s)
@@ -259,7 +259,7 @@ class HsmZentral(hsm.HsmMixin):
             self._drehschalter_switch_state()
 
     def entry_ok_drehschalterauto(self, signal: SignalZentralBase):
-        self.controller_mischventil = controller_mischventil_factory()
+        self.controller_mischventil = controller_mischventil_factory(is_puent=self.ctx.config_etappe.is_puent)
         self.controller_haeuser = controller_haeuser_factory()
 
     @hsm.value(5)

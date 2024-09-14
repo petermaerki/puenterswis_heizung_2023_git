@@ -82,6 +82,13 @@ class PumpeAnlaufzeit:
         self.last_pumpe_ein = False
 
     def pumpe(self, now_s: float, ein: bool) -> None:
+        # Log if pumpe changes
+        def ein_aus(v: bool) -> str:
+            return "ein" if v else "aus"
+
+        if self.last_pumpe_ein != ein:
+            logger.debug(f"pumpe {ein_aus(self.last_pumpe_ein)} -> {ein_aus(ein)}")
+
         if (not self.last_pumpe_ein) and ein:
             # Flanke von Pumpe aus -> ein.
             self.pumpe_start_s = now_s
@@ -94,10 +101,17 @@ class PumpeAnlaufzeit:
         * Pumpe läuft und stabil
         """
         if not self.last_pumpe_ein:
+            logger.debug(f"wait: not pumpe_und_stabil(last_pumpe_ein={self.last_pumpe_ein})")
             return False
 
         duration_s = now_s - self.pumpe_start_s
-        return duration_s > self._WARTEZEIT_NACH_PUMPE_EIN_s
+        to_wait_s = self._WARTEZEIT_NACH_PUMPE_EIN_s - duration_s
+        if to_wait_s > 0.0:
+            logger.debug(f"wait: not pumpe_und_stabil({to_wait_s:0.1f}s)")
+            # Warten bis stabil
+            return False
+        # es darf geregelt werden
+        return True
 
 
 class NextControl:
@@ -106,7 +120,7 @@ class NextControl:
     sich das thermische Gleichgewicht eingestellt hat.
     """
 
-    _CONTROL_LOOP_TIME_INTERVAL_s = 20.0
+    _CONTROL_LOOP_TIME_INTERVAL_S = 20.0
 
     def __init__(self):
         self.next_s = 0.0
@@ -114,14 +128,15 @@ class NextControl:
     def wait(self, now_s: float) -> bool:
         wait_s = now_s - self.next_s
         if wait_s < 0.0:
+            logger.debug(f"wait: next_control.wait({-wait_s:0.1f}s)")
             return True
-        if wait_s > self._CONTROL_LOOP_TIME_INTERVAL_s:
+        if wait_s > self._CONTROL_LOOP_TIME_INTERVAL_S:
             # There was a very long pause (the pump was off).
             # Start a new interval.
-            self.next_s = now_s + self._CONTROL_LOOP_TIME_INTERVAL_s
+            self.next_s = now_s + self._CONTROL_LOOP_TIME_INTERVAL_S
             return False
         # We are in a 20s interval
-        self.next_s += self._CONTROL_LOOP_TIME_INTERVAL_s
+        self.next_s += self._CONTROL_LOOP_TIME_INTERVAL_S
         return False
 
     def add(self, add_s: float) -> None:
@@ -161,7 +176,8 @@ class ControllerMischventil(ControllerMischventilSimple):
     0..1, je kleiner, desto stabiler und langsamer
     """
 
-    def __init__(self, now_s: float):
+    def __init__(self, now_s: float) -> None:
+        super().__init__(now_s=now_s)
         self.pumpe_anlaufzeit = PumpeAnlaufzeit()
         self.next_control = NextControl()
         self.credit = Credit(now_s=now_s)
@@ -174,27 +190,30 @@ class ControllerMischventil(ControllerMischventilSimple):
         """
         return self.credit.mischventil_actuation_credit_100
 
-    def update_mischventil(self, ctx: "Context", now_s: float) -> None:
+    def _process_mischventil(self, ctx: "Context", now_s: float) -> None:
         pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
         last_stellwert_V = ctx.hsm_zentral.mischventil_stellwert_V
 
-        Tfv_soll_C_TODO = 42.0
         self.credit.update_credit(
             now_s=now_s,
             Tfr_C=pcbs.Tfr_C,
             Tsz4_C=pcbs.Tsz4_C,
-            Tfv_soll_C=Tfv_soll_C_TODO,
+            Tfv_soll_C=ctx.hsm_zentral.solltemperatur_Tfv,
         )
+
+        logger.debug(f"ctx.hsm_zentral.solltemperatur_Tfv={ctx.hsm_zentral.solltemperatur_Tfv:0.1f}, Tfv_C={pcbs.Tfv_C:0.1f}, Tfr_C={pcbs.Tfr_C:0.1f}, Tsz4_C={pcbs.Tsz4_C:0.1f}")
 
         duration_since_last_stellwert_change_s = now_s - self.last_stellwert_change_s
         abweichung_C = ctx.hsm_zentral.solltemperatur_Tfv - pcbs.Tfv_C
         if duration_since_last_stellwert_change_s < 5 * 60.0:
             if abs(abweichung_C) < self._Tfv_TOLERANZ_C:  # Genuegend genau, nichts machen
+                logger.debug(f"abs(abweichung_C:{abweichung_C:0.2f}) < self._Tfv_TOLERANZ_C:{self._Tfv_TOLERANZ_C:0.2f}  # Genuegend genau, nichts machen")
                 return
 
         temperaturdifferenz_eingang_mischventil_C = pcbs.Tsz4_C - pcbs.Tfr_C
         if temperaturdifferenz_eingang_mischventil_C < 1.0:
             # Fehlermeldung: "Tsz4 und Tfr sind fast gleich, Regeln Mischventil ausgesetzt."
+            logger.debug(f"temperaturdifferenz_eingang_mischventil_C:{temperaturdifferenz_eingang_mischventil_C:0.2f} < 1.0 # Fehlermeldung: Tsz4 und Tfr sind fast gleich")
             return
 
         # steilheit_mischventil_C_pro_V: typisch z.B. 6C/V
@@ -206,6 +225,9 @@ class ControllerMischventil(ControllerMischventilSimple):
         stellwert_V = max(stellwert_V, self._STELLWERT_V_MIN)
 
         stellwert_aenderung_V = stellwert_V - last_stellwert_V
+
+        logger.debug(f"stellwert_aenderung_V: {stellwert_aenderung_V:0.3f}")
+
         # Abnutzung durch jede Stellwert Aenderung
         self.credit.add_mischventil_credit(-4.0 * abs(stellwert_aenderung_V))
         if stellwert_aenderung_V * self.last_stellwert_aenderung_V < 0.0:  # Vorzeichenwechsel
@@ -218,25 +240,29 @@ class ControllerMischventil(ControllerMischventilSimple):
         # Hier wird der Stellwert gesetzt!
         ctx.hsm_zentral.mischventil_stellwert_100 = self.calculate_valve_100(stellwert_V=stellwert_V)
         self.last_stellwert_change_s = now_s
+        logger.debug(f"ctx.hsm_zentral.mischventil_stellwert_100: {ctx.hsm_zentral.mischventil_stellwert_100:0.0f}%")
 
         # zusaetzlich warten bis Mischventil fertig bewegt hat
         self.next_control.add(abs(stellwert_aenderung_V) / self._MOTOR_GESCHWINDIGKEIT_V_PRO_S)
 
     def process(self, ctx: "Context", now_s: float) -> None:
-        self.pumpe_anlaufzeit.pumpe(
-            now_s=now_s,
-            ein=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
-        )
-        if not self.pumpe_anlaufzeit.pumpe_und_stabil(now_s=now_s):
-            return
-        if self.next_control.wait(now_s=now_s):
-            return
+        self._process_elektro_notheizung(ctx=ctx)
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
         ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
-        self.update_mischventil(ctx=ctx, now_s=now_s)
+        self.pumpe_anlaufzeit.pumpe(
+            now_s=now_s,
+            ein=not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
+        )
+        if not self.pumpe_anlaufzeit.pumpe_und_stabil(now_s=now_s):
+            return
+
+        if self.next_control.wait(now_s=now_s):
+            return
+
+        self._process_mischventil(ctx=ctx, now_s=now_s)
 
     @staticmethod
     def calculate_valve_100(stellwert_V: float) -> float:
@@ -255,7 +281,7 @@ class ControllerMischventil(ControllerMischventilSimple):
         return stellwert_V
 
 
-def controller_mischventil_factory() -> ControllerMischventilABC:
-    if False:
+def controller_mischventil_factory(is_puent: bool) -> ControllerMischventilABC:
+    if is_puent:
         return ControllerMischventil(time.monotonic())
     return ControllerMischventilSimple(time.monotonic())
