@@ -90,8 +90,8 @@ class Scenarios:
             self._scenarios.clear()
             return
 
-        func_action = getattr(scenario, "action")
-        if func_action is not None:
+        if hasattr(scenario, "action"):
+            func_action = getattr(scenario, "action")
             logger.info(f"Scenario: {scenario!r}: Execute 'action()'")
             func_action()
             return

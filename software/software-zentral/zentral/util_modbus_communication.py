@@ -127,6 +127,13 @@ class ModbusCommunication:
         if True:
             try:
                 _manuell, output_100 = self.context.hsm_zentral.mischventil_stellwert_100_overwrite
+
+                if False:
+                    # Messung delay controller mischventil
+                    import time
+
+                    logger.info(f"{time.monotonic():06.1f}s {output_100:0.1f}% Tfv_C={self.pcbs_dezentral_heizzentrale.Tfv_C:0.1f}")
+
                 with self._watchdog_modbus_zentral.activity("dac"):
                     await self.a.set_dac_100(output_100=output_100)
             except ModbusException as e:
