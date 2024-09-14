@@ -146,8 +146,8 @@ class PcbsDezentralHeizzentrale:
             list_ds_pair=[
                 DsPair(_DS0_DS1, "Tfv_C"),
                 DsPair(_DS2_DS3, "Tfr_C"),
-                DsPair(_DS4_DS5, "Taussen_C"),
-                DsPair(_DS6_DS7, "Tinnen_C"),
+                DsPair(_DS4_DS5, "TaussenU_C"),
+                DsPair(_DS6_DS7, "TinnenA_C"),
             ],
         )
         self._pcb12 = PcbDezentral(
@@ -170,6 +170,13 @@ class PcbsDezentralHeizzentrale:
                 ],
             )
             self.pcbs.append(self._pcb13)
+            """
+            Puent: 
+                TinnenA_C wirkt auf Ventillator welcher _pcb11 bei relais angeschlossen ist. 
+            Bochs: 
+                TinnenA_C wirkt auf Ventillator welcher _pcb10 bei relais angeschlossen ist.
+                TinnenB_C wirkt auf Ventillator welcher _pcb13 bei relais angeschlossen ist.
+            """
 
         self._dict_label_2_pcb: dict[str, PcbDezentral] = {}
         for pcb in self.pcbs:
@@ -183,9 +190,9 @@ class PcbsDezentralHeizzentrale:
         hysterese_C = 2.0
         innen_zu_warm_C = 22.0
         differenz_innen_aussen_C = 2.0
-        aussen_kuehler_C = self.Tinnen_C - self.Taussen_C
-        ausschalten = self.Tinnen_C < innen_zu_warm_C or aussen_kuehler_C < differenz_innen_aussen_C
-        einschalten = self.Tinnen_C > innen_zu_warm_C + hysterese_C and aussen_kuehler_C > differenz_innen_aussen_C + hysterese_C
+        aussen_kuehler_C = self.TinnenA_C - self.TaussenU_C
+        ausschalten = self.TinnenA_C < innen_zu_warm_C or aussen_kuehler_C < differenz_innen_aussen_C
+        einschalten = self.TinnenA_C > innen_zu_warm_C + hysterese_C and aussen_kuehler_C > differenz_innen_aussen_C + hysterese_C
         if ausschalten:
             self._ventilator_on = False
         if einschalten:

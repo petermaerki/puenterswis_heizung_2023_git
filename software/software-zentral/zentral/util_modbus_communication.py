@@ -83,7 +83,7 @@ class ModbusCommunication:
     async def modbus_haeuser_loop(self) -> None:
         from zentral.util_modbus_haus import ModbusHaus
 
-        temperatur_aussen_C = self._context.modbus_communication.pcbs_dezentral_heizzentrale.Taussen_C
+        temperatur_aussen_C = self._context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
         for haus in self._context.config_etappe.haeuser:
             modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
             success = await modbus_haus.handle_haus(haus, self._context.influx, temperatur_aussen_C)

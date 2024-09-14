@@ -36,8 +36,8 @@ class ControllerHaeuserSimple(ControllerHaeuserABC):
         GRENZE_LADUNG_AUS_PROZENT = 25.0
 
     if False:
-        GRENZE_LADUNG_EIN_PROZENT = 60.0
-        GRENZE_LADUNG_AUS_PROZENT = 100.0
+        GRENZE_LADUNG_EIN_PROZENT = 10.0
+        GRENZE_LADUNG_AUS_PROZENT = 50.0
 
     if False:
         GRENZE_LADUNG_EIN_PROZENT = 100.0

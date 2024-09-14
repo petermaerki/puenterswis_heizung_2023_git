@@ -76,10 +76,10 @@ class HsmDezentral(hsm.HsmMixin):
         if sp_temperatur is None:
             return None
 
-        Taussen_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.Taussen_C
+        TaussenU_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
         ladung_minimum = LadungMinimum(
             sp_temperatur=sp_temperatur,
-            temperatur_aussen_C=Taussen_C,
+            temperatur_aussen_C=TaussenU_C,
         )
 
         return HausLadung(
