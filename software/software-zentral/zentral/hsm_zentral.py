@@ -83,7 +83,7 @@ class HsmZentral(hsm.HsmMixin):
         self.ctx = ctx
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
-        self.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
+        self.mischventil_stellwert_100: float = 50.0  # ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
         self.solltemperatur_Tfv: float = 65.0
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)

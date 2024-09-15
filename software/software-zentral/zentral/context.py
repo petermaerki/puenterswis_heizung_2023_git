@@ -92,7 +92,7 @@ class Context:
         async def sleep(duration_s: float):
             # Sleep duration_s
             while duration_s > 0.0:
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(10.0)
                 duration_s -= 10.0
                 if SCENARIOS.is_present(ScenarioInfluxWriteCrazy):
                     #  Sleep only 2s when a ScenarioInfluxWriteCrazy is active

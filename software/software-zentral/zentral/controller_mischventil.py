@@ -4,6 +4,7 @@ import typing
 
 from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_mischventil_simple import ControllerMischventilSimple
+from zentral.util_scenarios import SCENARIOS, ScenarioZentralSolltemperatur
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -71,11 +72,14 @@ class Credit:
 
 class PumpeAnlaufzeit:
     """
-    Wenn die Pumpe anläuft, dauert es 30s bis das System stabil
+    Wenn die Pumpe anläuft, dauert es 120s bis das System stabil
     ist und mit Regeln begonnen werden kann.
     """
 
-    _WARTEZEIT_NACH_PUMPE_EIN_s = 30
+    _WARTEZEIT_NACH_PUMPE_EIN_s = 120.0
+    """
+    Siehe 20240914a_messung_totzeit.ods / log
+    """
 
     def __init__(self):
         self.pumpe_start_s: float = 0.0
@@ -120,7 +124,10 @@ class NextControl:
     sich das thermische Gleichgewicht eingestellt hat.
     """
 
-    _CONTROL_LOOP_TIME_INTERVAL_S = 20.0
+    _CONTROL_LOOP_TIME_INTERVAL_S = 120.0
+    """
+    Siehe 20240914a_messung_totzeit.ods / log
+    """
 
     def __init__(self):
         self.next_s = 0.0
@@ -247,6 +254,11 @@ class ControllerMischventil(ControllerMischventilSimple):
 
     def process(self, ctx: "Context", now_s: float) -> None:
         self._process_elektro_notheizung(ctx=ctx)
+
+        scenario = SCENARIOS.find(ScenarioZentralSolltemperatur)
+        if scenario is not None:
+            SCENARIOS.remove(scenario)
+            ctx.hsm_zentral.solltemperatur_Tfv = scenario.solltemperature_Tfv
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
         ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx)

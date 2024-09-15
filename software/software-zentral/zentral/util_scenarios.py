@@ -228,11 +228,6 @@ class ScenarioHausModbusException(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioZentralDrehschalterManuell(ScenarioBase):
-    duration_s: float = 10 * 60.0
-
-
-@dataclasses.dataclass
 class ScenarioHausModbusSystemExit(ScenarioBase):
     haus_nummer: int = 13
 
@@ -383,6 +378,16 @@ class ScenarioOverwriteRelais6PumpeGesperrt(ScenarioBase):
 class ScenarioOverwriteRelais0Automatik(ScenarioBase):
     duration_s: float = 10 * 60.0
     automatik: bool = False
+
+
+@dataclasses.dataclass
+class ScenarioZentralDrehschalterManuell(ScenarioBase):
+    duration_s: float = 10 * 60.0
+
+
+@dataclasses.dataclass
+class ScenarioZentralSolltemperatur(ScenarioBase):
+    solltemperature_Tfv: float = 65.0
 
 
 def register_scenarios() -> None:
