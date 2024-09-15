@@ -138,7 +138,7 @@ class Scenarios:
         if scenario is None:
             return False
 
-        logger.info(f"Scenario: Apply {scenario!r}")
+        logger.debug(f"Scenario: Apply {scenario!r}")
         return True
 
     def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[ScenarioBase]:
@@ -148,7 +148,7 @@ class Scenarios:
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
                 if scenario.haus_nummer is haus.config_haus.nummer:
-                    logger.info(f"Scenario: Apply {scenario!r}")
+                    logger.debug(f"Scenario: Apply {scenario!r}")
                     scenario.decrement()
                     yield scenario
 
@@ -341,6 +341,7 @@ class LogLevel(enum.StrEnum):
 
 class LogModule(enum.StrEnum):
     controller_mischventil = "zentral.controller_mischventil"
+    util_scenarios = "zentral.util_scenarios"
     pymodbus_logging = "pymodbus.logging"
     asyncssd = "asyncssh"
 
