@@ -1,4 +1,5 @@
 import logging
+import time
 import typing
 
 from zentral.constants import BETRIEB_ELEKTRO_NOTHEIZUNG
@@ -11,19 +12,36 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerMischventilNone(ControllerMischventilABC):
-    ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C = 65.0
+    ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C = 70.0
+    ELEKTRO_NOTHEIZUNG_Tsz4_5MIN_C = 75.0
     ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C = 75.0
+
+    def __init__(self, now_s: float) -> None:
+        super().__init__(now_s=now_s)
+        self.last_aus_s: float = time.time()
 
     def _process_elektro_notheizung(self, ctx: "Context") -> None:
         if BETRIEB_ELEKTRO_NOTHEIZUNG:
-            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > self.ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C:
-                # Zu warm: Ausschalten
-                ctx.hsm_zentral.relais.relais_1_elektro_notheizung = False
+            if ctx.hsm_zentral.relais.relais_1_elektro_notheizung:
+                # Notheizung ist ein
+                if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > self.ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C:
+                    # Zu warm: Ausschalten
+                    ctx.hsm_zentral.relais.relais_1_elektro_notheizung = False
+                    self.last_aus_s = time.time()
                 return
+
+            # Notheizung ist aus
             if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < self.ELEKTRO_NOTHEIZUNG_Tsz4_MIN_C:
                 # Zu kalt: Einschalten
                 ctx.hsm_zentral.relais.relais_1_elektro_notheizung = True
                 return
+
+            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < self.ELEKTRO_NOTHEIZUNG_Tsz4_5MIN_C:
+                duration_aus_s = time.time() - self.last_aus_s
+                if duration_aus_s > 5 * 60.0:
+                    # Zu kalt: Einschalten
+                    ctx.hsm_zentral.relais.relais_1_elektro_notheizung = True
+
             return
 
         # Kein Notheizbetrieb: Ausschalten

@@ -85,7 +85,8 @@ class PcbDezentral:
 
             hsm_zentral = modbus.context.hsm_zentral
             if hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
-                fields[prefix_temperature + "solltemperatur_Tfv"] = hsm_zentral.solltemperatur_Tfv
+                if not hsm_zentral.relais.relais_6_pumpe_gesperrt:
+                    fields[prefix_temperature + "solltemperatur_Tfv"] = hsm_zentral.solltemperatur_Tfv
 
             for ds_pair in self.list_ds_pair:
                 pair_ds18 = self.modbus_iregs_all2.get_ds18_pair(ds_pair.sp_position)
