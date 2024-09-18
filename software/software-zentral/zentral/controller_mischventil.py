@@ -293,7 +293,7 @@ class ControllerMischventil(ControllerMischventilSimple):
         return stellwert_V
 
 
-def controller_mischventil_factory(is_puent: bool) -> ControllerMischventilABC:
-    if is_puent:
+def controller_mischventil_factory() -> ControllerMischventilABC:
+    if True:
         return ControllerMischventil(time.monotonic())
     return ControllerMischventilSimple(time.monotonic())

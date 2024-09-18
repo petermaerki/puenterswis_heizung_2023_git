@@ -213,6 +213,13 @@ class ScenarioHausValveOpenCloseOthers(ScenarioBase):
 
 
 @dataclasses.dataclass
+class ScenarioHaeuserValveOpen(ScenarioBase):
+    duration_s: float = 20.0
+    """
+    """
+
+
+@dataclasses.dataclass
 class ScenarioHausModbusWrongRegisterCount(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
@@ -341,6 +348,7 @@ class LogLevel(enum.StrEnum):
 
 class LogModule(enum.StrEnum):
     controller_mischventil = "zentral.controller_mischventil"
+    controller_mischventil_simple = "zentral.controller_mischventil_simple"
     util_scenarios = "zentral.util_scenarios"
     pymodbus_logging = "pymodbus.logging"
     asyncssd = "asyncssh"

@@ -10,7 +10,7 @@ from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioHausModbusNoResponseReceived, ScenarioHausPicoRebootReset, ScenarioHausValveOpenCloseOthers
+from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpen, ScenarioHausModbusNoResponseReceived, ScenarioHausPicoRebootReset, ScenarioHausValveOpenCloseOthers
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -30,6 +30,9 @@ class ModbusHaus:
         scenario_valve = SCENARIOS.find(cls_scenario=ScenarioHausValveOpenCloseOthers)
         if scenario_valve is not None:
             hsm.dezentral_gpio.relais_valve_open = bool(scenario_valve.haus_nummer == haus.config_haus.nummer)
+
+        if SCENARIOS.find(cls_scenario=ScenarioHaeuserValveOpen) is not None:
+            hsm.dezentral_gpio.relais_valve_open = True
 
         if hsm.modbus_iregs_all is not None:
             if hsm.modbus_iregs_all.version_sw >= DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN:

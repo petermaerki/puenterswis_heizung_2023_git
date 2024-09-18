@@ -259,7 +259,7 @@ class HsmZentral(hsm.HsmMixin):
             self._drehschalter_switch_state()
 
     def entry_ok_drehschalterauto(self, signal: SignalZentralBase):
-        self.controller_mischventil = controller_mischventil_factory(is_puent=self.ctx.config_etappe.is_puent)
+        self.controller_mischventil = controller_mischventil_factory()
         self.controller_haeuser = controller_haeuser_factory()
 
     @hsm.value(5)
