@@ -16,6 +16,7 @@ from zentral.util_modbus import get_serial_port2
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_persistence_legionellen import LEGIONELLEN_KILLED_C, PersistenceLegionellen
+from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ScenarioMBusReadInterval, ssh_repl_update_scenarios
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,7 @@ class Context:
                 haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
 
         self._persistence_legionellen.save(force=True, why="Exiting app")
+        PersistenceMischventil.save(self.hsm_zentral.mischventil_stellwert_100)
 
     async def init(self) -> None:
         self.config_etappe.init()

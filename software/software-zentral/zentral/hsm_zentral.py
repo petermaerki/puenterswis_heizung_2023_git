@@ -17,6 +17,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
+from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
 
 if typing.TYPE_CHECKING:
@@ -83,7 +84,8 @@ class HsmZentral(hsm.HsmMixin):
         self.ctx = ctx
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
-        self.mischventil_stellwert_100: float = 50.0  # ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
+        # ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
+        self.mischventil_stellwert_100: float = PersistenceMischventil.read(stellwert_100_default=50.0)
         self.solltemperatur_Tfv: float = 68.0
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
