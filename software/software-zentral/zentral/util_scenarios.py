@@ -19,6 +19,7 @@
 
 import abc
 import dataclasses
+import enum
 import inspect
 import io
 import logging
@@ -89,6 +90,12 @@ class Scenarios:
             self._scenarios.clear()
             return
 
+        if hasattr(scenario, "action"):
+            func_action = getattr(scenario, "action")
+            logger.info(f"Scenario: {scenario!r}: Execute 'action()'")
+            func_action()
+            return
+
         logger.info(f"Scenario: Add {scenario!r}")
         # self.remove_if_present(scenario.__class__)
         self._scenarios.append(scenario)
@@ -131,7 +138,7 @@ class Scenarios:
         if scenario is None:
             return False
 
-        logger.info(f"Scenario: Apply {scenario!r}")
+        logger.debug(f"Scenario: Apply {scenario!r}")
         return True
 
     def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[ScenarioBase]:
@@ -141,7 +148,7 @@ class Scenarios:
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
                 if scenario.haus_nummer is haus.config_haus.nummer:
-                    logger.info(f"Scenario: Apply {scenario!r}")
+                    logger.debug(f"Scenario: Apply {scenario!r}")
                     scenario.decrement()
                     yield scenario
 
@@ -206,6 +213,13 @@ class ScenarioHausValveOpenCloseOthers(ScenarioBase):
 
 
 @dataclasses.dataclass
+class ScenarioHaeuserValveOpen(ScenarioBase):
+    duration_s: float = 20.0
+    """
+    """
+
+
+@dataclasses.dataclass
 class ScenarioHausModbusWrongRegisterCount(ScenarioBase):
     haus_nummer: int = 13
     counter: int = 1
@@ -221,13 +235,14 @@ class ScenarioHausModbusException(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioZentralDrehschalterManuell(ScenarioBase):
-    duration_s: float = 10 * 60.0
+class ScenarioHausModbusSystemExit(ScenarioBase):
+    haus_nummer: int = 13
 
 
 @dataclasses.dataclass
-class ScenarioHausModbusSystemExit(ScenarioBase):
-    haus_nummer: int = 13
+class ScenarioMBusReadInterval(ScenarioBase):
+    duration_s: float = 10 * 60.0
+    sleep_s: float = 60.0
 
 
 @dataclasses.dataclass
@@ -324,9 +339,38 @@ class ScenarioOverwriteMischventil(ScenarioBase):
     stellwert_100: float = 0
 
 
+class LogLevel(enum.StrEnum):
+    ERROR = "ERROR"
+    WARNING = "WARNING"
+    INFO = "INFO"
+    DEBUG = "DEBUG"
+
+
+class LogModule(enum.StrEnum):
+    controller_mischventil = "zentral.controller_mischventil"
+    controller_mischventil_simple = "zentral.controller_mischventil_simple"
+    util_scenarios = "zentral.util_scenarios"
+    pymodbus_logging = "pymodbus.logging"
+    asyncssd = "asyncssh"
+
+
 @dataclasses.dataclass
-class ScenarioSetRelais2bis5(ScenarioBase):
+class ScenarioSetLogLevel(ScenarioBase):
+    module: LogModule = LogModule.controller_mischventil
+    level: LogLevel = LogLevel.INFO
+
+    def action(self) -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        logging.info(f"Action: module={self.module} level={self.level}")
+        logging.getLogger(self.module.value).setLevel(self.level.value)
+
+
+@dataclasses.dataclass
+class ScenarioSetRelais1bis5(ScenarioBase):
     duration_s: float = 10 * 60.0
+    relais_1_elektro_notheizung: bool = False
     relais_2_brenner1_sperren: bool = False
     relais_3_waermeanforderung_beide: bool = False
     relais_4_brenner2_sperren: bool = False
@@ -334,15 +378,25 @@ class ScenarioSetRelais2bis5(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioOverwriteRelais6PumpeEin(ScenarioBase):
+class ScenarioOverwriteRelais6PumpeGesperrt(ScenarioBase):
     duration_s: float = 10 * 60.0
-    pumpe_ein: bool = False
+    pumpe_gesperrt: bool = False
 
 
 @dataclasses.dataclass
 class ScenarioOverwriteRelais0Automatik(ScenarioBase):
     duration_s: float = 10 * 60.0
     automatik: bool = False
+
+
+@dataclasses.dataclass
+class ScenarioZentralDrehschalterManuell(ScenarioBase):
+    duration_s: float = 10 * 60.0
+
+
+@dataclasses.dataclass
+class ScenarioZentralSolltemperatur(ScenarioBase):
+    solltemperature_Tfv: float = 65.0
 
 
 def register_scenarios() -> None:

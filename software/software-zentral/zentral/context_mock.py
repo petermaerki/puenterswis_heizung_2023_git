@@ -1,25 +1,17 @@
 import asyncio
 from typing import Any, List
 
-
-from zentral.constants import (
-    MODBUS_ADDRESS_DAC,
-    MODBUS_ADDRESS_BELIMO,
-    MODBUS_ADDRESS_RELAIS,
-)
-from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
-from pymodbus.pdu import ModbusResponse
-from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from micropython import util_constants
+from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
 from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.pdu import ModbusResponse
+
+from zentral import util_modbus_dac, util_modbus_mischventil, util_modbus_relais
+from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
+from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
+from zentral.context import Context
 from zentral.util_modbus import MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
-from zentral.context import Context
-
-from zentral import util_modbus_mischventil
-from zentral import util_modbus_gpio
-from zentral import util_modbus_dac
-
 
 _DS_COUNT = 8
 
@@ -95,7 +87,7 @@ class ModbusMockClient:
                 rsp = ModbusResponse()
                 rsp.registers = [50]
                 return rsp
-            if address == util_modbus_mischventil.EnumRegisters.ABSOLUTE_POWER_kW:
+            if address == util_modbus_mischventil.EnumRegisters.ABSOLUTE_POWER_W:
                 rsp = ModbusResponse()
                 rsp.registers = [100, 100]
                 return rsp
@@ -141,7 +133,7 @@ class ModbusMockClient:
         **kwargs: Any,
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
-        assert address in (util_modbus_gpio.Gpio.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
+        assert address in (util_modbus_relais.ModbusRelais.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
         assert slave == MODBUS_ADDRESS_RELAIS
 
         rsp = ModbusResponse()
@@ -154,7 +146,7 @@ class ModbusCommunicationMock(ModbusCommunication):
         super().__init__(context=context)
 
     def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
-        return ModbusMockClient(self._context)
+        return ModbusMockClient(self.context)
 
     async def connect(self):
         return None

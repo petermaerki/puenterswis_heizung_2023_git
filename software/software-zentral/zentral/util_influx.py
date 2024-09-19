@@ -12,6 +12,7 @@ from zentral.config_secrets import InfluxSecrets
 from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN
 from zentral.util_constants_haus import SpPosition
 from zentral.util_ds18_pairs import DS18
+from zentral.util_mbus import MBusMeasurement
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
 if TYPE_CHECKING:
@@ -96,14 +97,14 @@ class Influx:
         try:
             self._api.write(bucket=self._bucket, record=records._records)
         except Exception as e:
-            logger.exception("Failed to write to influx", e)
+            logger.exception("Failed to write to influx", exc_info=e)
         # TODO: Test the error handling!
         # except ClientConnectorError:
         #     logger.exception("Failed to write to influx")
         # except TimeoutError:
         #     logger.exception("Failed to write to influx")
 
-    async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll") -> None:
+    async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll", temperatur_aussen_C: float) -> None:
         assert haus.status_haus is not None
 
         if not haus.status_haus.interval_haus_temperatures.time_over:
@@ -135,10 +136,11 @@ class Influx:
         # if haus.config_haus.nummer == 13:
         #     logger.info(fields)
 
-        ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=-8.0)
+        ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
         if ladung_minimum is not None:
+            if not ladung_minimum.ladung_bodenheizung.is_sommer:
+                fields["ladung_heizung_prozent"] = ladung_minimum.ladung_bodenheizung.ladung_prozent
             fields["ladung_baden_prozent"] = ladung_minimum.ladung_baden.ladung_prozent
-            fields["ladung_heizung_prozent"] = ladung_minimum.ladung_heizung.ladung_prozent
             fields["ladung_minimum_prozent"] = ladung_minimum.ladung_prozent
 
         r = InfluxRecords(haus=haus)
@@ -147,6 +149,7 @@ class Influx:
 
     async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)
+        assert haus.status_haus is not None
         hsm_dezentral = haus.status_haus.hsm_dezentral
         influx_offset08 = haus.config_haus.influx_offset05
         fields = {}
@@ -157,12 +160,18 @@ class Influx:
             # The legend will now just contain the sensors with errors!
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
         try:
-            fields["relais_valve_open"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open
-            fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
+            if hsm_dezentral.modbus_iregs_all is not None:
+                fields["relais_valve_open"] = int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
         except AttributeError:
             pass
 
         r.add_fields(fields=fields)
+        await self.write_records(records=r)
+
+    async def send_mbus(self, haus: Haus, mbus_measurement: MBusMeasurement) -> None:
+        r = InfluxRecords(haus=haus)
+        r.add_fields(fields=mbus_measurement.influx_fields("dezentral_mbus_tmp_"))
         await self.write_records(records=r)
 
     async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:
@@ -177,28 +186,29 @@ class Influx:
             if registers is None:
                 return
             fields["mischventil_power_W"] = registers.heating_power_W - registers.cooling_power_W
-            fields["mischventil_fluss_m3_s"] = registers.fluss_m3_s
+            fields["mischventil_fluss_m3_h"] = 3600.0 * registers.fluss_m3_s
 
         def mischventil_automatik():
             def overwrite(key: str, relais: bool, overwrite: tuple[bool, bool]) -> None:
                 fields[key] = int(relais)
-                manuell, relais_0_mischventil_automatik = overwrite
+                manuell, relais_x = overwrite
                 if manuell:
-                    fields[key + "_overwrite"] = int(relais_0_mischventil_automatik)
+                    fields[key + "_overwrite"] = int(relais_x)
 
             overwrite(
                 key="relais_0_mischventil_automatik",
                 relais=ctx.hsm_zentral.relais.relais_0_mischventil_automatik,
                 overwrite=ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite,
             )
+            fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
             fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
             fields["relais_3_waermeanforderung_beide"] = int(ctx.hsm_zentral.relais.relais_3_waermeanforderung_beide)
             fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
             fields["relais_5_keine_funktion"] = int(ctx.hsm_zentral.relais.relais_5_keine_funktion)
             overwrite(
-                key="relais_6_pumpe_ein",
-                relais=ctx.hsm_zentral.relais.relais_6_pumpe_ein,
-                overwrite=ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite,
+                key="relais_6_pumpe_gesperrt",
+                relais=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
+                overwrite=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite,
             )
             # fields["relais_7_automatik"]=int(ctx.hsm_zentral.relais.relais_7_automatik)
 
@@ -210,25 +220,28 @@ class Influx:
                 fields[key + "_overwrite"] = mischventil_stellwert_100
 
         def mischventil_credit():
-            if ctx.hsm_zentral.controller_mischventil is None:
-                return
             credit_100 = ctx.hsm_zentral.controller_mischventil.get_credit_100()
             if credit_100 is None:
                 return
             fields["mischventil_credit_100"] = credit_100
 
         def pumpe():
-            key = "hsm_zentral_relais_6_pumpe_ein"
-            fields[key] = int(ctx.hsm_zentral.relais.relais_6_pumpe_ein)
-            manuell, relais_6_pumpe_ein = ctx.hsm_zentral.relais.relais_6_pumpe_ein_overwrite
+            key = "hsm_zentral_pumpe_ein"
+            fields[key] = int(not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
+            manuell, relais_6_pumpe_gesperrt = ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite
             if manuell:
-                fields[key + "_overwrite"] = int(relais_6_pumpe_ein)
+                fields[key + "_overwrite"] = int(not relais_6_pumpe_gesperrt)
+
+        def ladung_zentral():
+            pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
+            fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
 
         mischventil_registers()
         mischventil_automatik()
         mischventil_stellwert_100()
         mischventil_credit()
         pumpe()
+        ladung_zentral()
         await self.write_records(records=r)
 
 

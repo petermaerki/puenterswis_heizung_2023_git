@@ -7,14 +7,9 @@ from pymodbus import ModbusException
 
 logger = logging.getLogger(__name__)
 
-WHILE_HARGASSNER = True
-"""
-Solange ide Hargassner Heizung in Betrieb ist.
-Nachher auf 'False' setzen oder besser entfernen.
-"""
 
 DEVELOPMENT = True
-
+BETRIEB_ELEKTRO_NOTHEIZUNG = True
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
@@ -35,7 +30,7 @@ DIRECTORY_DOC.mkdir(exist_ok=True)
 MODBUS_ADDRESS_RELAIS = 1
 MODBUS_ADDRESS_DAC = 2
 MODBUS_ADDRESS_BELIMO = 3
-MODBUS_ADDRESS_OEKOFEN = 3
+MODBUS_ADDRESS_OEKOFEN = 4
 
 ETAPPE_TAG_VIRGIN = "virgin"
 ETAPPE_TAG_BOCHS = "bochs"

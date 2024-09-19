@@ -53,19 +53,27 @@ class LadungBase:
         return 1.0
 
 
-class LadungHeizung(LadungBase):
+class LadungBodenheizung(LadungBase):
     """
     Fuer Heizung minimale Speichertemperatur
     heizkurve_heizungswasser_C = (20.0 - self.stimuli.umgebungstemperatur_C) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
     """
 
-    AUSSENTEMPERATURGENZE_HEIZEN_C = 20.0
-    """ueber dieser Aussentemperatur muss nicht mehr geheizt werden"""
+    OFFSET_C = 3.0
+    """
+    Offset weil der Aussentemperaturfuehler auf einer Betonwand montiert ist und diese Wand durch die Abwaerme der Heizzentrale etwas waermer als die effektive Aussentempeatur ist.
+    """
 
-    def __init__(self, sp_temperatur: SpTemperatur, temperatur_aussen_C: float = -8.0):
-        """
-        todo: spaeter korrekt machen gemaess Aussensensor
-        """
+    AUSSENTEMPERATURGENZE_HEIZEN_C = 14.0 + OFFSET_C
+    """
+    Ueber dieser Aussentemperatur muss nicht mehr geheizt werden
+    http://archiv.hev-zuerich.ch.rubin.ch-meta.net/jahr-2006/ms-art-200612-05.htm
+    "In der Regel sollte geheizt werden, wenn die Aussentemperatur unter 14 Grad sinkt."
+    """
+
+    MAX_PROZENT = 200.0
+
+    def __init__(self, sp_temperatur: SpTemperatur, temperatur_aussen_C: float):
         super().__init__(sp_temperatur=sp_temperatur)
         self.temperatur_aussen_C = temperatur_aussen_C
         self.heiz_temperatur_min_C = (20.0 - temperatur_aussen_C) * 10.0 / 28.0 + 25.0
@@ -93,13 +101,19 @@ class LadungHeizung(LadungBase):
     def ladung_prozent(self) -> float:
         uebergangsbereich_C = 2.0  # Uebergangsbereich damit kein abrupter Wechsel
         ladung_falls_heizperiode_prozent = self.energie_J / self.energie_100_J * 100.0
-        return linear_transition(
+        transition_prozent = linear_transition(
             x=self.temperatur_aussen_C,
             start_x=self.AUSSENTEMPERATURGENZE_HEIZEN_C,
             end_x=self.AUSSENTEMPERATURGENZE_HEIZEN_C + uebergangsbereich_C,
             start_y=ladung_falls_heizperiode_prozent,
-            end_y=100.0,
+            end_y=self.MAX_PROZENT,
         )
+        return max(transition_prozent, ladung_falls_heizperiode_prozent)
+
+    @property
+    def is_sommer(self) -> float:
+        # return self.ladung_prozent > self.MAX_PROZENT - 1.0
+        return self.temperatur_aussen_C > self.AUSSENTEMPERATURGENZE_HEIZEN_C
 
 
 def _baden_energie_J(sp_temperatur: SpTemperatur) -> float:
@@ -137,10 +151,11 @@ class LadungBaden(LadungBase):
 
 class LadungMinimum(LadungBase):
     def __init__(self, sp_temperatur: SpTemperatur, temperatur_aussen_C: float):
+        super().__init__(sp_temperatur=sp_temperatur)
         self.sp_temperatur = sp_temperatur
         self.ladung_baden = LadungBaden(sp_temperatur)
-        self.ladung_heizung = LadungHeizung(sp_temperatur, temperatur_aussen_C)
+        self.ladung_bodenheizung = LadungBodenheizung(sp_temperatur, temperatur_aussen_C)
 
     @property
     def ladung_prozent(self) -> float:
-        return min(self.ladung_baden.ladung_prozent, self.ladung_heizung.ladung_prozent)
+        return min(self.ladung_baden.ladung_prozent, self.ladung_bodenheizung.ladung_prozent)

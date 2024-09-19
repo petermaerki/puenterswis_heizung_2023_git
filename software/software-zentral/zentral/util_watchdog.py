@@ -33,11 +33,12 @@ class Watchdog:
         """
         If any of the watchdogs expired: Raise 'WatchdogExpiredException'
         """
+        now_s = time.monotonic()
         for tag, last_activity_s in self._last_activity_s.items():
-            duration_s = time.monotonic() - last_activity_s
+            duration_s = now_s - last_activity_s
             assert duration_s >= 0.0
             if duration_s > self._max_inactivity_s:
-                msg = f"Watchdog modbus-'{tag}' has expired ({duration_s}s > {self._max_inactivity_s}s)!"
+                msg = f"Watchdog modbus-'{tag}' has expired ({duration_s:0.1f}s > {self._max_inactivity_s:0.1f}s)!"
                 logger.warning(msg=msg)
                 return msg
 

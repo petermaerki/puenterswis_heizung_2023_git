@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 
 from zentral.constants import ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT, HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
-from zentral.util_sp_ladung import SpTemperatur
+from zentral.util_sp_ladung_dezentral import SpTemperatur
 from zentral.util_uploadinterval import UploadInterval
 
 MODBUS_OFFSET_HAUS = 100
@@ -41,6 +41,7 @@ class ConfigHaus:
     addresse: str = dataclasses.field(hash=False, compare=False)
     bewohner: str = dataclasses.field(hash=False, compare=False)
     etappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
+    mbus_address: str = dataclasses.field(hash=False, compare=False)
 
     @property
     def haus_maerki(self) -> bool:

@@ -54,6 +54,7 @@
 				"cwd": "${workspaceFolder:repo}",
 				"console": "integratedTerminal",
 				"args": [
+					"check",
 					"--config=${workspaceFolder:repo}/.ruff.toml",
 					"--fix",
 					"${workspaceFolder:zentral}",

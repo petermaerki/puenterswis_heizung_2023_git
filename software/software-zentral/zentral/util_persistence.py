@@ -172,8 +172,7 @@ class Persistence:
         return self._data
 
     def _add_history(self, why: str) -> None:
-        if len(self._history) > 100:
-            # Make sure that the history does not get too long
-            self._history = []
+        # Make sure that the history does not get too long
+        self._history = self._history[-20:]
         history_text = f"{self._time_base.timestamp} {why}"
         self._history.append(history_text)

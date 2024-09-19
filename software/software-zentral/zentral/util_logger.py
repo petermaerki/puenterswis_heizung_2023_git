@@ -74,32 +74,25 @@ class ColorFormatter(logging.Formatter):
 
 
 def initialize_logger() -> None:
-    logging.basicConfig(
-        # filename=DIRECTORY_LOG / "logger.txt",
-        # filemode="w",
-        format="%(asctime)s %(filename)s:%(lineno)s - %(name)s - %(levelname)s - %(message)s",
-        # level=logging.DEBUG,
-        level=logging.INFO,
-    )
-
     # create formatter
-    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(name)s - %(levelname)s - %(message)s")
+    fmt = "%(levelname)s %(filename)s:%(lineno)s %(message)s"
+    formatter_stdout = ColorFormatter(fmt=fmt)
+    formatter_file = logging.Formatter(fmt="%(asctime)s " + fmt)
 
-    rth = RotatingFileHandler(
+    handler_stream = logging.StreamHandler()
+    # handler_stream.setLevel(level=logging.INFO)
+    handler_stream.setFormatter(formatter_stdout)
+
+    handler_file = RotatingFileHandler(
         DIRECTORY_LOG / "logger.txt",
         mode="a",
         maxBytes=100_000_000,
         backupCount=5,
     )
-    rth.setLevel(logging.INFO)
-    rth.setFormatter(formatter)
-    logging.getLogger().addHandler(rth)
+    # handler_file.setLevel(logging.INFO)
+    handler_file.setFormatter(formatter_file)
 
-    ch = logging.StreamHandler()
-    # ch.setLevel(level=logging.DEBUG)
-    ch.setLevel(level=logging.INFO)
-    ch.setFormatter(formatter)
-    logging.getLogger().addHandler(ch)
+    logging.basicConfig(handlers=[handler_stream, handler_file], force=True)
 
     # logging.getLogger("zentral.util_logger").setLevel(logging.DEBUG)
     logging.getLogger("pymodbus.logging").setLevel(logging.INFO)
