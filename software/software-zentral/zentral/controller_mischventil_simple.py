@@ -81,14 +81,14 @@ class ControllerMischventilSimple(ControllerMischventilNone):
 
         if ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt:
             # Pumpe läuft nicht
-            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > 65.0:
+            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > 70.0:
                 # Speicher ist genug warm: Pumpe einschalten
                 return True
             debug("Speicher ist noch zu kalt, wir müssen noch warten mit dem Einschalten der Pumpe")
             return False
 
         # Pumpe läuft bereits
-        if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < 60.0:
+        if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < 62.0:
             debug("Speicher ist zu kalt: Darum Pume ausschalten")
             return False
         # Speicher genug warm: Pumpe laufen lassen
