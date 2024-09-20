@@ -169,6 +169,10 @@ class Context:
                 """
                 begin_s = time.monotonic()
                 while True:
+                    if self.hsm_zentral.is_controller_haeuser_valve_iterator:
+                        # Measure often while we iterate over the valves
+                        await asyncio.sleep(10.0)
+                        return
                     scenario = SCENARIOS.find(ScenarioMBusReadInterval)
                     if scenario is not None:
                         await asyncio.sleep(scenario.sleep_s)

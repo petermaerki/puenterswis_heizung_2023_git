@@ -1,22 +1,3 @@
-"""
-* Scenario lifesycle
- * eternal/removable
- * selvedestroyed
-
-* instantiated in flask
-
-* container
-  * searchable by
-    * class
-    * optional: haus
-
-* State: Part of scenario
-* Protocol
-  * delete
-  * print
-  * found
-"""
-
 import abc
 import dataclasses
 import enum
@@ -31,6 +12,7 @@ from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
+    from zentral.context import Context
 
 
 logger = logging.getLogger(__name__)
@@ -82,7 +64,7 @@ class Scenarios:
     def __init__(self):
         self._scenarios: List[ScenarioBase] = []
 
-    def add(self, scenario: ScenarioBase) -> None:
+    def add(self, ctx: "Context", scenario: ScenarioBase) -> None:
         assert isinstance(scenario, ScenarioBase)
 
         if isinstance(scenario, ScenarioClearScenarios):
@@ -93,7 +75,7 @@ class Scenarios:
         if hasattr(scenario, "action"):
             func_action = getattr(scenario, "action")
             logger.info(f"Scenario: {scenario!r}: Execute 'action()'")
-            func_action()
+            func_action(ctx=ctx)
             return
 
         logger.info(f"Scenario: Add {scenario!r}")
@@ -165,9 +147,11 @@ def ssh_repl_scenarios_history_add(f: io.TextIOBase, hausnummern: List[int]) -> 
 
 
 def ssh_repl_update_scenarios(repl_globals: Dict[str, Any], hausnummern: List[int]) -> None:
+    ctx = repl_globals.get("ctx", None)
+
     def scenario_add(scenario: ScenarioBase) -> None:
         scenario.assert_valid_hausnummer(hausnummern=hausnummern)
-        SCENARIOS.add(scenario)
+        SCENARIOS.add(ctx=ctx, scenario=scenario)
 
     repl_globals[_FUNC_SCENARIO_ADD] = scenario_add
 
@@ -217,6 +201,19 @@ class ScenarioHaeuserValveOpen(ScenarioBase):
     duration_s: float = 20.0
     """
     """
+
+
+@dataclasses.dataclass
+class ScenarioHaeuserValveOpenIterator(ScenarioBase):
+    duration_haus_s: float = 120.0
+    haeuser_count: int = 999
+
+    def action(self, ctx: "Context") -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        logging.info(f"Action: duration_haus_s={self.duration_haus_s:0.1f} haeuser_count={self.haeuser_count}")
+        ctx.hsm_zentral.set_controller_haeuser_valve_open_iterator(scenario=self)
 
 
 @dataclasses.dataclass
@@ -359,7 +356,7 @@ class ScenarioSetLogLevel(ScenarioBase):
     module: LogModule = LogModule.controller_mischventil
     level: LogLevel = LogLevel.INFO
 
-    def action(self) -> None:
+    def action(self, ctx: "Context") -> None:
         """
         Predefined method name 'action': Will be called automatically.
         """

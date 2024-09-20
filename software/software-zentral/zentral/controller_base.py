@@ -31,3 +31,6 @@ class ControllerHaeuserABC(ABC):
         self.start_s = now_s
 
     def process(self, params: "ProcessParams") -> "HauserValveVariante": ...
+
+    def done(self) -> bool:
+        return False

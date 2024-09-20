@@ -6,7 +6,8 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 
 from zentral import config_etappe
-from zentral.context_mock import Context, ContextMock
+from zentral.context import Context
+from zentral.context_mock import ContextMock
 from zentral.run_zentral import start_application
 from zentral.util_logger import initialize_logger
 from zentral.util_scenarios import SCENARIO_CLASSES, SCENARIOS
@@ -19,7 +20,7 @@ class Globals:
         self.ctx: Context = None
 
 
-globals = Globals()
+_GLOBALS = Globals()
 
 
 @asynccontextmanager
@@ -31,9 +32,12 @@ async def lifespan(app: FastAPI):
     cls_ctx = ContextMock if mocked else Context
 
     async with cls_ctx(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as ctx:
+        _GLOBALS.ctx = ctx
         await start_application(ctx=ctx)
 
         yield
+
+        _GLOBALS.ctx = None
 
 
 app = FastAPI(lifespan=lifespan)
@@ -54,7 +58,7 @@ app = FastAPI(lifespan=lifespan)
 for cls_scenario in SCENARIO_CLASSES:
 
     async def f(scenario: cls_scenario = Depends()):
-        SCENARIOS.add(scenario)
+        SCENARIOS.add(ctx=_GLOBALS.ctx, scenario=scenario)
         return {"result": repr(scenario)}
 
     path = f"/scenario/{cls_scenario.__name__}"

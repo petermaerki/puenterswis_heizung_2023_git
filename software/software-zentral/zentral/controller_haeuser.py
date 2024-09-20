@@ -1,10 +1,8 @@
 import dataclasses
 import enum
 import logging
-import time
 import typing
 
-from zentral.controller_base import ControllerHaeuserABC
 from zentral.controller_haeuser_simple import ControllerHaeuserSimple
 from zentral.util_controller_haus_ladung import HaeuserLadung
 from zentral.util_controller_verbrauch_schaltschwelle import Evaluate, HauserValveVariante
@@ -170,16 +168,3 @@ class ControllerHaeuser(ControllerHaeuserSimple):
                 return evaluate.hvv
 
             anhebung_prozent -= 1.0
-
-
-def controller_haeuser_factory() -> ControllerHaeuserABC:
-    if False:
-        TODO_LAST_ANHEBUNG_PROZENT = 30.0
-        TODO_LAST_VALVE_OPEN_COUNT = 5
-        return ControllerHaeuser(
-            time.monotonic(),
-            last_anhebung_prozent=TODO_LAST_ANHEBUNG_PROZENT,
-            last_valve_open_count=TODO_LAST_VALVE_OPEN_COUNT,
-        )
-
-    return ControllerHaeuserSimple(time.monotonic())
