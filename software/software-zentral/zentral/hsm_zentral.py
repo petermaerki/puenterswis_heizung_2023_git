@@ -6,8 +6,9 @@ import typing
 from hsm import hsm
 
 from zentral.controller_base import ControllerHaeuserABC, ControllerMischventilABC
-from zentral.controller_haeuser import PeriodNotOverException, ProcessParams, controller_haeuser_factory
-from zentral.controller_haeuser_simple import ControllerHaeuserNone
+from zentral.controller_haeuser import ControllerHaeuser, PeriodNotOverException, ProcessParams
+from zentral.controller_haeuser_simple import ControllerHaeuserNone, ControllerHaeuserSimple
+from zentral.controller_haeuser_valveopen import ControllerHaeuserValveOpenIterator
 from zentral.controller_mischventil import ControllerMischventil, controller_mischventil_factory
 from zentral.controller_mischventil_simple import ControllerMischventilNone
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
@@ -17,7 +18,8 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
-from zentral.util_scenarios import SCENARIOS, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
+from zentral.util_persistence_mischventil import PersistenceMischventil
+from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpenIterator, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -83,11 +85,13 @@ class HsmZentral(hsm.HsmMixin):
         self.ctx = ctx
         self.add_logger(HsmLoggingLogger("HsmZentral"))
         self.relais = Relais()
-        self.mischventil_stellwert_100: float = 50.0  # ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
-        self.solltemperatur_Tfv: float = 65.0
+        # ControllerMischventil.calculate_valve_100(stellwert_V=0.0)
+        self.mischventil_stellwert_100: float = PersistenceMischventil.read(stellwert_100_default=50.0)
+        self.solltemperatur_Tfv: float = 68.0
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
-        self.controller_haeuser: ControllerMischventilABC = ControllerHaeuserNone(now_s=self._programm_start_s)
+        self.controller_haeuser: ControllerMischventilABC
+        self._set_controller_haeuser_none()
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None
         self.modbus_oekofen_registers: OekofenRegisters | None = None
@@ -113,7 +117,43 @@ class HsmZentral(hsm.HsmMixin):
             return True, sc.stellwert_100
         return False, self.mischventil_stellwert_100
 
+    def _log_info_controller_haeuser(self) -> None:
+        logger.info(f"controller_haeuser {self.controller_haeuser.__class__.__name__}")
+
+    def _set_controller_haeuser_default(self) -> None:
+        self._set_controller_haeuser_simple()
+
+    def _set_controller_haeuser_none(self) -> None:
+        self.controller_haeuser = ControllerHaeuserNone(now_s=time.monotonic())
+        self._log_info_controller_haeuser()
+
+    def _set_controller_haeuser_simple(self) -> None:
+        self.controller_haeuser = ControllerHaeuserSimple(now_s=time.monotonic())
+        self._log_info_controller_haeuser()
+
+    def _set_controller_haeuser(self) -> None:
+        TODO_LAST_ANHEBUNG_PROZENT = 30.0
+        TODO_LAST_VALVE_OPEN_COUNT = 5
+        self.controller_haeuser = ControllerHaeuser(
+            now_s=time.monotonic(),
+            last_anhebung_prozent=TODO_LAST_ANHEBUNG_PROZENT,
+            last_valve_open_count=TODO_LAST_VALVE_OPEN_COUNT,
+        )
+        self._log_info_controller_haeuser()
+
+    def set_controller_haeuser_valve_open_iterator(self, scenario: ScenarioHaeuserValveOpenIterator) -> None:
+        assert isinstance(scenario, ScenarioHaeuserValveOpenIterator)
+        self.controller_haeuser = ControllerHaeuserValveOpenIterator(now_s=time.monotonic(), ctx=self.ctx, scenario=scenario)
+        self._log_info_controller_haeuser()
+
+    @property
+    def is_controller_haeuser_valve_iterator(self) -> bool:
+        return isinstance(self.controller_haeuser, ControllerHaeuserValveOpenIterator)
+
     def controller_process(self, ctx: "Context") -> None:
+        if self.controller_haeuser.done():
+            self._set_controller_haeuser_default()
+
         if self.is_state(self.state_hardwaretest):
             return
 
@@ -260,7 +300,7 @@ class HsmZentral(hsm.HsmMixin):
 
     def entry_ok_drehschalterauto(self, signal: SignalZentralBase):
         self.controller_mischventil = controller_mischventil_factory()
-        self.controller_haeuser = controller_haeuser_factory()
+        self._set_controller_haeuser_default()
 
     @hsm.value(5)
     def state_ok_drehschalterauto(self, signal: SignalZentralBase):

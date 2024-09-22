@@ -16,6 +16,7 @@ from zentral.util_modbus import get_serial_port2
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_persistence_legionellen import LEGIONELLEN_KILLED_C, PersistenceLegionellen
+from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioInfluxWriteCrazy, ScenarioMBusReadInterval, ssh_repl_update_scenarios
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,7 @@ class Context:
                 haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
 
         self._persistence_legionellen.save(force=True, why="Exiting app")
+        PersistenceMischventil.save(self.hsm_zentral.mischventil_stellwert_100)
 
     async def init(self) -> None:
         self.config_etappe.init()
@@ -167,6 +169,10 @@ class Context:
                 """
                 begin_s = time.monotonic()
                 while True:
+                    if self.hsm_zentral.is_controller_haeuser_valve_iterator:
+                        # Measure often while we iterate over the valves
+                        await asyncio.sleep(10.0)
+                        return
                     scenario = SCENARIOS.find(ScenarioMBusReadInterval)
                     if scenario is not None:
                         await asyncio.sleep(scenario.sleep_s)
