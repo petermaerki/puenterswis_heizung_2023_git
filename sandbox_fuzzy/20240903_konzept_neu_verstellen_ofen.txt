@@ -1,0 +1,15 @@
+Der Regelmechanismus von Oekofen ist doof.
+
+Ich breche mit dem Konzept:
+automatik: modbus ofen verstellen.
+falls wieder auf manuellbetrieb und software funktioniert nicht: von hand beim touch werte zurück setzen.
+ofen sperren mit relais (würde auch mit manuell laufen)
+
+
+ladung_zentral: 0 bis 100%
+wärmeenergie über 65 C.
+
+
+temperaturen so, das bei on immer laufen und nicht automatisch ausschalten.
+guzi mit der pumpe einstellen.
+
