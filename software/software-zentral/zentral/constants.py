@@ -27,10 +27,22 @@ DIRECTORY_PERSISTENCE.mkdir(exist_ok=True)
 DIRECTORY_DOC = DIRECTORY_ZENTRAL / "doc"
 DIRECTORY_DOC.mkdir(exist_ok=True)
 
-MODBUS_ADDRESS_RELAIS = 1
-MODBUS_ADDRESS_DAC = 2
-MODBUS_ADDRESS_BELIMO = 3
-MODBUS_ADDRESS_OEKOFEN = 4
+
+class Waveshare_4RS232(enum.IntEnum):
+    MODBUS_HAEUSER = 0
+    MODBUS_OEKOFEN = 1
+    MBUS_WAERMEZAEHLER = 2
+
+
+class ModbusAddressHaeuser(enum.IntEnum):
+    RELAIS = 1
+    DAC = 2
+    BELIMO = 3
+
+
+class ModbusAddressOeokofen(enum.IntEnum):
+    OEKOFEN = 1
+
 
 ETAPPE_TAG_VIRGIN = "virgin"
 ETAPPE_TAG_BOCHS = "bochs"

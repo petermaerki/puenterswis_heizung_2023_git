@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_OEKOFEN, MODBUS_ADDRESS_RELAIS, ModbusExceptionNoResponseReceived
+from zentral.constants import ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -58,16 +58,16 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self.context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=0, baudrate=9600))
-        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=1, baudrate=9600))
+        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
+        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
 
-        self.m = Mischventil(self._modbus, MODBUS_ADDRESS_BELIMO)
-        self.r = ModbusRelais(self._modbus, MODBUS_ADDRESS_RELAIS)
-        self.a = Dac(self._modbus, MODBUS_ADDRESS_DAC)
+        self.m = Mischventil(self._modbus, ModbusAddressHaeuser.BELIMO)
+        self.r = ModbusRelais(self._modbus, ModbusAddressHaeuser.RELAIS)
+        self.a = Dac(self._modbus, ModbusAddressHaeuser.DAC)
         self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
         self.drehschalter = Drehschalter()
-        self.o = Oekofen(self._modbus_oekofen, MODBUS_ADDRESS_OEKOFEN)
+        self.o = Oekofen(self._modbus_oekofen, ModbusAddressOeokofen.OEKOFEN)
 
     def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
         return get_modbus_client(n=n, baudrate=baudrate)

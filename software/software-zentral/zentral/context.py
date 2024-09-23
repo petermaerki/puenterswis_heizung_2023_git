@@ -7,7 +7,7 @@ import typing
 
 from zentral import util_ssh_repl
 from zentral.config_base import ConfigEtappe, Haus
-from zentral.constants import DIRECTORY_LOG
+from zentral.constants import DIRECTORY_LOG, Waveshare_4RS232
 from zentral.hsm_zentral import HsmZentral
 from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
@@ -29,7 +29,7 @@ class Context:
     def __init__(self, config_etappe: ConfigEtappe):
         self.config_etappe = config_etappe
         self.modbus_communication = self._factory_modbus_communication()
-        port = get_serial_port2(n=2)
+        port = get_serial_port2(n=Waveshare_4RS232.MBUS_WAERMEZAEHLER)
         self.mbus = MBus(port=port)
         self.influx = Influx()
         self.hsm_zentral = HsmZentral(ctx=self)

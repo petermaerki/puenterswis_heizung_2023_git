@@ -8,7 +8,7 @@ from pymodbus.pdu import ModbusResponse
 
 from zentral import util_modbus_dac, util_modbus_mischventil, util_modbus_relais
 from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
-from zentral.constants import MODBUS_ADDRESS_BELIMO, MODBUS_ADDRESS_DAC, MODBUS_ADDRESS_RELAIS
+from zentral.constants import ModbusAddressHaeuser
 from zentral.context import Context
 from zentral.util_modbus import MODBUS_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
@@ -82,7 +82,7 @@ class ModbusMockClient:
             rsp.registers = [1]
             return rsp
 
-        if slave == MODBUS_ADDRESS_BELIMO:
+        if slave == ModbusAddressHaeuser.BELIMO:
             if address == util_modbus_mischventil.EnumRegisters.RELATIVE_POSITION:
                 rsp = ModbusResponse()
                 rsp.registers = [50]
@@ -107,7 +107,7 @@ class ModbusMockClient:
         assert isinstance(values, (list, tuple))
 
         def assert_modbus():
-            if slave == MODBUS_ADDRESS_DAC:
+            if slave == ModbusAddressHaeuser.DAC:
                 assert address == util_modbus_dac.Dac.DAC_ADDRESS
                 assert len(values) == 8
                 return
@@ -134,7 +134,7 @@ class ModbusMockClient:
     ) -> ModbusResponse:
         assert isinstance(values, (list, tuple))
         assert address in (util_modbus_relais.ModbusRelais.COIL_ADDRESS, EnumModbusRegisters.SETGET16BIT_GPIO)
-        assert slave == MODBUS_ADDRESS_RELAIS
+        assert slave == ModbusAddressHaeuser.RELAIS
 
         rsp = ModbusResponse()
         rsp.registers = []
