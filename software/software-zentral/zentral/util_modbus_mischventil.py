@@ -1,7 +1,7 @@
 import enum
 from typing import List
 
-from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT, MODBUS_MAX_REGISTER_START_ADDRESS
+from zentral.util_modbus import MODBUS_BELIMO_MAX_REGISTER_COUNT, MODBUS_BELIMO_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 
@@ -34,7 +34,7 @@ class EnumRegisters(enum.IntEnum):
 
 class MischventilRegisters:
     def __init__(self, registers: List[int]):
-        assert len(registers) == MODBUS_MAX_REGISTER_COUNT
+        assert len(registers) == MODBUS_BELIMO_MAX_REGISTER_COUNT
         self._registers = registers
 
     @property
@@ -105,8 +105,8 @@ class Mischventil:
         response = await self._modbus.read_holding_registers(
             slave=self._modbus_address,
             slave_label=self._modbus_label,
-            address=MODBUS_MAX_REGISTER_START_ADDRESS,
-            count=MODBUS_MAX_REGISTER_COUNT,
+            address=MODBUS_BELIMO_MAX_REGISTER_START_ADDRESS,
+            count=MODBUS_BELIMO_MAX_REGISTER_COUNT,
         )
         assert not response.isError()
         return response.registers

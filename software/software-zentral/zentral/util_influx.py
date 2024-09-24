@@ -14,6 +14,7 @@ from zentral.util_constants_haus import SpPosition
 from zentral.util_ds18_pairs import DS18
 from zentral.util_mbus import MBusMeasurement
 from zentral.util_modbus_iregs_all import ModbusIregsAll
+from zentral.util_modbus_oekofen import OekofenRegisters
 
 if TYPE_CHECKING:
     from zentral.context import Context
@@ -242,6 +243,11 @@ class Influx:
         mischventil_credit()
         pumpe()
         ladung_zentral()
+        await self.write_records(records=r)
+
+    async def send_oekofen(self, ctx: "Context", modbus_oekofen_registers: OekofenRegisters) -> None:
+        r = InfluxRecords(ctx=ctx)
+        r.add_fields(fields=modbus_oekofen_registers.get_influx_fields("temp_oekofen_"))
         await self.write_records(records=r)
 
 

@@ -10,7 +10,7 @@ from zentral import util_modbus_dac, util_modbus_mischventil, util_modbus_relais
 from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
 from zentral.constants import ModbusAddressHaeuser
 from zentral.context import Context
-from zentral.util_modbus import MODBUS_MAX_REGISTER_START_ADDRESS
+from zentral.util_modbus import MODBUS_BELIMO_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
 
 _DS_COUNT = 8
@@ -91,7 +91,7 @@ class ModbusMockClient:
                 rsp = ModbusResponse()
                 rsp.registers = [100, 100]
                 return rsp
-            if address == MODBUS_MAX_REGISTER_START_ADDRESS:
+            if address == MODBUS_BELIMO_MAX_REGISTER_START_ADDRESS:
                 rsp = ModbusResponse()
                 rsp.registers = count * [100]
                 return rsp

@@ -210,7 +210,7 @@ class PcbsDezentralHeizzentrale:
     def __getattr__(self, attribute_name: str) -> float:
         """
         Calling 'x.Tfv' will call this method.
-        'name' is set to 'x.Tfv'.
+        'attribute_name' is set to 'x.Tfv'.
 
          throw MissingModbusDataException if no data received yet or communication is broken
         """

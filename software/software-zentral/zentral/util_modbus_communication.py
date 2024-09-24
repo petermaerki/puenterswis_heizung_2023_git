@@ -24,9 +24,11 @@ if typing.TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-MODBUS_SLEEP_S = 1.0
+MODBUS_HAEUSER_SLEEP_S = 1.0
+MODBUS_OEKOFEN_SLEEP_S = 60.0
 
 MODBUS_ZENTRAL_MAX_INACTIVITY_S = 10.0
+MODBUS_OEKOFEN_MAX_INACTIVITY_S = 2 * MODBUS_OEKOFEN_SLEEP_S
 
 
 class Drehschalter:
@@ -61,6 +63,7 @@ class ModbusCommunication:
         self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
         self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
+        self._watchdog_modbus_oekofen = Watchdog(max_inactivity_s=MODBUS_OEKOFEN_MAX_INACTIVITY_S)
 
         self.m = Mischventil(self._modbus, ModbusAddressHaeuser.BELIMO)
         self.r = ModbusRelais(self._modbus, ModbusAddressHaeuser.RELAIS)
@@ -116,7 +119,7 @@ class ModbusCommunication:
         for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
             await read_pcb(pcb)
 
-    async def _handle_modbus(self):
+    async def _handle_modbus_haeuser(self):
         if True:
             await self.read_modbus_pcbs_dezentral_heizzentrale()
 
@@ -199,23 +202,28 @@ class ModbusCommunication:
                 if not self.drehschalter.is_manuell:
                     logger.warning(f"Relais: {e}")
 
-        if False:  # TODO sobald Oekofen in Betrieb
-            try:
-                with self._watchdog_modbus_zentral.activity("oekofen"):
-                    all_registers = await self.o.all_registers
-                self.context.hsm_zentral.modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
-                self.context.hsm_zentral.modbus_oekofen_registers.append_to_file()
-                logger.debug(f"oekofen: {all_registers=}")
-            except ModbusException as e:
-                self.context.hsm_zentral.modbus_oekofen_registers = None
-
-                logger.warning(f"Oekofen: {e}")
-
-    async def task_modbus(self) -> None:
+    async def task_modbus_haeuser(self) -> None:
         async with exception_handler_and_exit(ctx=self.context, task_name="modbus", exit_code=42):
             while True:
                 msg = self._watchdog_modbus_zentral.has_expired()
                 if msg is not None:
                     self.context.hsm_zentral.dispatch(SignalError(why=msg))
-                await self._handle_modbus()
-                await asyncio.sleep(MODBUS_SLEEP_S)
+                await self._handle_modbus_haeuser()
+                await asyncio.sleep(MODBUS_HAEUSER_SLEEP_S)
+
+    async def task_modbus_oekofen(self) -> None:
+        async with exception_handler_and_exit(ctx=self.context, task_name="modbus", exit_code=42):
+            while True:
+                try:
+                    with self._watchdog_modbus_oekofen.activity("oekofen"):
+                        all_registers = await self.o.all_registers
+                    modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
+                    modbus_oekofen_registers.append_to_file()
+                    self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
+                    await self.context.influx.send_oekofen(ctx=self.context, modbus_oekofen_registers=modbus_oekofen_registers)
+                except ModbusException as e:
+                    self.context.hsm_zentral.modbus_oekofen_registers = None
+
+                    logger.warning(f"Oekofen: {e}")
+
+                await asyncio.sleep(MODBUS_OEKOFEN_SLEEP_S)

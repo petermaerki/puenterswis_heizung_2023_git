@@ -1,4 +1,3 @@
-import enum
 import time
 from typing import List
 
@@ -6,100 +5,62 @@ from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
 from zentral.constants import DIRECTORY_LOG
-from zentral.util_modbus import MODBUS_MAX_REGISTER_COUNT, MODBUS_MAX_REGISTER_START_ADDRESS
+from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS
+from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC
 from zentral.util_modbus_wrapper import ModbusWrapper
-
-
-class EnumRegisters(enum.IntEnum):
-    """
-    See: https://www.belimo.com/mam/general-documents/system_integration/Modbus/belimo_Modbus-Register_Energy-Valve_v4_01_en-gb.pdf
-    """
-
-    SETPOINT = 0
-    "Setpoint [%] [0.0 .. 1.0]"
-    RELATIVE_POSITION = 4
-    "Relative Position [%] [0.0 .. 1.0]"
-    ZENTRAL_FLUSS_M3_S = 7
-    "Absolute volumetric flow [l/s] 0…45 l/s"
-    ZENTRAL_COOLING_ENERGIE_J = 65
-    "Cooling Energy [kWh]"
-    ZENTRAL_HEATING_ENERGIE_J = 71
-    "Heating Energy [kWh]"
-    ZENTRAL_VALVE_T1_C = 19
-    "Temperature 1 (external) [°C]"
-    ZENTRAL_VALVE_T2_C = 21
-    "Temperature 2 (integrated) [°C]"
-    ZENTRAL_COOLING_POWER_W = 27
-    "Absolute cooling power [kW]"
-    ZENTRAL_HEATING_POWER_W = 33
-    "Absolute heating power [kW]"
-    ABSOLUTE_POWER_kW = 166
-    "Absolute Pmax [kW]"
 
 
 class OekofenRegisters:
     def __init__(self, registers: List[int]):
-        assert len(registers) == MODBUS_MAX_REGISTER_COUNT
+        assert len(registers) == MODBUS_OEKOFEN_MAX_REGISTER_COUNT
         self._registers = registers
 
     def append_to_file(self) -> None:
         filename = DIRECTORY_LOG / "oekofen_registers.data"
         _TIMESTAMP_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
+        file_exists = filename.exists()
         with filename.open("a") as f:
+            if not file_exists:
+                values = "now", "time", *[reg.name for reg in REG_DEFS]
+                f.write(" ".join(values))
+                f.write("\n")
+
             now = time.time()
-            data = dict(
-                now=now,
-                time=time.strftime(_TIMESTAMP_FORMAT, time.localtime(now)),
-                setpoint=self.setpoint,
-                relative_position=self.relative_position,
-                fluss_m3_s=self.fluss_m3_s,
-            )
-            f.write(f"{data!r}\n")
+            time_ = time.strftime(_TIMESTAMP_FORMAT, time.localtime(now))
+            values = format(now, "0.0f"), time_, *[self.attr_str(reg.name) for reg in REG_DEFS]
 
-    @property
-    def setpoint(self) -> float:
-        "r/w [0..1]"
-        return self._read_16bit(EnumRegisters.SETPOINT, factor=1e-4)
+            f.write(" ".join(values))
+            f.write("\n")
 
-    @property
-    def relative_position(self) -> float:
-        "r [0..1]"
-        return self._read_16bit(EnumRegisters.RELATIVE_POSITION, factor=1e-4)
+    def get_influx_fields(self, prefix: str) -> dict[str, float | int]:
+        return {prefix + reg.name: self.attr_value(reg.name) for reg in REG_DEFS}
 
-    @property
-    def fluss_m3_s(self) -> float:
-        return self._read_16bit(EnumRegisters.ZENTRAL_FLUSS_M3_S, factor=1e-5)
+    def __getattr__(self, attribute_name: str) -> int | float:
+        """
+        Calling 'x.CASCADE_SET_C' will call this method.
+        'attribute_name' is set to 'x.CASCADE_SET_C'.
 
-    @property
-    def valve_T1_C(self) -> float:
-        return self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T1_C, factor=0.01)
+         throw MissingModbusDataException if no data received yet or communication is broken
+        """
+        return self.attr_value(attribute_name=attribute_name)
 
-    @property
-    def valve_T2_C(self) -> float:
-        return self._read_16bit(EnumRegisters.ZENTRAL_VALVE_T2_C, factor=0.01)
+    def attr_value(self, attribute_name: str) -> int | float:
+        reg_def = DICT_REG_DEFS[attribute_name]
+        if isinstance(reg_def, RegDefC):
+            return self._read_16bit_float(reg_def.num, factor=0.1)
+        return self._read_16bit_int(reg_def.num)
 
-    @property
-    def cooling_energie_J(self) -> float:
-        return self._read_32bit(EnumRegisters.ZENTRAL_COOLING_ENERGIE_J, factor=3.6e6)
+    def attr_str(self, attribute_name: str) -> int | float:
+        v = self.attr_value(attribute_name=attribute_name)
+        if isinstance(v, float):
+            return format(v, "2.1f")
+        return format(v, "d")
 
-    @property
-    def heating_energie_J(self) -> float:
-        return self._read_32bit(EnumRegisters.ZENTRAL_HEATING_ENERGIE_J, factor=3.6e6)
+    def _read_16bit_int(self, address: int) -> int:
+        return self._registers[address]
 
-    @property
-    def cooling_power_W(self) -> float:
-        return self._read_32bit(EnumRegisters.ZENTRAL_COOLING_POWER_W, factor=1.0)
-
-    @property
-    def heating_power_W(self) -> float:
-        return self._read_32bit(EnumRegisters.ZENTRAL_HEATING_POWER_W, factor=1.0)
-
-    @property
-    def absolute_power_kW(self) -> float:
-        return self._read_32bit(EnumRegisters.ABSOLUTE_POWER_kW, factor=0.001)
-
-    def _read_16bit(self, address: int, factor: float) -> float:
+    def _read_16bit_float(self, address: int, factor: float) -> float:
         return self._registers[address] * factor
 
     def _read_32bit(self, address: int, factor: float) -> float:
@@ -130,56 +91,8 @@ class Oekofen:
         response = await self._modbus.read_holding_registers(
             slave=self._modbus_address,
             slave_label=self._modbus_label,
-            address=MODBUS_MAX_REGISTER_START_ADDRESS,
-            count=MODBUS_MAX_REGISTER_COUNT,
+            address=MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS,
+            count=MODBUS_OEKOFEN_MAX_REGISTER_COUNT,
         )
         assert not response.isError()
         return response.registers
-
-    @property
-    async def setpoint(self) -> float:
-        "r/w [0..1]"
-        return await self._read_16bit(EnumRegisters.SETPOINT, factor=1e-4)
-
-    async def setpoint_set(self, value: float) -> None:
-        "r/w [0..1]"
-        assert 0.0 <= value <= 1.0
-        await self._write_16bit(EnumRegisters.SETPOINT, value, factor=1e-4)
-
-    async def _read_16bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(
-            slave=self._modbus_address,
-            slave_label=self._modbus_label,
-            address=address,
-            count=1,
-        )
-        return response.registers[0] * factor
-
-    async def _write_16bit(self, address: int, value: float, factor: float) -> None:
-        value_raw = round(value / factor)
-        assert 0 <= value_raw < 2**16
-        await self._modbus.write_registers(
-            slave=self._modbus_address,
-            slave_label=self._modbus_label,
-            address=address,
-            values=[value_raw],
-        )
-
-    async def _read_32bit(self, address: int, factor: float) -> float:
-        response = await self._modbus.read_holding_registers(
-            slave=self._modbus_address,
-            slave_label=self._modbus_label,
-            address=address,
-            count=2,
-        )
-        assert not response.isError()
-
-        decoder = BinaryPayloadDecoder.fromRegisters(
-            response.registers,
-            byteorder=Endian.LITTLE,
-            wordorder=Endian.LITTLE,
-        )
-
-        value = decoder.decode_32bit_uint()
-
-        return value * factor
