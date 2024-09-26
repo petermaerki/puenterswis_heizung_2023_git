@@ -1,3 +1,4 @@
+import logging
 import time
 from typing import List
 
@@ -6,8 +7,10 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 from zentral.constants import DIRECTORY_LOG
 from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS
-from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC
+from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, RegDefI
 from zentral.util_modbus_wrapper import ModbusWrapper
+
+logger = logging.getLogger(__name__)
 
 
 class OekofenRegisters:
@@ -48,8 +51,8 @@ class OekofenRegisters:
     def attr_value(self, attribute_name: str) -> int | float:
         reg_def = DICT_REG_DEFS[attribute_name]
         if isinstance(reg_def, RegDefC):
-            return self._read_16bit_float(reg_def.num, factor=0.1)
-        return self._read_16bit_int(reg_def.num)
+            return self._read_16bit_float(reg_def.address, factor=0.1)
+        return self._read_16bit_int(reg_def.address)
 
     def attr_str(self, attribute_name: str) -> int | float:
         v = self.attr_value(attribute_name=attribute_name)
@@ -96,3 +99,24 @@ class Oekofen:
         )
         assert not response.isError()
         return response.registers
+
+    async def set_register(self, name: str, value: float) -> None:
+        assert isinstance(name, str)
+        assert isinstance(value, float)
+        reg_def = DICT_REG_DEFS[name]
+        assert isinstance(reg_def, RegDefI | RegDefC)
+        factor = 0.1 if isinstance(reg_def, RegDefC) else 1.0
+        await self._write_16bit(name=name, address=reg_def.address, value=value, factor=factor)
+
+    async def _write_16bit(self, name: str, address: int, value: float, factor: float) -> None:
+        value_raw = round(value / factor)
+        assert 0 <= value_raw < 2**16
+
+        logger.info(f"Oekofen set register {name}({address}) to {value:0.1f}({value_raw})")
+
+        await self._modbus.write_registers(
+            slave=self._modbus_address,
+            slave_label=self._modbus_label,
+            address=address,
+            values=[value_raw],
+        )

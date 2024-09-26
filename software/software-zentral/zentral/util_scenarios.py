@@ -98,15 +98,18 @@ class Scenarios:
                 return scenario
         return None
 
+    def find_and_remove(self, cls_scenario: Type[TScenario]) -> TScenario | None:
+        scenario = self.find(cls_scenario=cls_scenario)
+        if scenario is not None:
+            self._scenarios.remove(scenario)
+        return scenario
+
     def remove_if_present(self, cls_scenario: Type[TScenario]) -> bool:
         """
         Return True if the scenario was present
         """
-        scenario = self.find(cls_scenario=cls_scenario)
-        if scenario is None:
-            return False
-        self._scenarios.remove(scenario)
-        return True
+        scenario = self.find_and_remove(cls_scenario=cls_scenario)
+        return scenario is not None
 
     @property
     def is_empty(self) -> bool:
@@ -384,6 +387,24 @@ class ScenarioOverwriteRelais6PumpeGesperrt(ScenarioBase):
 class ScenarioOverwriteRelais0Automatik(ScenarioBase):
     duration_s: float = 10 * 60.0
     automatik: bool = False
+
+
+class OekofenRegister(enum.StrEnum):
+    EXTERNAL_CASCADE_CONTR = "EXTERNAL_CASCADE_CONTR"
+    # read only:
+    #   CASCADE_ON_TEMP_C = "CASCADE_ON_TEMP_C"
+    #   CASCADE_OFF_TEMP_C = "CASCADE_OFF_TEMP_C"
+    FA1_TEMP_SET_C = "FA1_TEMP_SET_C"
+    FA2_TEMP_SET_C = "FA2_TEMP_SET_C"
+    FA1_REGEL_TEMP_C = "FA1_REGEL_TEMP_C"
+    FA2_REGEL_TEMP_C = "FA2_REGEL_TEMP_C"
+
+
+@dataclasses.dataclass
+class ScenarioOekofenRegister(ScenarioBase):
+    name: OekofenRegister = OekofenRegister.EXTERNAL_CASCADE_CONTR
+    # name: str = "EXTERNAL_CASCADE_CONTR"
+    value: float = 0.0
 
 
 @dataclasses.dataclass

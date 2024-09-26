@@ -42,18 +42,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# if True:
-#     config_etappe = config_etappe.create_config_etappe()
-#     type_haus_enum = config_etappe.haus_enum
-#     for cls_scenario in SCENARIO_CLASSES:
-#         if "haus_nummer" in cls_scenario.__annotations__:
-#             cls_scenario.__annotations__["haus_nummer"] = type_haus_enum
-#         annotation_haus_nummer = cls_scenario.__annotations__.get("haus_nummer", None)
-#         field_haus_nummer = cls_scenario.__dataclass_fields__.get("haus_nummer", None)
-#         field_haus_nummer.type = type_haus_enum
-#         # if hasattr(cls_scenario, "haus_nummer"):
-#         #     cls_scenario.haus_nummer = ctx.config_etappe.haus_enum
-#         print("Hallo")
 
 for cls_scenario in SCENARIO_CLASSES:
 
@@ -68,19 +56,3 @@ for cls_scenario in SCENARIO_CLASSES:
 @app.get("/")
 async def redirect_root():
     return RedirectResponse("/docs#")
-
-
-# def main():
-#     this_file = pathlib.Path(__file__).relative_to(DIRECTORY_ZENTRAL)
-#     this_module = str(this_file.parent / this_file.stem).replace("/", ".")
-#     reload_dirs = [str(DIRECTORY_REPO)]
-#     uvicorn.run(
-#         app=f"{this_module}:app",
-#         reload=True,
-#         reload_dirs=reload_dirs,
-#         workers=1,
-#     )
-
-
-# if __name__ == "__main__":
-#     main()

@@ -16,7 +16,7 @@ from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
+from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioOekofenRegister, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
@@ -25,10 +25,10 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 MODBUS_HAEUSER_SLEEP_S = 1.0
-MODBUS_OEKOFEN_SLEEP_S = 60.0
+MODBUS_OEKOFEN_SLEEP_S = 60
 
 MODBUS_ZENTRAL_MAX_INACTIVITY_S = 10.0
-MODBUS_OEKOFEN_MAX_INACTIVITY_S = 2 * MODBUS_OEKOFEN_SLEEP_S
+MODBUS_OEKOFEN_MAX_INACTIVITY_S = 2.0 * MODBUS_OEKOFEN_SLEEP_S
 
 
 class Drehschalter:
@@ -212,9 +212,28 @@ class ModbusCommunication:
                 await asyncio.sleep(MODBUS_HAEUSER_SLEEP_S)
 
     async def task_modbus_oekofen(self) -> None:
+        async def sleep() -> None:
+            """
+            We have to sleep for a quite long time
+            However, 'ScenarioOekofenRegister' should respond within 1s.
+            """
+            for _ in range(MODBUS_OEKOFEN_SLEEP_S):
+                await asyncio.sleep(1.0)
+                if SCENARIOS.is_present(ScenarioOekofenRegister):
+                    break
+
+        async def handle_scenarios() -> None:
+            while True:
+                scenario = SCENARIOS.find_and_remove(ScenarioOekofenRegister)
+                if scenario is None:
+                    return
+                await self.o.set_register(name=scenario.name, value=scenario.value)
+
         async with exception_handler_and_exit(ctx=self.context, task_name="modbus", exit_code=42):
             while True:
                 try:
+                    await handle_scenarios()
+
                     with self._watchdog_modbus_oekofen.activity("oekofen"):
                         all_registers = await self.o.all_registers
                     modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
@@ -226,4 +245,4 @@ class ModbusCommunication:
 
                     logger.warning(f"Oekofen: {e}")
 
-                await asyncio.sleep(MODBUS_OEKOFEN_SLEEP_S)
+                await sleep()

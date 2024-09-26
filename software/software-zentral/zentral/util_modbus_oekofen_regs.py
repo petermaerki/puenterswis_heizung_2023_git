@@ -1,9 +1,25 @@
+"""
+Notizen zu den Feldern ERROR_1, ERROR_2, ...
+
+  Beispiel:
+    50540
+    ^^^^  Code,
+          Siehe:
+          Pelletronic_Touch_Fachmann_VA4_2b_E1650DE 1.5.pdf
+          31.1 Übersicht der Störungsmeldungen
+
+        ^ Index of Boiler/Accu starting at 0
+          Siehe:
+          Error description*
+          20240826a_Modbus_Kaskade_2.05.pdf
+"""
+
 import dataclasses
 
 
 @dataclasses.dataclass
 class RegDefI:
-    num: int
+    address: int
     name: str
 
 
