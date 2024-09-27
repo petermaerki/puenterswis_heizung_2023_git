@@ -45,7 +45,7 @@ class ControllerMischventilNone(ControllerMischventilABC):
             return
 
         # Kein Notheizbetrieb: Ausschalten
-        ctx.hsm_zentral.relais.relais_1_elektro_notheizung = None
+        ctx.hsm_zentral.relais.relais_1_elektro_notheizung = False
 
     def process(self, ctx: "Context", now_s: float) -> None:
         self._process_elektro_notheizung(ctx=ctx)
