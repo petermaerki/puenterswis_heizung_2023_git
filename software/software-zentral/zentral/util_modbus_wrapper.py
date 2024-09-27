@@ -26,7 +26,7 @@ from zentral.util_scenarios import (
     ScenarioHausModbusException,
     ScenarioHausModbusSystemExit,
     ScenarioHausModbusWrongRegisterCount,
-    ScenarioHausSpDs18ProcentOk,
+    ScenarioHausSpDs18PercentOk,
     ScenarioHausSpTemperatureDiscrepancy,
     ScenarioHausSpTemperatureIncrease,
 )
@@ -159,8 +159,8 @@ class ModbusWrapper:
         for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausModbusWrongRegisterCount, slave=slave):
             rsp.registers = rsp.registers[:-1]
 
-        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18ProcentOk, slave=slave):
-            assert isinstance(scenario, ScenarioHausSpDs18ProcentOk)
+        for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18PercentOk, slave=slave):
+            assert isinstance(scenario, ScenarioHausSpDs18PercentOk)
             ds18_offset = IREGS_ALL.ds18_ok_percent.reg
             reg_index = ds18_offset + scenario.ds18_index.index
             rsp.registers[reg_index] = scenario.ds18_ok_percent

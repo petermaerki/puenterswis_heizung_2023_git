@@ -311,7 +311,7 @@ class ScenarioHausSpTemperatureDiscrepancy(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioHausSpDs18ProcentOk(ScenarioBase):
+class ScenarioHausSpDs18PercentOk(ScenarioBase):
     """
     Real situation simulated:
      * A DS18 is disconnected/shortened: Now 'ds18_op_percent' moves from 100% town to 0%.

@@ -126,7 +126,7 @@ class Influx:
 
             def add(ab: str, ds18: DS18) -> None:
                 if ds18.ds18_ok_percent == 100:
-                    # Do not flood grafana with 100 procent values.
+                    # Do not flood grafana with 100 percent values.
                     # The legend will now just contain the sensors with errors!
                     return
                 fields[f"{p.tag}_{ab}_ok_percent"] = ds18.ds18_ok_percent
@@ -157,7 +157,7 @@ class Influx:
         fields["hsm_state_value"] = state.value + influx_offset08
         fields["next_legionellen_kill_d"] = hsm_dezentral.next_legionellen_kill_s / 24.0 / 3600.0
         if hsm_dezentral.modbus_history.percent < 100:
-            # Do not flood grafana with 100 procent values.
+            # Do not flood grafana with 100 percent values.
             # The legend will now just contain the sensors with errors!
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
         try:

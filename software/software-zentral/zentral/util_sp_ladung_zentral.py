@@ -37,7 +37,7 @@ class LadungZentral:
     # Fuer die definition der Ladung 100%
     SPEICHER_100_PROZENT_C = 75.0
 
-    MIN_NUETZLICHE_TEMPERATUR_C = 55.0
+    MIN_NUETZLICHE_TEMPERATUR_C = 65.0
 
     def __init__(self, sp_temperatur: SpTemperaturZentral):
         self.sp_temperatur = sp_temperatur
