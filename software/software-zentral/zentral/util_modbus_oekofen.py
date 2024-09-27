@@ -1,3 +1,4 @@
+import enum
 import logging
 import time
 from typing import List
@@ -11,6 +12,43 @@ from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, R
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 logger = logging.getLogger(__name__)
+
+
+class FA_Mode(enum.IntEnum):
+    OFF = 0
+    AUTO = 1
+    ON = 2
+    UNKNOWN = 1000
+
+    @classmethod
+    def _missing_(cls, value):
+        logger.warning(f"Unknown value={value}")
+        return cls.UNKNOWN
+
+
+class FA_State(enum.IntEnum):
+    PERMANENT = 0
+    START = 1
+    IGNITION = 2
+    SOFTSTART = 3
+    HEATING_FULL_POWER = 4
+    RUN_ON_TIME = 5
+    OFF = 6
+    SUCTION = 7
+    ASH = 8
+    PELLET = 9
+    PELLET_SWITCH = 10
+    STOERUNG = 11
+    EINMESSEN = 12
+    OFF99 = 99
+    UNKNOWN = 1000
+
+    @classmethod
+    def _missing_(cls, value):
+        logger.warning(f"Unknown value={value}")
+        if cls.EINMESSEN < value < cls.OFF99:
+            return cls.OFF99
+        return cls.UNKNOWN
 
 
 class OekofenRegisters:
@@ -38,15 +76,6 @@ class OekofenRegisters:
 
     def get_influx_fields(self, prefix: str) -> dict[str, float | int]:
         return {prefix + reg.name: self.attr_value(reg.name) for reg in REG_DEFS}
-
-    def __getattr__(self, attribute_name: str) -> int | float:
-        """
-        Calling 'x.CASCADE_SET_C' will call this method.
-        'attribute_name' is set to 'x.CASCADE_SET_C'.
-
-         throw MissingModbusDataException if no data received yet or communication is broken
-        """
-        return self.attr_value(attribute_name=attribute_name)
 
     def attr_value(self, attribute_name: str) -> int | float:
         reg_def = DICT_REG_DEFS[attribute_name]
@@ -77,6 +106,29 @@ class OekofenRegisters:
         value = decoder.decode_32bit_uint()
 
         return value * factor
+
+    def attr_value2(self, brenner: int, attribute_template: str) -> int | float:
+        """
+        Example:
+          brenner = 1
+          attribute_template = "FAx_STATE
+        ->
+          attribute_name = "FA1_STATE
+        """
+        assert 1 <= brenner <= 2
+        attribute_name = attribute_template.replace("x", str(brenner))
+        return self.attr_value(attribute_name=attribute_name)
+
+    def modulation_percent(self, brenner: int) -> int:
+        return self.attr_value2(brenner=brenner, attribute_template="FAx_MODULATION_PERCENT")
+
+    def fa_state(self, brenner: int) -> FA_State:
+        v = self.attr_value2(brenner=brenner, attribute_template="FAx_STATE")
+        return FA_State(v)
+
+    def fa_mode(self, brenner: int) -> FA_Mode:
+        v = self.attr_value2(brenner=brenner, attribute_template="FAx_MODE")
+        return FA_Mode(v)
 
 
 class Oekofen:

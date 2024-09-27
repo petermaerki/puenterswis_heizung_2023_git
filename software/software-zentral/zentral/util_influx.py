@@ -182,6 +182,16 @@ class Influx:
         }
         r.add_fields(fields=fields)
 
+        def haeuser_ladung_minimum_prozent():
+            minimum_prozent = ctx.hsm_zentral.haeuser_ladung_minimum_prozent
+            if minimum_prozent is not None:
+                fields["haeuser_ladung_minimum_prozent"] = minimum_prozent
+
+        def oekofen_condensed():
+            val1, val2 = ctx.hsm_zentral.brenner_uebersicht_prozent
+            fields["brenner_1_uebersicht_prozent"] = val1 + 0.0
+            fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
+
         def mischventil_registers():
             registers = ctx.hsm_zentral.modbus_mischventil_registers
             if registers is None:
@@ -237,6 +247,8 @@ class Influx:
             pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
 
+        haeuser_ladung_minimum_prozent()
+        oekofen_condensed()
         mischventil_registers()
         mischventil_automatik()
         mischventil_stellwert_100()

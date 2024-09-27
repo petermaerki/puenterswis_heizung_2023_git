@@ -18,6 +18,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
+from zentral.util_oekofen_brenner_uebersicht import brenner_uebersicht_prozent
 from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpenIterator, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
 
@@ -95,11 +96,46 @@ class HsmZentral(hsm.HsmMixin):
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None
         self.modbus_oekofen_registers: OekofenRegisters | None = None
+        """
+        None: If not modbus communication!
+        """
         self._state_error_last_error_s: float = 0.0
 
     @property
     def uptime_s(self) -> float:
         return time.monotonic() - self._programm_start_s
+
+    @property
+    def brenner_uebersicht_prozent(self) -> tuple[int, int]:
+        """
+        return (brenner1, brenneer2)
+        """
+        return brenner_uebersicht_prozent(registers=self.modbus_oekofen_registers)
+
+    @property
+    def haeuser_ladung_minimum_prozent(self) -> float | None:
+        """
+        Bestimmt die tiefste Ladung aller Häuser.
+        Häuser, die über modbus NICHT erreichbar sind, werden ignoriert.
+        return None: Falls keine Modbusdaten des Aussenfühlers bekannt.
+        """
+        try:
+            temperatur_aussen_C = self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
+        except MissingModbusDataException:
+            return None
+
+        list_prozent: list[float] = []
+        for haus in self.ctx.config_etappe.haeuser:
+            modbus_iregs_all = haus.status_haus.hsm_dezentral.modbus_iregs_all
+            if modbus_iregs_all is None:
+                continue
+            ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
+            list_prozent.append(ladung_minimum.ladung_prozent)
+
+        if len(list_prozent) == 0:
+            return None
+
+        return min(list_prozent)
 
     @property
     def mischventil_stellwert_V(self) -> float:
