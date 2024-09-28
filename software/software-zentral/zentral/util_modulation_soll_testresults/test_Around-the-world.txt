@@ -1,0 +1,19 @@
+  0,  0, 1min ←    5.0% Kein Einschalten da genug warm.
+ 30,  0,40min ←   -1.0% Einschalten da kalt.
+ 30,  0, 1min ←   20.0% Keine Änderung da Ladung ok
+ 65,  0,15min ←    3.0% Increment bis ein Brenner auf 100%
+100,  0,15min ←    3.0% Increment bis ein Brenner auf 100%
+100,  0, 1min ←    3.0% Increment bis ein Brenner auf 100%
+100, 30,40min ←   -1.0% Zweiter Brenner einschalten
+100, 65,15min ←    3.0% Increment bis zweiter Brenner auf 100%
+100,100,15min ←    3.0% Increment bis zweiter Brenner auf 100%
+100,100, 1min ←    3.0% Increment bis zweiter Brenner auf 100%
+ 65,100,15min ←   70.0% Decrement bis beide Brenner auf 30%
+ 30,100,15min ←   70.0% Decrement bis beide Brenner auf 30%
+ 30, 65,15min ←   70.0% Decrement bis beide Brenner auf 30%
+ 30, 30,15min ←   70.0% Decrement bis beide Brenner auf 30%
+ 30, 30, 1min ←   70.0% Decrement bis beide Brenner auf 30%
+  0, 30,30min ←   96.0% Ersten Brenner ausschalten
+  0, 30, 1min ←   96.0% Ersten Brenner ausschalten
+  0,  0,30min ←  101.0% Zweiten Brenner ausschalten
+  0,  0, 1min ←  101.0% Zweiten Brenner ausschalten
