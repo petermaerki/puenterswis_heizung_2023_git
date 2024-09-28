@@ -16,6 +16,7 @@ from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
+from zentral.util_modulation_soll import ZweiBrenner
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioOekofenRegister, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
 
@@ -126,7 +127,7 @@ class ModbusCommunication:
         if True:
             await self.modbus_haeuser_loop()
 
-        self.context.hsm_zentral.controller_process(ctx=self.context)
+        await self.context.hsm_zentral.controller_process(ctx=self.context)
         if True:
             try:
                 _manuell, output_100 = self.context.hsm_zentral.mischventil_stellwert_100_overwrite
@@ -211,6 +212,25 @@ class ModbusCommunication:
                 await self._handle_modbus_haeuser()
                 await asyncio.sleep(MODBUS_HAEUSER_SLEEP_S)
 
+    async def update_oekofen(self, zwei_brenner: ZweiBrenner) -> None:
+        """
+        Für jeden Brenner:
+        Berechne die Regeltemperatur für die gewünschte Modulation.
+        Der Wert wird nur geschrieben, falls er abweicht. Dies schont das Flash.
+        """
+        modbus_oekofen_registers = self.context.hsm_zentral.modbus_oekofen_registers
+
+        for brenner in zwei_brenner.zwei_brenner:
+            if brenner.is_off:
+                continue
+            uw_temp_on_C = modbus_oekofen_registers.uw_temp_on_C(brenner_idx1=brenner.idx0 + 1)
+            regel_temp_soll_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=uw_temp_on_C)
+            regel_temp_ist_C = modbus_oekofen_registers.regel_temp_C(brenner_idx1=brenner.idx0 + 1)
+            diff_C = abs(regel_temp_ist_C - regel_temp_soll_C)
+            if abs(diff_C) > 0.2:
+                if self.o.allowed_to_write_flash():
+                    await modbus_oekofen_registers.set_regel_temp_C(oekofen=self.o, brenner_idx1=brenner.idx0 + 1, temp_C=regel_temp_soll_C)
+
     async def task_modbus_oekofen(self) -> None:
         async def sleep() -> None:
             """
@@ -240,6 +260,8 @@ class ModbusCommunication:
                     modbus_oekofen_registers.append_to_file()
                     self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
                     await self.context.influx.send_oekofen(ctx=self.context, modbus_oekofen_registers=modbus_oekofen_registers)
+
+                    await self.update_oekofen(zwei_brenner=self.context.hsm_zentral.oekofen_modulation_soll.zwei_brenner)
                 except ModbusException as e:
                     self.context.hsm_zentral.modbus_oekofen_registers = None
 

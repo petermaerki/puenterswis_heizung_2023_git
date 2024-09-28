@@ -14,7 +14,7 @@ import pathlib
 import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
-from zentral.util_modulation_soll import ModulationSoll
+from zentral.util_modulation_soll import ModulationBrenner, ModulationSoll
 
 add_path_software_zero_dezentral()
 
@@ -94,6 +94,20 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
 @pytest.mark.parametrize("testparam", _TESTPARAMS, ids=lambda testparam: testparam.pytest_id)
 def test_controller_haeuser(testparam: Ttestparam):
     run_modulation_soll(testparam=testparam)
+
+
+@pytest.mark.parametrize(
+    "modulation_prozent,modbus_FAx_UW_TEMP_ON_C,expected_modbus_FAx_REGEL_TEMP_C",
+    (
+        (100, 76.0, 85.0),
+        (65, 76.0, 78.8),
+        (30, 76.0, 69.34),
+    ),
+)
+def test_modulation_calculate(modulation_prozent: int, modbus_FAx_UW_TEMP_ON_C: float, expected_modbus_FAx_REGEL_TEMP_C: float):
+    brenner = ModulationBrenner(idx0=0, idx0_modulation=ModulationBrenner.get_idx(modulation=modulation_prozent))
+    result_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=modbus_FAx_UW_TEMP_ON_C)
+    assert abs(result_C - expected_modbus_FAx_REGEL_TEMP_C) < 0.1, (result_C, expected_modbus_FAx_REGEL_TEMP_C)
 
 
 def main():

@@ -253,8 +253,6 @@ class ControllerMischventil(ControllerMischventilSimple):
         self.next_control.add(abs(stellwert_aenderung_V) / self._MOTOR_GESCHWINDIGKEIT_V_PRO_S)
 
     def process(self, ctx: "Context", now_s: float) -> None:
-        self._process_elektro_notheizung(ctx=ctx)
-
         scenario = SCENARIOS.find(ScenarioZentralSolltemperatur)
         if scenario is not None:
             SCENARIOS.remove(scenario)

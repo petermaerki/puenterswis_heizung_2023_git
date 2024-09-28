@@ -187,10 +187,13 @@ class Influx:
             if minimum_prozent is not None:
                 fields["haeuser_ladung_minimum_prozent"] = minimum_prozent
 
-        def oekofen_condensed():
+        def oekofen_summary():
             val1, val2 = ctx.hsm_zentral.brenner_uebersicht_prozent
             fields["brenner_1_uebersicht_prozent"] = val1 + 0.0
             fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
+
+            for brenner in ctx.hsm_zentral.oekofen_modulation_soll.zwei_brenner.zwei_brenner:
+                fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation_prozent) + brenner.idx0 * 0.3
 
         def mischventil_registers():
             registers = ctx.hsm_zentral.modbus_mischventil_registers
@@ -248,7 +251,7 @@ class Influx:
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
 
         haeuser_ladung_minimum_prozent()
-        oekofen_condensed()
+        oekofen_summary()
         mischventil_registers()
         mischventil_automatik()
         mischventil_stellwert_100()

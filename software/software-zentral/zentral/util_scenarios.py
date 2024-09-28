@@ -275,8 +275,8 @@ class ScenarioHausSpTemperatureIncrease(ScenarioBase):
     """
 
     haus_nummer: int = 13
-    position: SpPosition = SpPosition.MITTE
-    delta_C: float = 5.0
+    position: SpPosition = SpPosition.OBEN
+    delta_C: float = -10.0
     duration_s: float = 20.0
 
     def __post_init__(self):
@@ -349,6 +349,7 @@ class LogLevel(enum.StrEnum):
 class LogModule(enum.StrEnum):
     controller_mischventil = "zentral.controller_mischventil"
     controller_mischventil_simple = "zentral.controller_mischventil_simple"
+    zentral_controller_oekofen = "zentral.controller_oekofen"
     util_scenarios = "zentral.util_scenarios"
     pymodbus_logging = "pymodbus.logging"
     asyncssd = "asyncssh"

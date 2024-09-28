@@ -11,6 +11,7 @@ from zentral.controller_haeuser_simple import ControllerHaeuserNone, ControllerH
 from zentral.controller_haeuser_valveopen import ControllerHaeuserValveOpenIterator
 from zentral.controller_mischventil import ControllerMischventil, controller_mischventil_factory
 from zentral.controller_mischventil_simple import ControllerMischventilNone
+from zentral.controller_oekofen import ControllerOekofen
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_controller_haus_ladung import HaeuserLadung
 from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
@@ -18,6 +19,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
+from zentral.util_modulation_soll import ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import brenner_uebersicht_prozent
 from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpenIterator, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
@@ -92,6 +94,8 @@ class HsmZentral(hsm.HsmMixin):
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
         self.controller_haeuser: ControllerMischventilABC
+        self.controller_oekofen = ControllerOekofen(now_s=self._programm_start_s)
+        self.oekofen_modulation_soll = ModulationSoll(modulation0=0, modulation1=0)
         self._set_controller_haeuser_none()
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None
@@ -186,12 +190,14 @@ class HsmZentral(hsm.HsmMixin):
     def is_controller_haeuser_valve_iterator(self) -> bool:
         return isinstance(self.controller_haeuser, ControllerHaeuserValveOpenIterator)
 
-    def controller_process(self, ctx: "Context") -> None:
+    async def controller_process(self, ctx: "Context") -> None:
         if self.controller_haeuser.done():
             self._set_controller_haeuser_default()
 
         if self.is_state(self.state_hardwaretest):
             return
+
+        await self.controller_oekofen.process(ctx=ctx, now_s=time.monotonic())
 
         try:
             self.controller_mischventil.process(ctx=ctx, now_s=time.monotonic())

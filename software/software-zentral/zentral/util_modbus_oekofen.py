@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import logging
 import time
@@ -12,6 +14,63 @@ from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, R
 from zentral.util_modbus_wrapper import ModbusWrapper
 
 logger = logging.getLogger(__name__)
+
+
+class FlashWriteLimiter:
+    """
+    We allow 20 flash writes in a 12h window.
+    A 12h window starts at a arbitary time.
+    If the window ends, automatically a new windows is started.
+    """
+
+    WINDOW_DURATION_H = 12.0
+    ALLOWED_FLASH_WRITES = 20
+
+    def __init__(self) -> None:
+        self.window_end_s = 0.0
+        self.flash_write_counter = 0
+
+    def allowed_to_write_flash(self, now_s: float) -> bool:
+        """
+        Returns True if we are allowed to write.
+
+        Every WINDOW_DURATION_H: A logger info with the flash write count.
+        If to many flashes: A logger warning will be printed.
+        """
+        if now_s > self.window_end_s:
+            # A new window starts
+            if self.window_end_s > 0.0:
+                logger.warning(f"FlashWriteLimiter: start a new window of {self.WINDOW_DURATION_H}h. {self.flash_write_counter} writes, limit {self.ALLOWED_FLASH_WRITES} writes.")
+
+            self.flash_write_counter = 0
+            self.window_end_s = now_s + self.WINDOW_DURATION_H * 60.0 * 60.0
+
+        self.flash_write_counter += 1
+
+        if self.flash_write_counter > self.ALLOWED_FLASH_WRITES:
+            logger.warning(f"FlashWriteLimiter: disallow write after {self.flash_write_counter} of {self.ALLOWED_FLASH_WRITES} writes.")
+            return False
+
+        return True
+
+
+class PlantMode(enum.IntEnum):
+    """
+    TouchScreen Menu: Betriebsart
+    """
+
+    OFF = 0
+    """
+    TouchScreen Menu: Betriebsart Anlage aus
+    """
+    AUTO = 1
+    DEMESTIC_HOTWATER = 2
+    UNKNOWN = 1000
+
+    @classmethod
+    def _missing_(cls, value):
+        logger.warning(f"Unknown value={value}")
+        return cls.UNKNOWN
 
 
 class FA_Mode(enum.IntEnum):
@@ -75,16 +134,16 @@ class OekofenRegisters:
             f.write("\n")
 
     def get_influx_fields(self, prefix: str) -> dict[str, float | int]:
-        return {prefix + reg.name: self.attr_value(reg.name) for reg in REG_DEFS}
+        return {prefix + reg.name: self._attr_value(reg.name) for reg in REG_DEFS}
 
-    def attr_value(self, attribute_name: str) -> int | float:
+    def _attr_value(self, attribute_name: str) -> int | float:
         reg_def = DICT_REG_DEFS[attribute_name]
         if isinstance(reg_def, RegDefC):
             return self._read_16bit_float(reg_def.address, factor=0.1)
         return self._read_16bit_int(reg_def.address)
 
     def attr_str(self, attribute_name: str) -> int | float:
-        v = self.attr_value(attribute_name=attribute_name)
+        v = self._attr_value(attribute_name=attribute_name)
         if isinstance(v, float):
             return format(v, "2.1f")
         return format(v, "d")
@@ -107,7 +166,7 @@ class OekofenRegisters:
 
         return value * factor
 
-    def attr_value2(self, brenner: int, attribute_template: str) -> int | float:
+    def _get_register_name(self, brenner_idx1: int, attribute_template: str) -> int | float:
         """
         Example:
           brenner = 1
@@ -115,20 +174,37 @@ class OekofenRegisters:
         ->
           attribute_name = "FA1_STATE
         """
-        assert 1 <= brenner <= 2
-        attribute_name = attribute_template.replace("x", str(brenner))
-        return self.attr_value(attribute_name=attribute_name)
+        assert 1 <= brenner_idx1 <= 2
+        return attribute_template.replace("x", str(brenner_idx1))
 
-    def modulation_percent(self, brenner: int) -> int:
-        return self.attr_value2(brenner=brenner, attribute_template="FAx_MODULATION_PERCENT")
+    def _attr_value2(self, brenner_idx1: int, attribute_template: str) -> int | float:
+        attribute_name = self._get_register_name(brenner_idx1=brenner_idx1, attribute_template=attribute_template)
+        return self._attr_value(attribute_name=attribute_name)
 
-    def fa_state(self, brenner: int) -> FA_State:
-        v = self.attr_value2(brenner=brenner, attribute_template="FAx_STATE")
+    def modulation_percent(self, brenner_idx1: int) -> int:
+        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODULATION_PERCENT")
+
+    def fa_state(self, brenner_idx1: int) -> FA_State:
+        v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_STATE")
         return FA_State(v)
 
-    def fa_mode(self, brenner: int) -> FA_Mode:
-        v = self.attr_value2(brenner=brenner, attribute_template="FAx_MODE")
+    def fa_mode(self, brenner_idx1: int) -> FA_Mode:
+        v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODE")
         return FA_Mode(v)
+
+    def plant_mode(self) -> PlantMode:
+        v = self._attr_value(attribute_name="PLANT_MODE")
+        return PlantMode(v)
+
+    def uw_temp_on_C(self, brenner_idx1: int) -> float:
+        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_UW_TEMP_ON_C")
+
+    def regel_temp_C(self, brenner_idx1: int) -> float:
+        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_REGEL_TEMP_C")
+
+    async def set_regel_temp_C(self, oekofen: Oekofen, brenner_idx1: int, temp_C: float) -> None:
+        attribute_name = self._get_register_name(brenner_idx1=brenner_idx1, attribute_template="FAx_REGEL_TEMP_C")
+        await oekofen.set_register(name=attribute_name, value=temp_C)
 
 
 class Oekofen:
@@ -137,6 +213,10 @@ class Oekofen:
         self._modbus = modbus
         self._modbus_address = modbus_address
         self._modbus_label = f"Oekofen(modbus={self._modbus_address})"
+        self._flash_write_limiter = FlashWriteLimiter()
+
+    def allowed_to_write_flash(self) -> bool:
+        return self._flash_write_limiter.allowed_to_write_flash(now_s=time.monotonic())
 
     @property
     async def all_registers(self) -> List[int]:
