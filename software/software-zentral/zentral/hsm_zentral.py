@@ -48,12 +48,12 @@ _UPTIME_MODBUS_SILENT_S = 20.0
 class Relais:
     relais_0_mischventil_automatik = False
     relais_1_elektro_notheizung = False
-    relais_2_brenner1_sperren = False
+    relais_2_brenner1_sperren = True
     relais_3_brenner1_anforderung = False
     """
     relais_3_waermeanforderung_beide
     """
-    relais_4_brenner2_sperren = False
+    relais_4_brenner2_sperren = True
     relais_5_brenner2_anforderung = False
     """
     relais_5_keine_funktion
@@ -121,6 +121,19 @@ class HsmZentral(hsm.HsmMixin):
         return (brenner1, brenneer2)
         """
         return brenner_uebersicht_prozent(registers=self.modbus_oekofen_registers)
+
+    @property
+    def haeuser_all_valves_closed(self) -> bool:
+        """
+        Return True: If a least one Haus requires energy (valve is open)
+        """
+        for haus in self.ctx.config_etappe.haeuser:
+            modbus_iregs_all = haus.status_haus.hsm_dezentral.modbus_iregs_all
+            if modbus_iregs_all is None:
+                continue
+            if modbus_iregs_all.relais_gpio.relais_valve_open:
+                return False
+        return True
 
     @property
     def haeuser_ladung_minimum_prozent(self) -> float | None:

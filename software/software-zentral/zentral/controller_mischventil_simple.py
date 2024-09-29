@@ -30,13 +30,19 @@ class ControllerMischventilSimple(ControllerMischventilNone):
     * Mischventil auf
     """
 
+    _PUMPE_OFF_DURATION_S = 12.0 * 60.0
+
+    def __init__(self, now_s: float) -> None:
+        super().__init__(now_s=now_s)
+        self._pumpe_off_till_s: float = now_s
+
     def get_credit_100(self) -> float | None:
         """
         Return None: If the controller simple or None does not calculate the credit
         """
         return None
 
-    def pumpe_ein_falls_speicher_genug_warm(self, ctx: "Context"):
+    def pumpe_ein_falls_speicher_genug_warm(self, ctx: "Context", now_s: float) -> None:
         """
         Die Häuser möchten, dass die Pumpe eingeschaltet wird.
         Wir schalten die Pumpe aber nur ein, wenn der Speicher genug warm ist.
@@ -46,21 +52,24 @@ class ControllerMischventilSimple(ControllerMischventilNone):
             logger.debug(f"{msg}: relais_6_pumpe_gesperrt={ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt} Tsz4_C={ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C:0.1f}")
 
         if ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt:
-            # Pumpe läuft nicht
-            if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > 65.0:
-                # Speicher ist genug warm: Pumpe einschalten
-                return True
-            debug("Speicher ist noch zu kalt, wir müssen noch warten mit dem Einschalten der Pumpe")
+            to_wait_s = self._pumpe_off_till_s - now_s
+            if to_wait_s < 0.0:
+                # Pumpe läuft nicht
+                if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C > 65.0:
+                    # Speicher ist genug warm: Pumpe einschalten
+                    return True
+            debug(f"Speicher ist noch zu kalt, wir müssen noch {to_wait_s:0.1f}s warten mit dem Einschalten der Pumpe")
             return False
 
         # Pumpe läuft bereits
         if ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C < 62.0:
-            debug("Speicher ist zu kalt: Darum Pume ausschalten")
+            debug("Speicher ist zu kalt: Darum Pumpe ausschalten")
+            self._pumpe_off_till_s = now_s + self._PUMPE_OFF_DURATION_S
             return False
         # Speicher genug warm: Pumpe laufen lassen
         return True
 
-    def get_pumpe_ein(self, ctx: "Context"):
+    def get_pumpe_ein(self, ctx: "Context", now_s: float) -> None:
         """
         Falls mindestens ein Haus das Ventil offen hat, muss die Zentrale die Pumpe starten.
         return True: mindestens ein Haus hat ein Ventil offen
@@ -71,7 +80,7 @@ class ControllerMischventilSimple(ControllerMischventilNone):
             hsm_dezentral = haus.status_haus.hsm_dezentral
             if hsm_dezentral.dezentral_gpio.relais_valve_open:
                 # Dieses Haus benötigt Wärme: Pumpe ein!
-                return self.pumpe_ein_falls_speicher_genug_warm(ctx=ctx)
+                return self.pumpe_ein_falls_speicher_genug_warm(ctx=ctx, now_s=now_s)
 
         return False
 
@@ -80,5 +89,5 @@ class ControllerMischventilSimple(ControllerMischventilNone):
         _Tbv2_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tbv2_C
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = False
-        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx)
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx, now_s=now_s)
         ctx.hsm_zentral.relais.relais_7_automatik = True

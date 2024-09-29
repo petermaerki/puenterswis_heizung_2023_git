@@ -75,6 +75,7 @@ class ControllerOekofen:
     async def process(self, ctx: "Context", now_s: float) -> None:
         hsm_zentral = ctx.hsm_zentral
         oekofen_modulation_soll = hsm_zentral.oekofen_modulation_soll
+        relais = hsm_zentral.relais
 
         brenner1, brenner2 = hsm_zentral.brenner_uebersicht_prozent
         betrieb_notheizung = max(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
@@ -82,14 +83,24 @@ class ControllerOekofen:
         if betrieb_notheizung:
             return
 
+        relais.relais_2_brenner1_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_off
+        relais.relais_4_brenner2_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_off
+        relais.relais_3_brenner1_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_on
+        relais.relais_5_brenner2_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_on
+
+        if hsm_zentral.haeuser_all_valves_closed:
+            oekofen_modulation_soll.set_modulation_min()
+
+        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
+        sp_ladung = pcbs.sp_ladung_zentral
+        oekofen_modulation_soll.abschalten_zweiter_Brenner(sp_ladung=sp_ladung)
+
         remaining_s = self.last_tick_s + oekofen_modulation_soll.action.wartezeit_s - now_s
         if remaining_s > 0.0:
             # Ein Brenner started/stoppt/moduliert
             # Wir warten bis der neue Zustand stabil ist.
             return
 
-        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
-        sp_ladung = pcbs.sp_ladung_zentral
         manual_mode = min(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
 
         # influx_data = InfluxData(ctx=ctx)
@@ -98,12 +109,6 @@ class ControllerOekofen:
         # TICK!!!
         oekofen_modulation_soll.tick(sp_ladung=sp_ladung, manual_mode=manual_mode)
         self.last_tick_s = now_s
-
-        relais = ctx.hsm_zentral.relais
-        relais.relais_2_brenner1_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_off
-        relais.relais_4_brenner2_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_off
-        relais.relais_3_brenner1_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_on
-        relais.relais_5_brenner2_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_on
 
         if oekofen_modulation_soll.action != BrennerAction.NICHTS:
             # influx_data.add(zwei_brenner=oekofen_modulation_soll.zwei_brenner)

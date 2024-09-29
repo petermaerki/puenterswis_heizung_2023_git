@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import dataclasses
 import enum
+import logging
 
 from zentral.util_sp_ladung_zentral import SpLadung
+
+logger = logging.getLogger(__name__)
 
 
 class BrennerNum(enum.IntEnum):
@@ -75,11 +78,11 @@ class ModulationBrenner:
             Der Brenner wird in etwa diese Temperatur foerdern.
         """
         if modbus_FAx_UW_TEMP_ON_C > _modbus_FAx_UW_TEMP_ON_C_max:
-            logging.warning(f"modbus_FAx_UW_TEMP_ON_C({modbus_FAx_UW_TEMP_ON_C:0,1f}) > _modbus_FAx_UW_TEMP_ON_C_max({_modbus_FAx_UW_TEMP_ON_C_max:0.1f})")
+            logger.warning(f"modbus_FAx_UW_TEMP_ON_C({modbus_FAx_UW_TEMP_ON_C:0,1f}) > _modbus_FAx_UW_TEMP_ON_C_max({_modbus_FAx_UW_TEMP_ON_C_max:0.1f})")
             modbus_FAx_UW_TEMP_ON_C = _modbus_FAx_UW_TEMP_ON_C_max
 
         if modbus_FAx_UW_TEMP_ON_C < _modbus_FAx_UW_TEMP_ON_C_min:
-            logging.warning(f"modbus_FAx_UW_TEMP_ON_C({modbus_FAx_UW_TEMP_ON_C:0,1f}) > _modbus_FAx_UW_TEMP_ON_C_min({_modbus_FAx_UW_TEMP_ON_C_min:0.1f})")
+            logger.warning(f"modbus_FAx_UW_TEMP_ON_C({modbus_FAx_UW_TEMP_ON_C:0,1f}) > _modbus_FAx_UW_TEMP_ON_C_min({_modbus_FAx_UW_TEMP_ON_C_min:0.1f})")
             modbus_FAx_UW_TEMP_ON_C = _modbus_FAx_UW_TEMP_ON_C_min
 
         regel_temp_c = _OEKOFEN_KESSEL_UEBER_UW_ON_C + (self.modulation.prozent - _OEKOFEN_MODULATION_BEI_NULL_ABWEICHUNG_PROZENT) / _OEKOFEN_GAIN_MODULATION_PROZENT_K + modbus_FAx_UW_TEMP_ON_C
@@ -177,6 +180,9 @@ class ModulationSoll:
     def short(self) -> str:
         return f"{ self.zwei_brenner.short},{self.action.wartezeit_min:2d}min"
 
+    def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
+        logger.info(f"brenner idx0={brenner.idx0}, {brenner.short} {self.action}. {reason}")
+
     def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation, action: BrennerAction) -> None:
         assert isinstance(brenner_num, BrennerNum)
         assert isinstance(modulation, Modulation)
@@ -185,6 +191,35 @@ class ModulationSoll:
         brenner = self.zwei_brenner.zwei_brenner[brenner_num.idx0]
         brenner.set_modulation(modulation=modulation)
         self.action = action
+        self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
+
+    def set_modulation_min(self) -> None:
+        """
+        Falls kein Haus Energie benötigt, also alle ventile geschlossen sind,
+        so reduzieren wir sofort alle Brenner, sofern eingeschaltet, auf min.
+        """
+        for brenner in self.zwei_brenner.zwei_brenner:
+            if brenner.modulation > Modulation.MIN:
+                brenner.set_modulation(modulation=Modulation.MIN)
+                self._log_action(brenner=brenner, reason="Absenken auf MIN, da kein Haus Enerige benötigt.")
+
+    def abschalten_zweiter_Brenner(self, sp_ladung: SpLadung) -> None:
+        list_brenner_on = self.zwei_brenner.on()
+        if len(list_brenner_on) < 2:
+            return
+        if sp_ladung < SpLadung.LEVEL4:
+            return
+
+        # Beide Brenner brennen und Speicher ist maximal warm
+
+        # Erster Brenner auf MIN setzen
+        list_brenner_on[0].set_modulation(Modulation.MIN)
+        self._log_action(brenner=list_brenner_on[0], reason="zweiter_Brenner_abschalten(): Erster Brenner auf Minimum.")
+
+        # Zweiter Brenner direkt ausschalten
+        list_brenner_on[1].set_modulation(Modulation.OFF)
+        self.action = BrennerAction.AUS
+        self._log_action(brenner=list_brenner_on[1], reason="zweiter_Brenner_abschalten(): Zweiten Brenner ausschalten.")
 
     def tick(self, sp_ladung: SpLadung, manual_mode: bool) -> None:
         assert isinstance(sp_ladung, SpLadung)
@@ -202,33 +237,36 @@ class ModulationSoll:
             return
 
         if sp_ladung < SpLadung.LEVEL2:
-            self._erhoehen(ladung=sp_ladung)
+            self._erhoehen(sp_ladung=sp_ladung)
             return
         if sp_ladung > SpLadung.LEVEL2:
-            self._reduzieren(ladung=sp_ladung)
+            self._reduzieren(sp_ladung=sp_ladung)
 
-    def _erhoehen(self, ladung: SpLadung) -> None:
+    def _erhoehen(self, sp_ladung: SpLadung) -> None:
         list_brenner_on = self.zwei_brenner.on_but_not_max()
         if len(list_brenner_on) >= 1:
             # Brenner moduliert bereits
             list_brenner_on[0].erhoehen()
             self.action = BrennerAction.MODULIEREN
+            self._log_action(brenner=list_brenner_on[0], reason="Erhoehen. Brenner moduliert bereits.")
             return
 
         list_brenner_off = self.zwei_brenner.off()
         if len(list_brenner_off) > 0:
-            if ladung <= SpLadung.LEVEL0:
+            if sp_ladung <= SpLadung.LEVEL0:
                 # Brenner einschalten
                 list_brenner_off[0].erhoehen()
                 self.action = BrennerAction.EIN
+                self._log_action(brenner=list_brenner_off[0], reason="Brenner einschalten.")
                 return
 
-    def _reduzieren(self, ladung: SpLadung) -> None:
+    def _reduzieren(self, sp_ladung: SpLadung) -> None:
         list_brenner_is_over_min = self.zwei_brenner.is_over_min()
         if len(list_brenner_is_over_min) >= 1:
             # Brenner moduliert bereits
             list_brenner_is_over_min[0].absenken()
             self.action = BrennerAction.MODULIEREN
+            self._log_action(brenner=list_brenner_is_over_min[0], reason="Absenken. Brenner moduliert bereits.")
             return
 
         list_brenner_on = self.zwei_brenner.on()
@@ -237,7 +275,8 @@ class ModulationSoll:
             return
 
         # Mindestens ein Brenner ist an
-        if ladung >= SpLadung.LEVEL4:
+        if sp_ladung >= SpLadung.LEVEL4:
             # Brenner ausschalten
             list_brenner_on[0].absenken()
             self.action = BrennerAction.AUS
+            self._log_action(brenner=list_brenner_on[0], reason="Brenner ausschalten.")

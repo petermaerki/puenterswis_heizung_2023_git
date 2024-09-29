@@ -259,7 +259,7 @@ class ControllerMischventil(ControllerMischventilSimple):
             ctx.hsm_zentral.solltemperatur_Tfv = scenario.solltemperature_Tfv
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
-        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx)
+        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx, now_s=now_s)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
         self.pumpe_anlaufzeit.pumpe(

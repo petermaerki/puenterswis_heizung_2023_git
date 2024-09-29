@@ -176,9 +176,9 @@ class ModbusCommunication:
                     assert isinstance(scenario, ScenarioSetRelais1bis5)
                     relais.relais_1_elektro_notheizung = scenario.relais_1_elektro_notheizung
                     relais.relais_2_brenner1_sperren = scenario.relais_2_brenner1_sperren
-                    relais.relais_3_brenner1_anforderung = scenario.relais_3_waermeanforderung_beide
+                    relais.relais_3_brenner1_anforderung = scenario.relais_3_brenner1_anforderung
                     relais.relais_4_brenner2_sperren = scenario.relais_4_brenner2_sperren
-                    relais.relais_5_brenner2_anforderung = scenario.relais_5_keine_funktion
+                    relais.relais_5_brenner2_anforderung = scenario.relais_5_brenner2_anforderung
 
                 _overwrite, relais_6_pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
                 _overwrite, relais_0_mischventil_automatik = relais.relais_0_mischventil_automatik_overwrite
