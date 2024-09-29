@@ -4,14 +4,60 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "echo",
+            "label": "static check",
             "type": "shell",
-            "command": "echo Hello"
-        }, {
-            // https://code.visualstudio.com/docs/editor/variables-reference
-            "label": "echo workspaceFolder",
+            "command": "echo DONE",
+            "problemMatcher": [],
+            "dependsOn": [
+                "ruff",
+                "mypy",
+                "pylint",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "ruff",
             "type": "shell",
-            "command": "echo ${workspaceFolder:dezentral}"
+            // "command": "ruff check --config pyproject.toml --fix || true",
+            "command": "ruff check zentral --fix || true",
+            "options": {
+                "cwd": "${workspaceFolder:zentral}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "mypy",
+            "type": "shell",
+            // "command": "python -m mypy --config-file pyproject.toml src tests || true",
+            "command": "python -m mypy  zentral || true",
+            "options": {
+                "cwd": "${workspaceFolder:zentral}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "pylint",
+            "type": "shell",
+            "command": "PYTHONPATH=${workspaceFolder} python -m pylint zentral || true",
+            "options": {
+                "cwd": "${workspaceFolder:zentral}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
         }
     ]
 }

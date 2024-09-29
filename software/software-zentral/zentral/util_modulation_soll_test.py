@@ -14,7 +14,8 @@ import pathlib
 import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
-from zentral.util_modulation_soll import ModulationBrenner, ModulationSoll
+from zentral.util_modulation_soll import Modulation, ModulationBrenner, ModulationSoll
+from zentral.util_sp_ladung_zentral import SpLadung
 
 add_path_software_zero_dezentral()
 
@@ -25,16 +26,16 @@ DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "util_modulation_soll_testresul
 
 @dataclasses.dataclass(frozen=True, repr=True)
 class Tick:
-    ladung_prozent: float
+    sp_ladung: SpLadung
     comment: str | None = None
 
     def __post_init__(self):
-        assert isinstance(self.ladung_prozent, float)
+        assert isinstance(self.sp_ladung, SpLadung)
         assert isinstance(self.comment, str | None)
 
     @property
     def short(self) -> str:
-        s = f" {self.ladung_prozent:5.1f}%"
+        s = f" {self.sp_ladung.level_prozent:5.1f}%"
         if self.comment is not None:
             s += f" {self.comment}"
         return s
@@ -43,8 +44,8 @@ class Tick:
 @dataclasses.dataclass(frozen=True, repr=True)
 class Ttestparam:
     label: str
-    modulation0: int
-    modulation1: int
+    modulation0: Modulation
+    modulation1: Modulation
     ticks: list[Tick]
 
     @property
@@ -64,18 +65,17 @@ class Ttestparam:
 _TESTPARAMS = [
     Ttestparam(
         label="Around-the-world",
-        modulation0=0,
-        modulation1=0,
+        modulation0=Modulation.OFF,
+        modulation1=Modulation.OFF,
         ticks=[
-            Tick(ladung_prozent=5.0, comment="Kein Einschalten da genug warm."),
-            Tick(ladung_prozent=-1.0, comment="Einschalten da kalt."),
-            Tick(ladung_prozent=20.0, comment="Keine Änderung da Ladung ok"),
-            *3 * [Tick(ladung_prozent=3.0, comment="Increment bis ein Brenner auf 100%")],
-            Tick(ladung_prozent=-1.0, comment="Zweiter Brenner einschalten"),
-            *3 * [Tick(ladung_prozent=3.0, comment="Increment bis zweiter Brenner auf 100%")],
-            *5 * [Tick(ladung_prozent=70.0, comment="Decrement bis beide Brenner auf 30%")],
-            *2 * [Tick(ladung_prozent=96.0, comment="Ersten Brenner ausschalten")],
-            *2 * [Tick(ladung_prozent=101.0, comment="Zweiten Brenner ausschalten")],
+            Tick(sp_ladung=SpLadung.LEVEL1, comment="Kein Einschalten da genug warm."),
+            Tick(sp_ladung=SpLadung.LEVEL0, comment="Einschalten da kalt."),
+            Tick(sp_ladung=SpLadung.LEVEL2, comment="Keine Änderung da Ladung ok"),
+            *3 * [Tick(sp_ladung=SpLadung.LEVEL1, comment="Increment bis ein Brenner auf 100%")],
+            Tick(sp_ladung=SpLadung.LEVEL0, comment="Zweiter Brenner einschalten"),
+            *3 * [Tick(sp_ladung=SpLadung.LEVEL1, comment="Increment bis zweiter Brenner auf 100%")],
+            *5 * [Tick(sp_ladung=SpLadung.LEVEL3, comment="Decrement bis beide Brenner auf 30%")],
+            *3 * [Tick(sp_ladung=SpLadung.LEVEL4, comment="Ersten und zweiten Brenner ausschalten")],
         ],
     ),
 ]
@@ -87,7 +87,7 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
     with testparam.filename_txt.open("w") as f:
         modulation_soll = ModulationSoll(modulation0=testparam.modulation0, modulation1=testparam.modulation1)
         for tick in testparam.ticks:
-            modulation_soll.tick(ladung_prozent=tick.ladung_prozent, manual_mode=False)
+            modulation_soll.tick(sp_ladung=tick.sp_ladung, manual_mode=False)
             f.write(f"{modulation_soll.short} \u2190 {tick.short}\n")
 
 
@@ -99,13 +99,13 @@ def test_controller_haeuser(testparam: Ttestparam):
 @pytest.mark.parametrize(
     "modulation_prozent,modbus_FAx_UW_TEMP_ON_C,expected_modbus_FAx_REGEL_TEMP_C",
     (
-        (100, 76.0, 85.0),
-        (65, 76.0, 78.8),
-        (30, 76.0, 69.34),
+        (Modulation.MAX, 76.0, 85.0),
+        (Modulation.MEDIUM, 76.0, 78.8),
+        (Modulation.MIN, 76.0, 69.34),
     ),
 )
 def test_modulation_calculate(modulation_prozent: int, modbus_FAx_UW_TEMP_ON_C: float, expected_modbus_FAx_REGEL_TEMP_C: float):
-    brenner = ModulationBrenner(idx0=0, idx0_modulation=ModulationBrenner.get_idx(modulation=modulation_prozent))
+    brenner = ModulationBrenner(idx0=0, idx0_modulation=ModulationBrenner.get_idx0(modulation=modulation_prozent))
     result_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=modbus_FAx_UW_TEMP_ON_C)
     assert abs(result_C - expected_modbus_FAx_REGEL_TEMP_C) < 0.1, (result_C, expected_modbus_FAx_REGEL_TEMP_C)
 

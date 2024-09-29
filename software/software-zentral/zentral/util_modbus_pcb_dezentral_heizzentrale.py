@@ -8,7 +8,7 @@ from zentral.util_constants_haus import SpPosition
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_sp_ladung_zentral import LadungZentral, SpTemperaturZentral
+from zentral.util_sp_ladung_zentral import LadungZentral, SpLadung, SpTemperaturZentral
 from zentral.util_uploadinterval import UploadInterval
 
 logger = logging.getLogger(__name__)
@@ -233,6 +233,9 @@ class PcbsDezentralHeizzentrale:
 
     @property
     def sp_ladung_zentral_prozent(self) -> float:
+        """
+        TODO: OBSOLETE
+        """
         sp_temperatur = SpTemperaturZentral(
             Tsz1_C=self.Tsz1_C,
             Tsz2_C=self.Tsz2_C,
@@ -241,3 +244,14 @@ class PcbsDezentralHeizzentrale:
         )
         ladung_zentral = LadungZentral(sp_temperatur=sp_temperatur)
         return ladung_zentral.ladung_prozent
+
+    @property
+    def sp_ladung_zentral(self) -> SpLadung:
+        sp_temperatur = SpTemperaturZentral(
+            Tsz1_C=self.Tsz1_C,
+            Tsz2_C=self.Tsz2_C,
+            Tsz3_C=self.Tsz3_C,
+            Tsz4_C=self.Tsz4_C,
+        )
+        ladung_zentral = LadungZentral(sp_temperatur=sp_temperatur)
+        return ladung_zentral.ladung

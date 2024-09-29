@@ -1,19 +1,18 @@
-  0%(61.2),  0%(61.2), 1min ←    5.0% Kein Einschalten da genug warm.
- 30%(69.3),  0%(61.2),40min ←   -1.0% Einschalten da kalt.
- 30%(69.3),  0%(61.2), 1min ←   20.0% Keine Änderung da Ladung ok
- 65%(78.8),  0%(61.2),15min ←    3.0% Increment bis ein Brenner auf 100%
-100%(85.0),  0%(61.2),15min ←    3.0% Increment bis ein Brenner auf 100%
-100%(85.0),  0%(61.2), 1min ←    3.0% Increment bis ein Brenner auf 100%
-100%(85.0), 30%(69.3),40min ←   -1.0% Zweiter Brenner einschalten
-100%(85.0), 65%(78.8),15min ←    3.0% Increment bis zweiter Brenner auf 100%
-100%(85.0),100%(85.0),15min ←    3.0% Increment bis zweiter Brenner auf 100%
-100%(85.0),100%(85.0), 1min ←    3.0% Increment bis zweiter Brenner auf 100%
- 65%(78.8),100%(85.0),15min ←   70.0% Decrement bis beide Brenner auf 30%
- 30%(69.3),100%(85.0),15min ←   70.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 65%(78.8),15min ←   70.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 30%(69.3),15min ←   70.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 30%(69.3), 1min ←   70.0% Decrement bis beide Brenner auf 30%
-  0%(61.2), 30%(69.3),30min ←   96.0% Ersten Brenner ausschalten
-  0%(61.2), 30%(69.3), 1min ←   96.0% Ersten Brenner ausschalten
-  0%(61.2),  0%(61.2),30min ←  101.0% Zweiten Brenner ausschalten
-  0%(61.2),  0%(61.2), 1min ←  101.0% Zweiten Brenner ausschalten
+  0%(61.2),  0%(61.2), 1min ←   25.0% Kein Einschalten da genug warm.
+ 30%(69.3),  0%(61.2),30min ←    0.0% Einschalten da kalt.
+ 30%(69.3),  0%(61.2), 1min ←   50.0% Keine Änderung da Ladung ok
+ 65%(78.8),  0%(61.2),15min ←   25.0% Increment bis ein Brenner auf 100%
+100%(85.0),  0%(61.2),15min ←   25.0% Increment bis ein Brenner auf 100%
+100%(85.0),  0%(61.2), 1min ←   25.0% Increment bis ein Brenner auf 100%
+100%(85.0), 30%(69.3),30min ←    0.0% Zweiter Brenner einschalten
+100%(85.0), 65%(78.8),15min ←   25.0% Increment bis zweiter Brenner auf 100%
+100%(85.0),100%(85.0),15min ←   25.0% Increment bis zweiter Brenner auf 100%
+100%(85.0),100%(85.0), 1min ←   25.0% Increment bis zweiter Brenner auf 100%
+ 65%(78.8),100%(85.0),15min ←   75.0% Decrement bis beide Brenner auf 30%
+ 30%(69.3),100%(85.0),15min ←   75.0% Decrement bis beide Brenner auf 30%
+ 30%(69.3), 65%(78.8),15min ←   75.0% Decrement bis beide Brenner auf 30%
+ 30%(69.3), 30%(69.3),15min ←   75.0% Decrement bis beide Brenner auf 30%
+ 30%(69.3), 30%(69.3), 1min ←   75.0% Decrement bis beide Brenner auf 30%
+  0%(61.2), 30%(69.3),16min ←  100.0% Ersten und zweiten Brenner ausschalten
+  0%(61.2),  0%(61.2),16min ←  100.0% Ersten und zweiten Brenner ausschalten
+  0%(61.2),  0%(61.2), 1min ←  100.0% Ersten und zweiten Brenner ausschalten

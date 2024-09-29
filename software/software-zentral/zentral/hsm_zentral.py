@@ -19,7 +19,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import MissingModbusDataException
-from zentral.util_modulation_soll import ModulationSoll
+from zentral.util_modulation_soll import Modulation, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import brenner_uebersicht_prozent
 from zentral.util_persistence_mischventil import PersistenceMischventil
 from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpenIterator, ScenarioOverwriteMischventil, ScenarioOverwriteRelais0Automatik, ScenarioOverwriteRelais6PumpeGesperrt
@@ -49,9 +49,15 @@ class Relais:
     relais_0_mischventil_automatik = False
     relais_1_elektro_notheizung = False
     relais_2_brenner1_sperren = False
-    relais_3_waermeanforderung_beide = False
+    relais_3_brenner1_anforderung = False
+    """
+    relais_3_waermeanforderung_beide
+    """
     relais_4_brenner2_sperren = False
-    relais_5_keine_funktion = False
+    relais_5_brenner2_anforderung = False
+    """
+    relais_5_keine_funktion
+    """
     relais_6_pumpe_gesperrt = False
     relais_7_automatik = False
 
@@ -95,7 +101,7 @@ class HsmZentral(hsm.HsmMixin):
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
         self.controller_haeuser: ControllerMischventilABC
         self.controller_oekofen = ControllerOekofen(now_s=self._programm_start_s)
-        self.oekofen_modulation_soll = ModulationSoll(modulation0=0, modulation1=0)
+        self.oekofen_modulation_soll = ModulationSoll(modulation0=Modulation.OFF, modulation1=Modulation.OFF)
         self._set_controller_haeuser_none()
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None

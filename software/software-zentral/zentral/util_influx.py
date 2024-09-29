@@ -193,7 +193,7 @@ class Influx:
             fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
 
             for brenner in ctx.hsm_zentral.oekofen_modulation_soll.zwei_brenner.zwei_brenner:
-                fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation_prozent) + brenner.idx0 * 0.3
+                fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
 
         def mischventil_registers():
             registers = ctx.hsm_zentral.modbus_mischventil_registers
@@ -216,9 +216,9 @@ class Influx:
             )
             fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
             fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
-            fields["relais_3_waermeanforderung_beide"] = int(ctx.hsm_zentral.relais.relais_3_waermeanforderung_beide)
+            fields["relais_3_brenner1_anforderung"] = int(ctx.hsm_zentral.relais.relais_3_brenner1_anforderung)
             fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
-            fields["relais_5_keine_funktion"] = int(ctx.hsm_zentral.relais.relais_5_keine_funktion)
+            fields["relais_5_brenner2_anforderung"] = int(ctx.hsm_zentral.relais.relais_5_brenner2_anforderung)
             overwrite(
                 key="relais_6_pumpe_gesperrt",
                 relais=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
@@ -249,6 +249,7 @@ class Influx:
         def ladung_zentral():
             pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
+            fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.level_prozent
 
         haeuser_ladung_minimum_prozent()
         oekofen_summary()

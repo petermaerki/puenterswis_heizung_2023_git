@@ -1,4 +1,17 @@
 import dataclasses
+import enum
+
+
+class SpLadung(enum.IntEnum):
+    LEVEL0 = 0
+    LEVEL1 = 1
+    LEVEL2 = 2
+    LEVEL3 = 3
+    LEVEL4 = 4
+
+    @property
+    def level_prozent(self) -> int:
+        return self.value * 25
 
 
 @dataclasses.dataclass
@@ -10,6 +23,9 @@ class SpTemperaturZentral:
 
     @property
     def energie_J(self) -> float:
+        """
+        TODO: OBSOLETE
+        """
         if self.Tsz4_C > LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C:
             energie_1_J = (self.Tsz1_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_1_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
             energie_2_J = (self.Tsz2_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_2_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
@@ -19,6 +35,18 @@ class SpTemperaturZentral:
 
         # Fuer kontinuierlichen Uebergang nur obere Temperatur und gesamtes Wasser
         return (self.Tsz4_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
+
+    @property
+    def ladung(self) -> SpLadung:
+        """
+        Level: [0..4]
+        """
+        level = 4
+        for TszX_C in (self.Tsz1_C, self.Tsz2_C, self.Tsz3_C, self.Tsz4_C):
+            if TszX_C > LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C:
+                return SpLadung(level)
+            level -= 1
+        return SpLadung(0)
 
 
 class LadungZentral:
@@ -44,10 +72,20 @@ class LadungZentral:
 
     @property
     def energie_J(self) -> float:
+        """
+        TODO: OBSOLETE
+        """
         raise NotImplementedError("Achtung: Unterschied Wassermenge Bochs/Puent!")
         return self.sp_temperatur.energie_J
 
     @property
     def ladung_prozent(self) -> float:
+        """
+        TODO: OBSOLETE
+        """
         energie_100_J = (self.SPEICHER_100_PROZENT_C - self.MIN_NUETZLICHE_TEMPERATUR_C) * self.SP_WASSER_KG * self.KAPAZITAET_WASSER_J_kg_K
         return self.sp_temperatur.energie_J / energie_100_J * 100.0
+
+    @property
+    def ladung(self) -> SpLadung:
+        return self.sp_temperatur.ladung
