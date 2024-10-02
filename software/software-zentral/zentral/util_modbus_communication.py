@@ -220,7 +220,7 @@ class ModbusCommunication:
         """
         modbus_oekofen_registers = self.context.hsm_zentral.modbus_oekofen_registers
 
-        for brenner in zwei_brenner.zwei_brenner:
+        for brenner in zwei_brenner:
             if brenner.is_off:
                 continue
             uw_temp_on_C = modbus_oekofen_registers.uw_temp_on_C(brenner_idx1=brenner.idx0 + 1)

@@ -9,40 +9,6 @@ from zentral.util_sp_ladung_zentral import SpLadung
 logger = logging.getLogger(__name__)
 
 
-class BrennerNum(enum.IntEnum):
-    BRENNER_1 = 0
-    BRENNER_2 = 1
-
-    @property
-    def idx0(self) -> int:
-        return self.value
-
-
-class Modulation(enum.IntEnum):
-    OFF = 0
-    MIN = 30
-    MEDIUM = 65
-    MAX = 100
-
-    @property
-    def prozent(self) -> int:
-        return self.value
-
-    @property
-    def next(self) -> Modulation:
-        list_m = list(Modulation)
-        m = list_m.index(self)
-        return list_m[min(m + 1, len(list_m))]
-
-    @property
-    def previous(self) -> Modulation:
-        list_m = list(Modulation)
-        m = list_m.index(self)
-        return list_m[max(m + -1, 0)]
-
-
-_LIST_MODULATION_PROZENT = [Modulation.OFF, Modulation.MIN, Modulation.MEDIUM, Modulation.MAX]
-
 _OEKOFEN_GAIN_MODULATION_PROZENT_K = 4.0 - 0.3
 """
 Faktor zwischen Modulation prozent und Abweichung Kessel zu Solltemperatur, gemessen bei Testläufen
@@ -64,24 +30,65 @@ _modbus_FAx_UW_TEMP_ON_C_max = 80.0
 _modbus_FAx_UW_TEMP_ON_C_min = 60.0
 
 
+class BrennerNum(enum.IntEnum):
+    BRENNER_1 = 0
+    BRENNER_2 = 1
+
+    @property
+    def idx0(self) -> int:
+        return self.value
+
+
+class Modulation(enum.IntEnum):
+    OFF = 0
+    MIN = 30
+    MEDIUM = 65
+    MAX = 100
+
+    @property
+    def prozent(self) -> int:
+        return self.value
+
+    @property
+    def erhoeht(self) -> Modulation:
+        return _MHC.erhoeht(self)
+
+    @property
+    def abgesenkt(self) -> Modulation:
+        return _MHC.abgesenkt(self)
+
+
+class _ModulationHelperCache:
+    def __init__(self) -> None:
+        self.list_m = list(Modulation)
+        self.max_idx0 = len(self.list_m) - 1
+
+    def erhoeht(self, m: Modulation) -> Modulation:
+        idx = self.list_m.index(m)
+        return self.list_m[min(idx + 1, self.max_idx0)]
+
+    def abgesenkt(self, m: Modulation) -> Modulation:
+        idx = self.list_m.index(m)
+        return self.list_m[max(idx - 1, 0)]
+
+
+_MHC = _ModulationHelperCache()
+
+
 @dataclasses.dataclass
 class ModulationBrenner:
     idx0: int
-    idx0_modulation: int
+    modulation: Modulation
 
-    @staticmethod
-    def get_idx0(modulation: Modulation) -> int:
-        assert isinstance(modulation, Modulation)
-        for idx, m in enumerate(_LIST_MODULATION_PROZENT):
-            if m == modulation:
-                return idx
-        raise ValueError(f"Modulation {modulation} ist nicht in {_LIST_MODULATION_PROZENT}!")
+    @property
+    def label(self) -> str:
+        return f"Brenner {self.idx0+1}"
 
     def set_modulation(self, modulation: Modulation) -> None:
-        self.idx0_modulation = self.get_idx0(modulation=modulation)
+        self.modulation = modulation
 
     def set_max(self) -> None:
-        self.idx0_modulation = len(_LIST_MODULATION_PROZENT) - 1
+        self.modulation = Modulation.MAX
 
     def calculate_modbus_FAx_REGEL_TEMP_C(self, modbus_FAx_UW_TEMP_ON_C: float) -> float:
         """
@@ -106,37 +113,31 @@ class ModulationBrenner:
         modbus_FAx_REGEL_TEMP_C = self.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=76.0)
         return f"{self.modulation.prozent:3d}%({modbus_FAx_REGEL_TEMP_C:4.1f})"
 
+    def erhoehen(self) -> None:
+        self.modulation = self.modulation.erhoeht
+
+    def absenken(self) -> None:
+        self.modulation = self.modulation.abgesenkt
+
     @property
     def is_off(self) -> bool:
-        return self.idx0_modulation <= 0
+        return self.modulation == Modulation.OFF
 
     @property
     def is_on(self) -> bool:
-        return self.idx0_modulation > 0
+        return self.modulation >= Modulation.MIN
 
     @property
     def is_min(self) -> bool:
-        return self.idx0_modulation == 1
+        return self.modulation == Modulation.MIN
 
     @property
     def is_max(self) -> bool:
-        return self.idx0_modulation >= len(_LIST_MODULATION_PROZENT) - 1
+        return self.modulation == Modulation.MAX
 
     @property
     def is_over_min(self) -> bool:
-        return self.idx0_modulation > 1
-
-    @property
-    def modulation(self) -> Modulation:
-        return _LIST_MODULATION_PROZENT[self.idx0_modulation]
-
-    def erhoehen(self) -> None:
-        self.idx0_modulation += 1
-        assert 0 <= self.idx0_modulation < len(_LIST_MODULATION_PROZENT)
-
-    def absenken(self) -> None:
-        self.idx0_modulation -= 1
-        assert 0 <= self.idx0_modulation < len(_LIST_MODULATION_PROZENT)
+        return self.modulation > Modulation.MIN
 
 
 class BrennerAction(enum.IntEnum):
@@ -154,36 +155,39 @@ class BrennerAction(enum.IntEnum):
         return 60.0 * self.wartezeit_min
 
 
-@dataclasses.dataclass
-class ZweiBrenner:
-    zwei_brenner: tuple[ModulationBrenner, ModulationBrenner]
-
+class ZweiBrenner(list[ModulationBrenner]):
     @property
     def short(self) -> str:
-        return ",".join([b.short for b in self.zwei_brenner])
+        return ",".join([b.short for b in self])
 
     def on_but_not_max(self) -> list[ModulationBrenner]:
-        return [b for b in self.zwei_brenner if b.is_on and not b.is_max]
+        return [b for b in self if b.is_on and not b.is_max]
 
     def off(self) -> list[ModulationBrenner]:
-        return [b for b in self.zwei_brenner if b.is_off]
+        return [b for b in self if b.is_off]
 
     def on(self) -> list[ModulationBrenner]:
-        return [b for b in self.zwei_brenner if b.is_on]
+        return [b for b in self if b.is_on]
 
     def min(self) -> list[ModulationBrenner]:
-        return [b for b in self.zwei_brenner if b.is_min]
+        return [b for b in self if b.is_min]
 
     def is_over_min(self) -> list[ModulationBrenner]:
-        return [b for b in self.zwei_brenner if b.is_over_min]
+        return [b for b in self if b.is_over_min]
+
+    def get_brenner(self, brenner_num: BrennerNum) -> ModulationBrenner:
+        for brenner in self:
+            if brenner.idx0 == brenner_num.idx0:
+                return brenner
+        raise ValueError(f"Does not exist: {brenner_num}")
 
 
 class ModulationSoll:
     def __init__(self, modulation0: Modulation = Modulation.OFF, modulation1: Modulation = Modulation.OFF) -> None:
         self.zwei_brenner = ZweiBrenner(
             (
-                ModulationBrenner(idx0=0, idx0_modulation=ModulationBrenner.get_idx0(modulation0)),
-                ModulationBrenner(idx0=1, idx0_modulation=ModulationBrenner.get_idx0(modulation1)),
+                ModulationBrenner(idx0=0, modulation=modulation0),
+                ModulationBrenner(idx0=1, modulation=modulation1),
             )
         )
         self.action: BrennerAction = BrennerAction.NICHTS
@@ -200,7 +204,7 @@ class ModulationSoll:
         assert isinstance(modulation, Modulation)
         assert isinstance(action, BrennerAction)
 
-        brenner = self.zwei_brenner.zwei_brenner[brenner_num.idx0]
+        brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
         self.action = action
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
@@ -210,7 +214,7 @@ class ModulationSoll:
         Falls kein Haus Energie benötigt, also alle ventile geschlossen sind,
         so reduzieren wir sofort alle Brenner, sofern eingeschaltet, auf min.
         """
-        for brenner in self.zwei_brenner.zwei_brenner:
+        for brenner in self.zwei_brenner:
             if brenner.modulation > Modulation.MIN:
                 brenner.set_modulation(modulation=Modulation.MIN)
                 self._log_action(brenner=brenner, reason="Absenken auf MIN, da kein Haus Enerige benötigt.")
@@ -244,8 +248,8 @@ class ModulationSoll:
             # Langfristig
             #   Zustand der Brenner abfragen und 'zwei_brenner' sinnvoll
             #   initialisieren.
-            self.zwei_brenner.zwei_brenner[0].set_max()
-            self.zwei_brenner.zwei_brenner[1].set_max()
+            for brenner in self.zwei_brenner:
+                brenner.set_max()
             return
 
         if sp_ladung < SpLadung.LEVEL2:

@@ -168,7 +168,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
 
         p.plot(title=testparam.label, filename=testparam.filename_png, do_show_plot=do_show_plot)
 
-        assert_git_unchanged(filename_png=testparam.filename_png)
+        assert_git_unchanged(filename=testparam.filename_png)
 
 
 _TESTPARAMS = [

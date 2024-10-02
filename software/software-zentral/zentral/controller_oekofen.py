@@ -26,7 +26,7 @@ class InfluxDataObsolete:
 
     def add(self, zwei_brenner: ZweiBrenner) -> None:
         fields = {}
-        for brenner in zwei_brenner.zwei_brenner:
+        for brenner in zwei_brenner:
             fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
         self.records.add_fields(fields=fields)
 
@@ -83,10 +83,10 @@ class ControllerOekofen:
         if betrieb_notheizung:
             return
 
-        relais.relais_2_brenner1_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_off
-        relais.relais_4_brenner2_sperren = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_off
-        relais.relais_3_brenner1_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[0].is_on
-        relais.relais_5_brenner2_anforderung = oekofen_modulation_soll.zwei_brenner.zwei_brenner[1].is_on
+        relais.relais_2_brenner1_sperren = oekofen_modulation_soll.zwei_brenner[0].is_off
+        relais.relais_4_brenner2_sperren = oekofen_modulation_soll.zwei_brenner[1].is_off
+        relais.relais_3_brenner1_anforderung = oekofen_modulation_soll.zwei_brenner[0].is_on
+        relais.relais_5_brenner2_anforderung = oekofen_modulation_soll.zwei_brenner[1].is_on
 
         if hsm_zentral.haeuser_all_valves_closed:
             oekofen_modulation_soll.set_modulation_min()

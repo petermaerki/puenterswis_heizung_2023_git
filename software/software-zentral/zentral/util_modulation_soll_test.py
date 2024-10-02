@@ -15,6 +15,7 @@ import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
 from zentral.util_modulation_soll import Modulation, ModulationBrenner, ModulationSoll
+from zentral.util_pytest_git import assert_git_unchanged
 from zentral.util_sp_ladung_zentral import SpLadung
 
 add_path_software_zero_dezentral()
@@ -90,6 +91,8 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
             modulation_soll.tick(sp_ladung=tick.sp_ladung, manual_mode=False)
             f.write(f"{modulation_soll.short} \u2190 {tick.short}\n")
 
+    assert_git_unchanged(testparam.filename_txt)
+
 
 @pytest.mark.parametrize("testparam", _TESTPARAMS, ids=lambda testparam: testparam.pytest_id)
 def test_controller_haeuser(testparam: Ttestparam):
@@ -104,10 +107,34 @@ def test_controller_haeuser(testparam: Ttestparam):
         (Modulation.MIN, 76.0, 69.34),
     ),
 )
-def test_modulation_calculate(modulation_prozent: int, modbus_FAx_UW_TEMP_ON_C: float, expected_modbus_FAx_REGEL_TEMP_C: float):
-    brenner = ModulationBrenner(idx0=0, idx0_modulation=ModulationBrenner.get_idx0(modulation=modulation_prozent))
+def test_modulation_calculate(modulation_prozent: Modulation, modbus_FAx_UW_TEMP_ON_C: float, expected_modbus_FAx_REGEL_TEMP_C: float):
+    brenner = ModulationBrenner(idx0=0, modulation=modulation_prozent)
     result_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=modbus_FAx_UW_TEMP_ON_C)
     assert abs(result_C - expected_modbus_FAx_REGEL_TEMP_C) < 0.1, (result_C, expected_modbus_FAx_REGEL_TEMP_C)
+
+
+def test_modulation_erhoehen() -> None:
+    m = Modulation.OFF
+    m = m.erhoeht
+    assert m is Modulation.MIN
+    m = m.erhoeht
+    assert m is Modulation.MEDIUM
+    m = m.erhoeht
+    assert m is Modulation.MAX
+    m = m.erhoeht
+    assert m is Modulation.MAX
+
+
+def test_modulation_absenken() -> None:
+    m = Modulation.MAX
+    m = m.abgesenkt
+    assert m is Modulation.MEDIUM
+    m = m.abgesenkt
+    assert m is Modulation.MIN
+    m = m.abgesenkt
+    assert m is Modulation.OFF
+    m = m.abgesenkt
+    assert m is Modulation.OFF
 
 
 def main():

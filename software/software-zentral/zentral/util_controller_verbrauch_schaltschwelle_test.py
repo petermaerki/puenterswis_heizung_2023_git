@@ -197,7 +197,7 @@ def do_schaltschwelle(haeuser_ladung: HaeuserLadung, anhebung_prozent: float, do
         do_show_plot=do_show_plot,
         filename_png=filename_png,
     )
-    assert_git_unchanged(filename_png=filename_png)
+    assert_git_unchanged(filename=filename_png)
 
 
 @pytest.mark.parametrize("testfall", ("vorher", "plus_ein_haus", "minus_ein_haus"))
@@ -242,7 +242,7 @@ def do_find_anhebung(testfall: str):
         do_show_plot=False,
         filename_png=filename_png,
     )
-    assert_git_unchanged(filename_png=filename_png)
+    assert_git_unchanged(filename=filename_png)
 
 
 if __name__ == "__main__":
