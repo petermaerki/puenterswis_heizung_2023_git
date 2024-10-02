@@ -36,7 +36,7 @@ class Tick:
 
     @property
     def short(self) -> str:
-        s = f" {self.sp_ladung.level_prozent:5.1f}%"
+        s = f" {self.sp_ladung.lower_level_prozent:5.1f}%"
         if self.comment is not None:
             s += f" {self.comment}"
         return s

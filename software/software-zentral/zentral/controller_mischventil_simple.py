@@ -69,7 +69,7 @@ class ControllerMischventilSimple(ControllerMischventilNone):
         # Speicher genug warm: Pumpe laufen lassen
         return True
 
-    def get_pumpe_ein(self, ctx: "Context", now_s: float) -> None:
+    def get_pumpe_ein(self, ctx: "Context", now_s: float) -> bool:
         """
         Falls mindestens ein Haus das Ventil offen hat, muss die Zentrale die Pumpe starten.
         return True: mindestens ein Haus hat ein Ventil offen

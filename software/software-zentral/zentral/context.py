@@ -53,6 +53,10 @@ class Context:
         port = get_serial_port2(n=Waveshare_4RS232.MBUS_WAERMEZAEHLER)
         return MBus(port=port)
 
+    @property
+    def is_mock(self) -> bool:
+        return False
+
     def close_and_flush_influx(self) -> None:
         self.influx.close_and_flush()
         for haus in self.config_etappe.haeuser:

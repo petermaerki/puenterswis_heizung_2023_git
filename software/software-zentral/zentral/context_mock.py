@@ -162,3 +162,7 @@ class ContextMock(Context):
 
     def _factory_mbus_communication(self) -> MBus:
         return None
+
+    @property
+    def is_mock(self) -> bool:
+        return True

@@ -249,7 +249,7 @@ class Influx:
         def ladung_zentral():
             pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
-            fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.level_prozent
+            fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
         haeuser_ladung_minimum_prozent()
         oekofen_summary()

@@ -135,8 +135,13 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
         await ctx.init()
         ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
 
-        ControllerMischventil._FAKTOR_STABILITAET_1 = testparam.CONTROLLER_FAKTOR_STABILITAET_1
-        ctl = ControllerMischventil(now_s=0.0)
+        class ControllerMischventilTest(ControllerMischventil):
+            _FAKTOR_STABILITAET_1 = testparam.CONTROLLER_FAKTOR_STABILITAET_1
+
+            def get_pumpe_ein(self, ctx: "Context", now_s: float) -> bool:
+                return True
+
+        ctl = ControllerMischventilTest(now_s=0.0)
 
         Tsz4_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C
         Tfr_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfr_C
