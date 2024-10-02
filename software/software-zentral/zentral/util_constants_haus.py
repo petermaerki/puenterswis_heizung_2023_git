@@ -12,10 +12,10 @@ def ensure_enum(enum_type: Enum, name: str | Enum) -> Enum:
     assert isinstance(name, str)
     try:
         return enum_type[name]
-    except KeyError:
+    except KeyError as e:
         valid_values = sorted([e.name for e in enum_type])
         valid_values_text = " ".join(valid_values)
-        raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}")
+        raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}") from e
 
 
 class SpPosition(StrEnum):
@@ -68,7 +68,7 @@ class DS18Index(StrEnum):
     OBEN_B = auto()
 
     @property
-    def index(self) -> int:
+    def index2(self) -> int:
         return {
             self.UNUSED_A: 0,
             self.UNUSED_B: 1,
@@ -84,9 +84,9 @@ class DS18Index(StrEnum):
         return f"'{self.name}'"
 
 
-assert DS18Index.UNTEN_A.index == SpPosition.UNTEN.ds18_index_a
-assert DS18Index.UNTEN_B.index == SpPosition.UNTEN.ds18_index_b
-assert DS18Index.MITTE_A.index == SpPosition.MITTE.ds18_index_a
-assert DS18Index.MITTE_B.index == SpPosition.MITTE.ds18_index_b
-assert DS18Index.OBEN_A.index == SpPosition.OBEN.ds18_index_a
-assert DS18Index.OBEN_B.index == SpPosition.OBEN.ds18_index_b
+assert DS18Index.UNTEN_A.index2 == SpPosition.UNTEN.ds18_index_a
+assert DS18Index.UNTEN_B.index2 == SpPosition.UNTEN.ds18_index_b
+assert DS18Index.MITTE_A.index2 == SpPosition.MITTE.ds18_index_a
+assert DS18Index.MITTE_B.index2 == SpPosition.MITTE.ds18_index_b
+assert DS18Index.OBEN_A.index2 == SpPosition.OBEN.ds18_index_a
+assert DS18Index.OBEN_B.index2 == SpPosition.OBEN.ds18_index_b

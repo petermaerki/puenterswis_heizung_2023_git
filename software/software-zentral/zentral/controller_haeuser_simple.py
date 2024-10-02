@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ControllerHaeuserNone(ControllerHaeuserABC):
     def __init__(self, now_s: float):
+        super().__init__(now_s=now_s)
         self._hvv = HauserValveVariante(anhebung_prozent=0.0)
 
     def process(self, params: "ProcessParams") -> HauserValveVariante:

@@ -13,14 +13,10 @@ from typing import List
 
 import asyncssh
 from prompt_toolkit import print_formatted_text
-from prompt_toolkit.contrib.ssh.server import (
-    PromptToolkitSSHServer,
-    PromptToolkitSSHSession,
-)
+from prompt_toolkit.contrib.ssh.server import PromptToolkitSSHServer, PromptToolkitSSHSession
 from ptpython import repl
 
 from zentral.util_scenarios import ssh_repl_scenarios_history_add
-
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +66,7 @@ async def create(repl_globals: dict, hausnummern: List[int], ssh_port: int = 802
 
 
 async def main() -> None:
-    await create(repl_globals={})
+    await create(repl_globals={}, hausnummern=[1, 2])
     while True:
         await asyncio.sleep(60)
 

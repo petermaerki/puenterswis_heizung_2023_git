@@ -1,3 +1,4 @@
+# pylint: disable=cyclic-import  # R0401: Cyclic import (zentral.config_base -> zentral.hsm_dezentral -> zentral.util_history_verbrauch_haus -> zentral.util_influx) (cyclic-import)
 from zentral.util_transition import linear_transition, sine_transition
 
 
@@ -16,6 +17,8 @@ def test_transition():
 def demo_plot():
     import matplotlib.pyplot as plt
     import numpy as np
+
+    from zentral.util_matplotlib import matplot_reset
 
     x_values = np.linspace(0.0, 10.0, 100)
     y_values_linear = [linear_transition(x) for x in x_values]

@@ -1,4 +1,5 @@
 # scripts/example/simple_rtu_client.py
+# pylint: disable=all
 import asyncio
 import enum
 import logging
@@ -199,7 +200,7 @@ def find_serial_port() -> str:
 def get_modbus_client():
     if True:
         port = find_serial_port()
-        """Return serial.Serial instance, ready to use for RS485."""
+        # Return serial.Serial instance, ready to use for RS485.
         client = AsyncModbusSerialClient(
             port=port,
             framer=Framer.RTU,
@@ -216,7 +217,7 @@ def get_modbus_client():
         )
     if False:
         port = find_serial_port()
-        """Return serial.Serial instance, ready to use for RS485."""
+        # Return serial.Serial instance, ready to use for RS485.
         client = AsyncModbusSerialClient(
             port=port,
             framer=Framer.RTU,

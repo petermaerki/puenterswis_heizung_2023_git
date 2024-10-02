@@ -60,7 +60,7 @@ class Gpio:
         self.set_value(on=True)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exception_type, value, traceback):
         self.set_value(on=False)
 
 

@@ -290,8 +290,7 @@ class HsmZentral(hsm.HsmMixin):
         """
         if self.ctx.modbus_communication.drehschalter.is_manuell:
             raise hsm.StateChangeException(self.state_ok_drehschaltermanuell)
-        else:
-            raise hsm.StateChangeException(self.state_ok_drehschalterauto)
+        raise hsm.StateChangeException(self.state_ok_drehschalterauto)
 
     def _handle_signal(self, signal: SignalZentralBase) -> None:
         if isinstance(signal, SignalHardwaretestBegin):
@@ -375,10 +374,8 @@ class HsmZentral(hsm.HsmMixin):
     @hsm.value(6)
     def state_ok_drehschalterauto_manuell(self, signal: SignalZentralBase):
         """ """
-        pass
 
     @hsm.value(7)
     @hsm.init_state
     def state_ok_drehschalterauto_regeln(self, signal: SignalZentralBase):
         """ """
-        pass

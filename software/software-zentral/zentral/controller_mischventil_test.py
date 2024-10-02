@@ -11,6 +11,7 @@ from zentral.util_pytest_git import assert_git_unchanged
 
 add_path_software_zero_dezentral()
 
+# ruff: noqa: E402
 from utils_common.utils_constants import ZERO_VIRGIN
 
 from zentral import config_etappe

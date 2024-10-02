@@ -91,13 +91,13 @@ class ModbusWrapper:
                 await asyncio.sleep(TIMEOUT_AFTER_MODBUS_TRANSFER_S)
             except ConnectionException as e:
                 logger.error(f"{slave_label}: Call SystemExit: {e!r}")
-                raise SystemExit(e)
+                raise SystemExit(e) from e
             except ModbusException as e:
-                if "No response received" in e.message:
+                if "No response received" in e.message:  # pylint: disable=no-member # Instance of 'ModbusException' has no 'message' member
                     logger.debug(f"{slave_label}: No response: {e!r}")
                     with self._scope_trigger.modbus_no_response:
                         await asyncio.sleep(TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S)
-                    raise ModbusExceptionNoResponseReceived(e)
+                    raise ModbusExceptionNoResponseReceived(e) from e
 
                 logger.error(f"{slave_label}: {e!r}")
                 with self._scope_trigger.modbus_error:
@@ -162,25 +162,25 @@ class ModbusWrapper:
         for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpDs18PercentOk, slave=slave):
             assert isinstance(scenario, ScenarioHausSpDs18PercentOk)
             ds18_offset = IREGS_ALL.ds18_ok_percent.reg
-            reg_index = ds18_offset + scenario.ds18_index.index
+            reg_index = ds18_offset + scenario.ds18_index.index2
             rsp.registers[reg_index] = scenario.ds18_ok_percent
 
         for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpTemperatureDiscrepancy, slave=slave):
             assert isinstance(scenario, ScenarioHausSpTemperatureDiscrepancy)
             ds18_offset = IREGS_ALL.ds18_temperature_cK.reg
-            reg_index = ds18_offset + scenario.ds18_index.index
+            reg_index = ds18_offset + scenario.ds18_index.index2
             rsp.registers[reg_index] += int(100 * scenario.discrepancy_C)
 
         for scenario in self._iter_by_class_slave(cls_scenario=ScenarioHausSpTemperatureIncrease, slave=slave):
             assert isinstance(scenario, ScenarioHausSpTemperatureIncrease)
             ds18_offset = IREGS_ALL.ds18_temperature_cK.reg
 
-            def increment(ds18_index):
+            def increment(scenario, ds18_index):
                 reg_index = ds18_offset + ds18_index
                 rsp.registers[reg_index] += int(100 * scenario.delta_C)
 
-            increment(scenario.position.ds18_index_a)
-            increment(scenario.position.ds18_index_b)
+            increment(scenario, scenario.position.ds18_index_a)
+            increment(scenario, scenario.position.ds18_index_b)
 
         self._assert_register_count(rsp=rsp, expected_register_count=count)
 

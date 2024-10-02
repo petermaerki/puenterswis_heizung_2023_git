@@ -28,6 +28,18 @@ class Modulation(enum.IntEnum):
     def prozent(self) -> int:
         return self.value
 
+    @property
+    def next(self) -> Modulation:
+        list_m = list(Modulation)
+        m = list_m.index(self)
+        return list_m[min(m + 1, len(list_m))]
+
+    @property
+    def previous(self) -> Modulation:
+        list_m = list(Modulation)
+        m = list_m.index(self)
+        return list_m[max(m + -1, 0)]
+
 
 _LIST_MODULATION_PROZENT = [Modulation.OFF, Modulation.MIN, Modulation.MEDIUM, Modulation.MAX]
 

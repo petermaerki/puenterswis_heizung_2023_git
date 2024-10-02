@@ -123,7 +123,7 @@
 				"module": "uvicorn",
 				"cwd": "${workspaceFolder:zentral}",
 				"args": [
-					"zentral.run_zentral_fastapi:app",
+					"zentral.run_zentral_fastapi:APP",
 					// "--reload",
 					"--workers=1",
 					"--port=8000"
@@ -145,7 +145,7 @@
 				"module": "uvicorn",
 				"cwd": "${workspaceFolder:zentral}",
 				"args": [
-					"zentral.run_zentral_fastapi:app",
+					"zentral.run_zentral_fastapi:APP",
 					// "--reload",
 					"--workers=1",
 					// "--reload-dir=${workspaceFolder:repo}"

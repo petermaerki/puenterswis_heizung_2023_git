@@ -23,6 +23,9 @@ _FUNC_SCENARIO_ADD = "scenario_add"
 
 class ScenarioBase(abc.ABC):
     def decrement(self) -> None:
+        # pylint: disable=no-member
+        # pylint: disable=attribute-defined-outside-init
+        # pylint: disable=access-member-before-definition
         if hasattr(self, "counter"):
             self.counter -= 1
             if self.counter <= 0:
@@ -55,6 +58,7 @@ class ScenarioBase(abc.ABC):
     def fix_haus_nummer(self, haus_nummer: int) -> None:
         if not hasattr(self, "haus_nummer"):
             return
+        # pylint: disable=attribute-defined-outside-init  # W0201: Attribute 'haus_nummer' defined outside __init__ (attribute-defined-outside-init)
         self.haus_nummer = haus_nummer
 
 

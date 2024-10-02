@@ -1,9 +1,11 @@
-
+# pylint: disable=all
 import asyncio
-from pymodbus import ModbusException
-from zentral.util_modbus import get_modbus_client
 
-from micropython.portable_modbus_registers import  EnumModbusRegisters, IREGS_ALL
+from micropython.portable_modbus_registers import (IREGS_ALL,
+                                                   EnumModbusRegisters)
+from pymodbus import ModbusException
+
+from zentral.util_modbus import get_modbus_client
 from zentral.util_modbus_iregs_all import ModbusIregsAll
 
 MODBUS_SLAVE = 113

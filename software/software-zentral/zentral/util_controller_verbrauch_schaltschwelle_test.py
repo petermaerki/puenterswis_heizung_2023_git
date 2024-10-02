@@ -234,7 +234,7 @@ def do_find_anhebung(testfall: str):
             anhebung_prozent=hlf.given_anhebung_prozent,
         )
 
-    print(hvv)
+    # pylint: disable=possibly-used-before-assignment  # E0606: Possibly using variable 'hvv' before assignment (possibly-used-before-assignment)
     filename_png = DIRECTORY_TESTRESULTS / f"do_find_anhebung_{testfall}.png"
     plot_and_save(
         haeuser_ladung=haeuser_ladung,

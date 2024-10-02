@@ -40,19 +40,19 @@ async def lifespan(app: FastAPI):
         _GLOBALS.ctx = None
 
 
-app = FastAPI(lifespan=lifespan)
+APP = FastAPI(lifespan=lifespan)
 
 
 for cls_scenario in SCENARIO_CLASSES:
 
-    async def f(scenario: cls_scenario = Depends()):
+    async def f(scenario: cls_scenario = Depends()):  # pylint: disable=cell-var-from-loop
         SCENARIOS.add(ctx=_GLOBALS.ctx, scenario=scenario)
         return {"result": repr(scenario)}
 
     path = f"/scenario/{cls_scenario.__name__}"
-    app.add_api_route(path=path, name=cls_scenario.__name__, endpoint=f, methods=["GET"])
+    APP.add_api_route(path=path, name=cls_scenario.__name__, endpoint=f, methods=["GET"])
 
 
-@app.get("/")
+@APP.get("/")
 async def redirect_root():
     return RedirectResponse("/docs#")

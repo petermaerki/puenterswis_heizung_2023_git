@@ -54,14 +54,14 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 1
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.ENERGY_WH,
+    # mbus_type: VIFUnit.ENERGY_WH,
     # unit: MeasureUnit.WH,
     # value: 4000
     MbusMeasurementSpec(1, 60, "Heat energy E1", 1, int, "energy_heating_E1_Wh", VIFUnit.ENERGY_WH, MeasureUnit.WH),
     # 2
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.ENERGY_WH,
+    # mbus_type: VIFUnit.ENERGY_WH,
     # unit: MeasureUnit.WH,
     # unit_enh: VIFUnitEnhExt.NEGATIVE_ACCUMULATION,
     # value: 0
@@ -69,14 +69,14 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 3
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.VOLUME,
+    # mbus_type: VIFUnit.VOLUME,
     # unit: MeasureUnit.M3,
     # value: 0.41000000000000003108624468950438313186168670654296875
     MbusMeasurementSpec(3, 68, "Volume V1", 3, Decimal, "volume_m3", VIFUnit.VOLUME, MeasureUnit.M3),
     # 4
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.MANUFACTURER_SPEC,
+    # mbus_type: VIFUnit.MANUFACTURER_SPEC,
     # unit: MeasureUnit.NONE,
     # unit_enh: VIFUnitEnhExt.UNKNOWN_ENHANCEMENT,
     # value: 23
@@ -84,7 +84,7 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 5
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.MANUFACTURER_SPEC,
+    # mbus_type: VIFUnit.MANUFACTURER_SPEC,
     # unit: MeasureUnit.NONE,
     # unit_enh: VIFUnitEnhExt.UNKNOWN_ENHANCEMENT,
     # value: 20
@@ -92,70 +92,70 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 6
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.ON_TIME,
+    # mbus_type: VIFUnit.ON_TIME,
     # unit: MeasureUnit.SECONDS,
     # value: 14029200
     MbusMeasurementSpec(6, 1004, "Operating hours", 6, int, "operating_hours_s", VIFUnit.ON_TIME, MeasureUnit.SECONDS),
     # 7
     # function: FunctionType.ERROR_STATE_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.ON_TIME,
+    # mbus_type: VIFUnit.ON_TIME,
     # unit: MeasureUnit.SECONDS,
     # value: 0
     MbusMeasurementSpec(7, 175, "Error hour counter", 7, int, "error_hours_s", VIFUnit.ON_TIME, MeasureUnit.SECONDS),
     # 8
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.FLOW_TEMPERATURE,
+    # mbus_type: VIFUnit.FLOW_TEMPERATURE,
     # unit: MeasureUnit.C,
     # value: 41.02000000000000312638803734444081783294677734375
     MbusMeasurementSpec(8, 86, "t1 actual (2 decimals)", 8, Decimal, "temperature_t1_C", VIFUnit.FLOW_TEMPERATURE, MeasureUnit.C),
     # 9
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.RETURN_TEMPERATURE,
+    # mbus_type: VIFUnit.RETURN_TEMPERATURE,
     # unit: MeasureUnit.C,
     # value: 22.400000000000002131628207280300557613372802734375
     MbusMeasurementSpec(9, 87, "t2 actual (2 decimals)", 9, Decimal, "temperature_t2_C", VIFUnit.RETURN_TEMPERATURE, MeasureUnit.C),
     # 10
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.TEMPERATURE_DIFFERENCE,
+    # mbus_type: VIFUnit.TEMPERATURE_DIFFERENCE,
     # unit: MeasureUnit.K,
     # value: 18.620000000000000994759830064140260219573974609375
     MbusMeasurementSpec(10, 89, "t1-t2 diff. temp. (2 decimals)", 10, Decimal, "temperature_t1_minus_t2_C", VIFUnit.TEMPERATURE_DIFFERENCE, MeasureUnit.K),
     # 11
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.POWER_W,
+    # mbus_type: VIFUnit.POWER_W,
     # unit: MeasureUnit.W,
     # value: 0
     MbusMeasurementSpec(11, 80, "Power E1/E3 actual", 11, int, "power_W", VIFUnit.POWER_W, MeasureUnit.W),
     # 12
     # function: FunctionType.MAXIMUM_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.POWER_W,
+    # mbus_type: VIFUnit.POWER_W,
     # unit: MeasureUnit.W,
     # value: 1300
     MbusMeasurementSpec(12, 143, "Power Max month"),
     # 13
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.VOLUME_FLOW,
+    # mbus_type: VIFUnit.VOLUME_FLOW,
     # unit: MeasureUnit.M3_H,
     # value: 0
     MbusMeasurementSpec(13, 74, "Flow V1 actual", 13, Decimal, "flow_v1_m3h", VIFUnit.VOLUME_FLOW, MeasureUnit.M3_H),
     # 14
     # function: FunctionType.MAXIMUM_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.VOLUME_FLOW,
+    # mbus_type: VIFUnit.VOLUME_FLOW,
     # unit: MeasureUnit.M3_H,
     # value: 0.0980000000000000037747582837255322374403476715087890625
     MbusMeasurementSpec(14, 139, "Flow V1 max month"),
     # 15
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 0,
-    # type: VIFUnit.MANUFACTURER_SPEC,
+    # mbus_type: VIFUnit.MANUFACTURER_SPEC,
     # unit: MeasureUnit.NONE,
     # unit_enh: VIFUnitEnhExt.PER_HOUR,
     # value: 0
@@ -164,7 +164,7 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 16
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.ENERGY_WH,
+    # mbus_type: VIFUnit.ENERGY_WH,
     # unit: MeasureUnit.WH,
     # value: 0
     MbusMeasurementSpec(17, 60, "Heat energy E1"),
@@ -179,46 +179,46 @@ _MBUS_MEASUREMENT_VALUES: list[MbusMeasurementSpec] = [
     # 17
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.ENERGY_WH,
+    # mbus_type: VIFUnit.ENERGY_WH,
     # unit: MeasureUnit.WH,
     # unit_enh: VIFUnitEnhExt.NEGATIVE_ACCUMULATION,
     # value: 0
     # 18
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.VOLUME,
+    # mbus_type: VIFUnit.VOLUME,
     # unit: MeasureUnit.M3,
     # value: 0
     # 19
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.MANUFACTURER_SPEC,
+    # mbus_type: VIFUnit.MANUFACTURER_SPEC,
     # unit: MeasureUnit.NONE,
     # unit_enh: VIFUnitEnhExt.UNKNOWN_ENHANCEMENT,
     # value: 0
     # 20
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.MANUFACTURER_SPEC,
+    # mbus_type: VIFUnit.MANUFACTURER_SPEC,
     # unit: MeasureUnit.NONE,
     # unit_enh: VIFUnitEnhExt.UNKNOWN_ENHANCEMENT,
     # value: 0
     # 21
     # function: FunctionType.MAXIMUM_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.POWER_W,
+    # mbus_type: VIFUnit.POWER_W,
     # unit: MeasureUnit.W,
     # value: 0
     # 22
     # function: FunctionType.MAXIMUM_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.VOLUME_FLOW,
+    # mbus_type: VIFUnit.VOLUME_FLOW,
     # unit: MeasureUnit.M3_H,
     # value: 0
     # 23
     # function: FunctionType.INSTANTANEOUS_VALUE,
     # storage_number: 1,
-    # type: VIFUnit.DATE,
+    # mbus_type: VIFUnit.DATE,
     # unit: MeasureUnit.DATE,
     # value: 2024-07-01
 ]
@@ -334,6 +334,7 @@ class MBusMeasurement:
                 continue
             record = records[measurement.no - 1]
 
+            # pylint: disable=C0123  # Use isinstance() rather than type() for a typecheck. (unidiomatic-typecheck)
             assert record["type"] == measurement.expected_type_str
             assert record["unit"] == measurement.expected_unit_str
             value = record["value"]

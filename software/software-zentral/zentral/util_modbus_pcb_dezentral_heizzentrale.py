@@ -219,7 +219,7 @@ class PcbsDezentralHeizzentrale:
 
         try:
             pcb = self._dict_label_2_pcb[attribute_name]
-        except KeyError:
+        except KeyError as e:
             raise KeyError(f"KeyError '{attribute_name}'! {','.join(sorted(self._dict_label_2_pcb))}") from e
         temperature_C = pcb.get_temperature_C(label=attribute_name)
         if temperature_C is None:

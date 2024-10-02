@@ -64,6 +64,8 @@ def brenner_uebersicht_prozent(registers: OekofenRegisters | None) -> tuple[int,
             return EnumBrennerUebersicht.BRENNER_STARTET + fa_state
 
         logger.info(f"FA1_TEMP_C={registers.FA1_TEMP_C}")
+        logger.warning(f"Programming error: {modulation=}, {fa_mode}, {fa_state}")
+        return EnumBrennerUebersicht.PROGRAMMIERFEHLER
 
     def calculate(brenner_idx1: int) -> int:
         v = calculate2(brenner_idx1=brenner_idx1)

@@ -12,6 +12,6 @@ cd ${AUTOMATIK}/software-zentral
 
 # With fastapi, but without debug/reload
 source /home/zero/venv_app/bin/activate
-python -m uvicorn zentral.run_zentral_fastapi:app --workers=1 --port=8000 --host=0.0.0.0
+python -m uvicorn zentral.run_zentral_fastapi:APP --workers=1 --port=8000 --host=0.0.0.0
 
 echo $?

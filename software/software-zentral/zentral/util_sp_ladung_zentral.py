@@ -76,7 +76,7 @@ class LadungZentral:
         TODO: OBSOLETE
         """
         raise NotImplementedError("Achtung: Unterschied Wassermenge Bochs/Puent!")
-        return self.sp_temperatur.energie_J
+        # return self.sp_temperatur.energie_J
 
     @property
     def ladung_prozent(self) -> float:

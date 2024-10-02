@@ -45,10 +45,10 @@ class VerbrauchLadungSchaltschwellen:
     sandbox_fuzzy/20240806c_verbrauch_ladung.IPYNB
     """
 
-    """kleine Hysterese fuert zu vielen Zyklen im blauen Ventil, dafuer kann die Ladung tief gehalten werden."""
     hysterese_prozent: float = 20.0
-    """Die maximal moegliche Ladung. Werte von z.B. 60 bis 130%. Je hoeher, desto laengere Brennpausen aber mehr Speicherverluste."""
+    """kleine Hysterese fuert zu vielen Zyklen im blauen Ventil, dafuer kann die Ladung tief gehalten werden."""
     ladung_maximal_prozent: float = 120.0
+    """Die maximal moegliche Ladung. Werte von z.B. 60 bis 130%. Je hoeher, desto laengere Brennpausen aber mehr Speicherverluste."""
 
     def __init__(self, anhebung_prozent: float, verbrauch_max_W: float) -> None:
         assert isinstance(anhebung_prozent, float)

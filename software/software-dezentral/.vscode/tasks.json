@@ -24,7 +24,10 @@
             // "command": "ruff check --config pyproject.toml --fix || true",
             "command": "ruff check zentral --fix || true",
             "options": {
-                "cwd": "${workspaceFolder:zentral}"
+                "cwd": "${workspaceFolder:zentral}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder:zentral}${workspaceFolder:zero}:"
+                }
             },
             "problemMatcher": [],
             "group": {
@@ -36,9 +39,12 @@
             "label": "mypy",
             "type": "shell",
             // "command": "python -m mypy --config-file pyproject.toml src tests || true",
-            "command": "python -m mypy  zentral || true",
+            "command": "python -m myp zentral || true",
             "options": {
-                "cwd": "${workspaceFolder:zentral}"
+                "cwd": "${workspaceFolder:zentral}",
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:zero}"
+                }
             },
             "problemMatcher": [],
             "group": {
@@ -49,7 +55,7 @@
         {
             "label": "pylint",
             "type": "shell",
-            "command": "PYTHONPATH=${workspaceFolder} python -m pylint zentral || true",
+            "command": "PYTHONPATH=${workspaceFolder}:${workspaceFolder:zero} python -m pylint zentral || true",
             "options": {
                 "cwd": "${workspaceFolder:zentral}"
             },
