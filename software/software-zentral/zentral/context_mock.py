@@ -10,6 +10,7 @@ from zentral import util_modbus_dac, util_modbus_mischventil, util_modbus_relais
 from zentral.config_base import MODBUS_OFFSET_HAUS, ConfigEtappe
 from zentral.constants import ModbusAddressHaeuser
 from zentral.context import Context
+from zentral.util_mbus import MBus
 from zentral.util_modbus import MODBUS_BELIMO_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_communication import ModbusCommunication
 
@@ -158,3 +159,6 @@ class ContextMock(Context):
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunicationMock(self)
+
+    def _factory_mbus_communication(self) -> MBus:
+        return None

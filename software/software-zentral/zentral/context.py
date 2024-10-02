@@ -11,7 +11,7 @@ from zentral.constants import DIRECTORY_LOG, Waveshare_4RS232
 from zentral.hsm_zentral import HsmZentral
 from zentral.util_history_verbrauch_haus import INTERVAL_VERBRAUCH_HAUS_S
 from zentral.util_influx import HsmDezentralInfluxLogger, HsmZentralInfluxLogger, Influx
-from zentral.util_mbus import MBus, MBusMeasurement
+from zentral.util_mbus import MBus
 from zentral.util_modbus import get_serial_port2
 from zentral.util_modbus_communication import ModbusCommunication
 from zentral.util_modbus_exception import exception_handler_and_exit
@@ -29,8 +29,7 @@ class Context:
     def __init__(self, config_etappe: ConfigEtappe):
         self.config_etappe = config_etappe
         self.modbus_communication = self._factory_modbus_communication()
-        port = get_serial_port2(n=Waveshare_4RS232.MBUS_WAERMEZAEHLER)
-        self.mbus = MBus(port=port)
+        self.mbus = self._factory_mbus_communication()
         self.influx = Influx()
         self.hsm_zentral = HsmZentral(ctx=self)
         self.hsm_zentral.init()
@@ -49,6 +48,10 @@ class Context:
 
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
+
+    def _factory_mbus_communication(self) -> MBus:
+        port = get_serial_port2(n=Waveshare_4RS232.MBUS_WAERMEZAEHLER)
+        return MBus(port=port)
 
     def close_and_flush_influx(self) -> None:
         self.influx.close_and_flush()
@@ -143,7 +146,7 @@ class Context:
     async def task_mbus(self) -> None:
         async with exception_handler_and_exit(ctx=self, task_name="mbus", exit_code=46):
 
-            async def read(haus: Haus) -> MBusMeasurement | None:
+            async def read(haus: Haus) -> None:
                 if haus.status_haus is None:
                     relais_valve_open = False
                 else:
