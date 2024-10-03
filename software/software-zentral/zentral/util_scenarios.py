@@ -9,7 +9,6 @@ import time
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Type, TypeVar
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
-from zentral.util_modulation_soll import BrennerAction, BrennerNum, Modulation
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -212,7 +211,7 @@ class ScenarioHaeuserValveOpen(ScenarioBase):
 
 
 @dataclasses.dataclass
-class ScenarioHaeuserValveOpenIterator(ScenarioBase):
+class ScenarioMasterValveOpenIterator(ScenarioBase):
     duration_haus_s: float = 120.0
     haeuser_count: int = 999
 
@@ -220,8 +219,8 @@ class ScenarioHaeuserValveOpenIterator(ScenarioBase):
         """
         Predefined method name 'action': Will be called automatically.
         """
-        logging.info(f"Action: duration_haus_s={self.duration_haus_s:0.1f} haeuser_count={self.haeuser_count}")
-        ctx.hsm_zentral.set_controller_haeuser_valve_open_iterator(scenario=self)
+        logger.info(f"Action: duration_haus_s={self.duration_haus_s:0.1f} haeuser_count={self.haeuser_count}")
+        ctx.hsm_zentral.set_controller_master_valve_open_iterator(scenario=self)
 
 
 @dataclasses.dataclass
@@ -369,8 +368,37 @@ class ScenarioSetLogLevel(ScenarioBase):
         """
         Predefined method name 'action': Will be called automatically.
         """
-        logging.info(f"Action: module={self.module} level={self.level}")
+        logger.info(f"Action: module={self.module} level={self.level}")
         logging.getLogger(self.module.value).setLevel(self.level.value)
+
+
+class ActionTimerEnum(enum.StrEnum):
+    ANHEBUNG = "anhebung"
+    PUMPE_PWM = "pumpe_pwm"
+    PUMPE_AUS_ZU_KALT = "pumpe_aus_zu_kalt"
+    BRENNER_MODULATION_SOLL = "brenner_modulation_soll"
+
+
+@dataclasses.dataclass
+class ScenarioActionTimerTimeOver(ScenarioBase):
+    actiontimer: ActionTimerEnum = ActionTimerEnum.ANHEBUNG
+
+    def action(self, ctx: "Context") -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        from zentral.controller_master import ControllerMaster
+        from zentral.util_action import ActionTimer
+
+        logger.info(f"Action: actiontimer={self.actiontimer}")
+        controller_master: ControllerMaster = ctx.hsm_zentral.controller_master
+        actiontimer: ActionTimer = {
+            ActionTimerEnum.ANHEBUNG: controller_master.handler_anhebung.actiontimer,
+            ActionTimerEnum.PUMPE_PWM: controller_master.handler_pumpe._actiontimer_pwm,
+            ActionTimerEnum.PUMPE_AUS_ZU_KALT: controller_master.handler_pumpe._actiontimer_pumpe_aus_zu_kalt,
+            ActionTimerEnum.BRENNER_MODULATION_SOLL: controller_master.handler_oekofen.modulation_soll.actiontimer,
+        }[self.actiontimer]
+        actiontimer.set_is_over()
 
 
 @dataclasses.dataclass

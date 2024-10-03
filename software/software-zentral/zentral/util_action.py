@@ -59,6 +59,8 @@ class ActionTimer:
         self._log("set()")
 
     def cancel(self) -> None:
+        if self._action is None:
+            return
         self._log("cancel()")
         self._start_s = 0.0
         self._action = None
@@ -87,16 +89,19 @@ class ActionTimer:
         fields[f"actiontimer_{self._action.__class__.__name__}_{self._action.name}_min"] = self._remaining_s / 60.0
 
     @property
-    def _is_over(self) -> bool:
+    def is_over(self) -> bool:
         if self._action is None:
             return True
-        return self._remaining_s < 0.0
-
-    @property
-    def is_over(self) -> bool:
-        result = self._is_over
+        result = self._remaining_s < 0.0
         self._log(f"is_over() -> {result}")
         return result
+
+    def set_is_over(self) -> None:
+        """
+        To be used for debugging
+        """
+        if self._action is not None:
+            self._start_s = self._now_s - self._action.wartezeit_s
 
 
 def main():

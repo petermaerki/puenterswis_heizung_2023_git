@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
+from zentral.constants import OEKOFEN_CONTROL_ON, ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -185,11 +185,11 @@ class ModbusCommunication:
                 await self.r.set(
                     list_gpio=(
                         relais_0_mischventil_automatik,
-                        relais.relais_1_elektro_notheizung,
-                        relais.relais_2_brenner1_sperren,
-                        relais.relais_3_brenner1_anforderung,
-                        relais.relais_4_brenner2_sperren,
-                        relais.relais_5_brenner2_anforderung,
+                        relais.relais_1_elektro_notheizung if OEKOFEN_CONTROL_ON else False,
+                        relais.relais_2_brenner1_sperren if OEKOFEN_CONTROL_ON else False,
+                        relais.relais_3_brenner1_anforderung if OEKOFEN_CONTROL_ON else False,
+                        relais.relais_4_brenner2_sperren if OEKOFEN_CONTROL_ON else False,
+                        relais.relais_5_brenner2_anforderung if OEKOFEN_CONTROL_ON else False,
                         relais_6_pumpe_gesperrt,
                         relais.relais_7_automatik,
                     )
@@ -218,6 +218,9 @@ class ModbusCommunication:
         Berechne die Regeltemperatur für die gewünschte Modulation.
         Der Wert wird nur geschrieben, falls er abweicht. Dies schont das Flash.
         """
+        if not OEKOFEN_CONTROL_ON:
+            return
+
         modbus_oekofen_registers = self.context.hsm_zentral.modbus_oekofen_registers
 
         for brenner in zwei_brenner:
@@ -261,7 +264,7 @@ class ModbusCommunication:
                     self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
                     await self.context.influx.send_oekofen(ctx=self.context, modbus_oekofen_registers=modbus_oekofen_registers)
 
-                    await self.update_oekofen(zwei_brenner=self.context.hsm_zentral.oekofen_modulation_soll.zwei_brenner)
+                    await self.update_oekofen(zwei_brenner=self.context.hsm_zentral.controller_master.handler_oekofen.modulation_soll.zwei_brenner)
                 except ModbusException as e:
                     self.context.hsm_zentral.modbus_oekofen_registers = None
 

@@ -70,7 +70,7 @@ class Credit:
         self.add_mischventil_credit(duration_s / 60.0 * 0.2)
 
 
-class PumpeAnlaufzeit:
+class PumpeAnlaufzeitMischventil:
     """
     Wenn die Pumpe anläuft, dauert es 120s bis das System stabil
     ist und mit Regeln begonnen werden kann.
@@ -185,7 +185,8 @@ class ControllerMischventil(ControllerMischventilSimple):
 
     def __init__(self, now_s: float) -> None:
         super().__init__(now_s=now_s)
-        self.pumpe_anlaufzeit = PumpeAnlaufzeit()
+        # TODO(HandlerPumpe)
+        # self.pumpe_anlaufzeit_mischventil = PumpeAnlaufzeitMischventil()
         self.next_control = NextControl()
         self.credit = Credit(now_s=now_s)
         self.last_stellwert_change_s = now_s
@@ -259,14 +260,18 @@ class ControllerMischventil(ControllerMischventilSimple):
             ctx.hsm_zentral.solltemperatur_Tfv = scenario.solltemperature_Tfv
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
-        ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx, now_s=now_s)
+        # TODO(HandlerPumpe)
+        # ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx, now_s=now_s)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
-        self.pumpe_anlaufzeit.pumpe(
-            now_s=now_s,
-            ein=not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
-        )
-        if not self.pumpe_anlaufzeit.pumpe_und_stabil(now_s=now_s):
+        # TODO(HandlerPumpe)
+        # self.pumpe_anlaufzeit_mischventil.pumpe(
+        #     now_s=now_s,
+        #     ein=not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
+        # )
+        # TODO(HandlerPumpe)
+        # if not self.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s):
+        if not ctx.hsm_zentral.controller_master.handler_pumpe.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s):
             return
 
         if self.next_control.wait(now_s=now_s):

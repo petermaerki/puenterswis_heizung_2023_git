@@ -1,0 +1,90 @@
+"""
+Liest speicher_ladung_prozent
+
+Setzt temperaturen von Brenner 1 und 2
+Sperrt Brenner
+"""
+
+import logging
+import typing
+
+from zentral.controller_base import ControllerMasterABC
+from zentral.handler_anhebung import HandlerAnhebung
+from zentral.handler_oekofen import HandlerOekofen
+from zentral.handler_pumpe import HandlerPumpe
+from zentral.util_sp_ladung_zentral import SpLadung
+
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
+
+logger = logging.getLogger(__name__)
+
+
+class ControllerMaster(ControllerMasterABC):
+    def __init__(self, ctx: "Context", now_s: float) -> None:
+        super().__init__(ctx=ctx, now_s=now_s)
+        self.handler_oekofen = HandlerOekofen(ctx=ctx, now_s=now_s)
+        self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
+        # ladung = ctx.hsm_zentral.get_hauser_ladung()
+        # ladung.valve_open_count
+        self.handler_anhebung = HandlerAnhebung(
+            ctx=ctx,
+            now_s=now_s,
+            last_anhebung_prozent=0.0,
+            last_valve_open_count=0,  # TODO: Add correct value
+        )
+
+    def process(self, now_s: float) -> None:
+        self._process(now_s=now_s)
+        self.handler_anhebung.update_valves()
+
+    def _process(self, now_s: float) -> None:
+        ctx = self.ctx
+        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
+        sp_ladung_zentral = pcbs.sp_ladung_zentral
+
+        if sp_ladung_zentral > SpLadung.LEVEL1:
+            logger.info("handler_pumpe.run()")
+            self.handler_pumpe.tick(now_s=now_s)
+        else:
+            logger.info("handler_pumpe.run_pwm()")
+            self.handler_pumpe.tick_pwm(now_s=now_s)
+
+        betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
+        self.handler_oekofen.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
+
+        if not ctx.hsm_zentral.is_drehschalterauto_regeln():
+            # Manual Mode
+            # TODO: Aufstarten... Flash nicht zu oft schreiben
+            self.handler_oekofen.set_brenner_modulation_manual_max()
+
+        all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
+        logger.info(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
+        if all_valves_closed:
+            logger.info("set_modulation_min()")
+            self.handler_oekofen.set_modulation_min()
+
+        # Anhebung hinunter, Modulation erhöhen
+        if sp_ladung_zentral <= SpLadung.LEVEL1:
+            self.handler_anhebung.anheben_minus_ein_haus(ctx=ctx, now_s=now_s)
+
+        if sp_ladung_zentral == SpLadung.LEVEL0:
+            if all_valves_closed:
+                return
+            if not self.handler_oekofen.modulation_erhoehen():
+                self.handler_oekofen.brenner_zuenden()
+            return
+
+        # Anhebung hinauf, Modulation reduzieren
+        if sp_ladung_zentral >= SpLadung.LEVEL3:
+            if not self.handler_oekofen.modulation_reduzieren():
+                self.handler_anhebung.anheben_plus_ein_haus(ctx=ctx, now_s=now_s)
+
+        if sp_ladung_zentral == SpLadung.LEVEL4:
+            self.handler_oekofen.brenner_loeschen()
+
+    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
+        self.handler_oekofen.modulation_soll.actiontimer.influxdb_add_fields(fields=fields)
+        self.handler_pumpe._actiontimer_pumpe_aus_zu_kalt.influxdb_add_fields(fields=fields)
+        self.handler_pumpe._actiontimer_pwm.influxdb_add_fields(fields=fields)
+        self.handler_anhebung.influxdb_add_fields(fields=fields)

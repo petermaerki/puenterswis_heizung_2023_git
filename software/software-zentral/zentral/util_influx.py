@@ -183,7 +183,7 @@ class Influx:
         r.add_fields(fields=fields)
 
         def actiontimer():
-            ctx.hsm_zentral.controller_oekofen.actiontimer_brenner.influxdb_add_fields(fields=fields)
+            ctx.hsm_zentral.controller_master.influxdb_add_fields(fields=fields)
 
         def haeuser_ladung_minimum_prozent():
             minimum_prozent = ctx.hsm_zentral.haeuser_ladung_minimum_prozent
@@ -191,11 +191,12 @@ class Influx:
                 fields["haeuser_ladung_minimum_prozent"] = minimum_prozent
 
         def oekofen_summary():
-            val1, val2 = ctx.hsm_zentral.brenner_uebersicht_prozent
+            controller_master = ctx.hsm_zentral.controller_master
+            val1, val2 = controller_master.handler_oekofen.brenner_uebersicht_prozent
             fields["brenner_1_uebersicht_prozent"] = val1 + 0.0
             fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
 
-            for brenner in ctx.hsm_zentral.oekofen_modulation_soll.zwei_brenner:
+            for brenner in controller_master.handler_oekofen.modulation_soll.zwei_brenner:
                 fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
 
         def mischventil_registers():

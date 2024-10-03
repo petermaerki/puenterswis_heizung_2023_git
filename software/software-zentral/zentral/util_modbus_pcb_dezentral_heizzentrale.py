@@ -84,7 +84,7 @@ class PcbDezentral:
             prefix_error = "zentral_error_"
 
             hsm_zentral = modbus.context.hsm_zentral
-            if hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
+            if hsm_zentral.is_drehschalterauto_regeln():
                 if not hsm_zentral.relais.relais_6_pumpe_gesperrt:
                     fields[prefix_temperature + "solltemperatur_Tfv"] = hsm_zentral.solltemperatur_Tfv
 

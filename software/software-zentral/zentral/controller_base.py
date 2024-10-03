@@ -6,8 +6,6 @@ from abc import ABC
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
-    from zentral.controller_haeuser import ProcessParams
-    from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 
 
 logger = logging.getLogger(__name__)
@@ -26,11 +24,15 @@ class ControllerMischventilABC(ABC):
         return None
 
 
-class ControllerHaeuserABC(ABC):
-    def __init__(self, now_s: float) -> None:
+class ControllerMasterABC(ABC):
+    def __init__(self, ctx: "Context", now_s: float) -> None:
         self.start_s = now_s
+        self.ctx = ctx
 
-    def process(self, params: "ProcessParams") -> "HauserValveVariante": ...
+    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
+        pass
+
+    def process(self, now_s: float) -> None: ...
 
     def done(self) -> bool:
         return False

@@ -4,7 +4,7 @@ import dataclasses
 import enum
 import logging
 
-from zentral.util_action import ActionBaseEnum
+from zentral.util_action import ActionBaseEnum, ActionTimer
 from zentral.util_sp_ladung_zentral import SpLadung
 
 logger = logging.getLogger(__name__)
@@ -142,8 +142,8 @@ class ModulationBrenner:
 
 
 class BrennerAction(ActionBaseEnum):
-    EIN = 30
-    AUS = 16
+    ZUENDEN = 30
+    LOESCHEN = 16
     MODULIEREN = 15
     NICHTS = 1
 
@@ -183,14 +183,14 @@ class ModulationSoll:
                 ModulationBrenner(idx0=1, modulation=modulation1),
             )
         )
-        self.action: BrennerAction = BrennerAction.NICHTS
+        self.actiontimer = ActionTimer()
 
     @property
     def short(self) -> str:
-        return f"{ self.zwei_brenner.short},{self.action.wartezeit_min:2d}min"
+        return f"{ self.zwei_brenner.short},{self.actiontimer.wartezeit_min:2d}min"
 
     def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
-        logger.info(f"brenner idx0={brenner.idx0}, {brenner.short} {self.action}. {reason}")
+        logger.info(f"{self.actiontimer.action_name_full} brenner idx0={brenner.idx0}, {brenner.short}. {reason}")
 
     def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation, action: BrennerAction) -> None:
         """
@@ -202,7 +202,7 @@ class ModulationSoll:
 
         brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
-        self.action = action
+        self.actiontimer.action = action
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
 
     def set_modulation_min(self) -> None:
@@ -215,7 +215,13 @@ class ModulationSoll:
                 brenner.set_modulation(modulation=Modulation.MIN)
                 self._log_action(brenner=brenner, reason="Absenken auf MIN, da kein Haus Enerige benötigt.")
 
-    def abschalten_zweiter_Brenner(self, sp_ladung: SpLadung) -> None:
+    def _force(self, force: bool) -> None:
+        if force:
+            assert self.actiontimer.action == BrennerAction.NICHTS
+
+    def abschalten_zweiter_Brenner(self, sp_ladung: SpLadung, force: bool) -> None:
+        self._force(force=force)
+
         list_brenner_on = self.zwei_brenner.on()
         if len(list_brenner_on) < 2:
             return
@@ -230,65 +236,70 @@ class ModulationSoll:
 
         # Zweiter Brenner direkt ausschalten
         list_brenner_on[1].set_modulation(Modulation.OFF)
-        self.action = BrennerAction.AUS
+        self.actiontimer.action = BrennerAction.LOESCHEN
         self._log_action(brenner=list_brenner_on[1], reason="zweiter_Brenner_abschalten(): Zweiten Brenner ausschalten.")
 
-    def tick(self, sp_ladung: SpLadung, manual_mode: bool) -> None:
-        assert isinstance(sp_ladung, SpLadung)
-        assert isinstance(manual_mode, bool)
+    def modulation_erhoehen(self, force=False) -> bool:
+        if not self.actiontimer.is_over:
+            # We have to wait for the previous action to be finished
+            return False
+        self._force(force=force)
 
-        self.action = BrennerAction.NICHTS
-
-        if manual_mode:
-            # Temporaere einfache Lösung
-            # Langfristig
-            #   Zustand der Brenner abfragen und 'zwei_brenner' sinnvoll
-            #   initialisieren.
-            for brenner in self.zwei_brenner:
-                brenner.set_max()
-            return
-
-        if sp_ladung < SpLadung.LEVEL2:
-            self._erhoehen(sp_ladung=sp_ladung)
-            return
-        if sp_ladung > SpLadung.LEVEL2:
-            self._reduzieren(sp_ladung=sp_ladung)
-
-    def _erhoehen(self, sp_ladung: SpLadung) -> None:
         list_brenner_on = self.zwei_brenner.on_but_not_max()
         if len(list_brenner_on) >= 1:
             # Brenner moduliert bereits
             list_brenner_on[0].erhoehen()
-            self.action = BrennerAction.MODULIEREN
+            self.actiontimer.action = BrennerAction.MODULIEREN
             self._log_action(brenner=list_brenner_on[0], reason="Erhoehen. Brenner moduliert bereits.")
-            return
+            return True
+        return False
+
+    def brenner_zuenden(self, force=False) -> bool:
+        if not self.actiontimer.is_over:
+            # We have to wait for the previous action to be finished
+            return False
+
+        self._force(force=force)
 
         list_brenner_off = self.zwei_brenner.off()
         if len(list_brenner_off) > 0:
-            if sp_ladung <= SpLadung.LEVEL0:
-                # Brenner einschalten
-                list_brenner_off[0].erhoehen()
-                self.action = BrennerAction.EIN
-                self._log_action(brenner=list_brenner_off[0], reason="Brenner einschalten.")
-                return
+            # Brenner einschalten
+            list_brenner_off[0].erhoehen()
+            self.actiontimer.action = BrennerAction.ZUENDEN
+            self._log_action(brenner=list_brenner_off[0], reason="Brenner einschalten.")
+            return True
+        return False
 
-    def _reduzieren(self, sp_ladung: SpLadung) -> None:
+    def modulation_reduzieren(self, force=False) -> bool:
+        if not self.actiontimer.is_over:
+            # We have to wait for the previous action to be finished
+            return False
+
+        self._force(force=force)
+
         list_brenner_is_over_min = self.zwei_brenner.is_over_min()
         if len(list_brenner_is_over_min) >= 1:
             # Brenner moduliert bereits
             list_brenner_is_over_min[0].absenken()
-            self.action = BrennerAction.MODULIEREN
+            self.actiontimer.action = BrennerAction.MODULIEREN
             self._log_action(brenner=list_brenner_is_over_min[0], reason="Absenken. Brenner moduliert bereits.")
-            return
+            return True
+        return False
+
+    def brenner_loeschen(self, force=False) -> bool:
+        if not self.actiontimer.is_over:
+            # We have to wait for the previous action to be finished
+            return False
+
+        self._force(force=force)
 
         list_brenner_on = self.zwei_brenner.on()
         if len(list_brenner_on) == 0:
             # Beide Brenner sind bereits aus
-            return
+            return False
 
-        # Mindestens ein Brenner ist an
-        if sp_ladung >= SpLadung.LEVEL4:
-            # Brenner ausschalten
-            list_brenner_on[0].absenken()
-            self.action = BrennerAction.AUS
-            self._log_action(brenner=list_brenner_on[0], reason="Brenner ausschalten.")
+        # Brenner ausschalten
+        list_brenner_on[0].absenken()
+        self.actiontimer.action = BrennerAction.LOESCHEN
+        self._log_action(brenner=list_brenner_on[0], reason="Brenner ausschalten.")
+        return True

@@ -95,7 +95,7 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
 
 
 @pytest.mark.parametrize("testparam", _TESTPARAMS, ids=lambda testparam: testparam.pytest_id)
-def test_controller_haeuser(testparam: Ttestparam):
+def test_modulation_soll(testparam: Ttestparam):
     run_modulation_soll(testparam=testparam)
 
 
