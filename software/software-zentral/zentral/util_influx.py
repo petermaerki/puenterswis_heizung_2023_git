@@ -182,6 +182,9 @@ class Influx:
         }
         r.add_fields(fields=fields)
 
+        def actiontimer():
+            ctx.hsm_zentral.controller_oekofen.actiontimer_brenner.influxdb_add_fields(fields=fields)
+
         def haeuser_ladung_minimum_prozent():
             minimum_prozent = ctx.hsm_zentral.haeuser_ladung_minimum_prozent
             if minimum_prozent is not None:
@@ -251,6 +254,7 @@ class Influx:
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
             fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
+        actiontimer()
         haeuser_ladung_minimum_prozent()
         oekofen_summary()
         mischventil_registers()

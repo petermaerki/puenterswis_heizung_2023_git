@@ -9,6 +9,7 @@ import logging
 import time
 import typing
 
+from zentral.util_action import ActionTimer
 from zentral.util_influx import InfluxRecords
 from zentral.util_modulation_soll import BrennerAction, ZweiBrenner
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht
@@ -40,7 +41,7 @@ class ControllerOekofen:
     ELEKTRO_NOTHEIZUNG_Tsz4_MAX_C = 75.0
 
     def __init__(self, now_s: float) -> None:
-        self.last_tick_s: float = now_s
+        self.actiontimer_brenner = ActionTimer()
         self.elektro_notheizung_last_aus_s: float = time.monotonic()
 
     def _process_elektro_notheizung(self, ctx: "Context", betrieb_notheizung: bool) -> None:
@@ -95,8 +96,7 @@ class ControllerOekofen:
         sp_ladung = pcbs.sp_ladung_zentral
         oekofen_modulation_soll.abschalten_zweiter_Brenner(sp_ladung=sp_ladung)
 
-        remaining_s = self.last_tick_s + oekofen_modulation_soll.action.wartezeit_s - now_s
-        if remaining_s > 0.0:
+        if not self.actiontimer_brenner.is_over:
             # Ein Brenner started/stoppt/moduliert
             # Wir warten bis der neue Zustand stabil ist.
             return
@@ -108,8 +108,7 @@ class ControllerOekofen:
 
         # TICK!!!
         oekofen_modulation_soll.tick(sp_ladung=sp_ladung, manual_mode=manual_mode)
-        self.last_tick_s = now_s
-
+        self.actiontimer_brenner.action = oekofen_modulation_soll.action
         if oekofen_modulation_soll.action != BrennerAction.NICHTS:
             # influx_data.add(zwei_brenner=oekofen_modulation_soll.zwei_brenner)
             # await influx_data.send()

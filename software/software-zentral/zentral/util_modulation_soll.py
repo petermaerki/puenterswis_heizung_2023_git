@@ -4,6 +4,7 @@ import dataclasses
 import enum
 import logging
 
+from zentral.util_action import ActionBaseEnum
 from zentral.util_sp_ladung_zentral import SpLadung
 
 logger = logging.getLogger(__name__)
@@ -140,19 +141,11 @@ class ModulationBrenner:
         return self.modulation > Modulation.MIN
 
 
-class BrennerAction(enum.IntEnum):
+class BrennerAction(ActionBaseEnum):
     EIN = 30
     AUS = 16
     MODULIEREN = 15
     NICHTS = 1
-
-    @property
-    def wartezeit_min(self) -> int:
-        return self.value
-
-    @property
-    def wartezeit_s(self) -> float:
-        return 60.0 * self.wartezeit_min
 
 
 class ZweiBrenner(list[ModulationBrenner]):
@@ -200,6 +193,9 @@ class ModulationSoll:
         logger.info(f"brenner idx0={brenner.idx0}, {brenner.short} {self.action}. {reason}")
 
     def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation, action: BrennerAction) -> None:
+        """
+        Only referenced by ScenarioOekofenBrennerModulation.
+        """
         assert isinstance(brenner_num, BrennerNum)
         assert isinstance(modulation, Modulation)
         assert isinstance(action, BrennerAction)

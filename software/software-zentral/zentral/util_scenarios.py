@@ -413,17 +413,19 @@ class ScenarioOekofenRegister(ScenarioBase):
     value: float = 0.0
 
 
-@dataclasses.dataclass
-class ScenarioOekofenBrennerModulation(ScenarioBase):
-    brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
-    modulation: Modulation = Modulation.MEDIUM
-    action_min: BrennerAction = BrennerAction.NICHTS
+if False:
 
-    def action(self, ctx: "Context") -> None:
-        """
-        Predefined method name 'action': Will be called automatically.
-        """
-        ctx.hsm_zentral.oekofen_modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation, action=self.action_min)
+    @dataclasses.dataclass
+    class ScenarioOekofenBrennerModulation(ScenarioBase):
+        brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
+        modulation: Modulation = Modulation.MEDIUM
+        action_min: BrennerAction = BrennerAction.NICHTS
+
+        def action(self, ctx: "Context") -> None:
+            """
+            Predefined method name 'action': Will be called automatically.
+            """
+            ctx.hsm_zentral.oekofen_modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation, action=self.action_min)
 
 
 @dataclasses.dataclass
