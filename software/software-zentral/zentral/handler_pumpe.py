@@ -35,7 +35,7 @@ class HandlerPumpe:
 
     @property
     def pumpe_is_on(self) -> bool:
-        return self._ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt
+        return not self._ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt
 
     def run_forced(self):
         self._ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = False
