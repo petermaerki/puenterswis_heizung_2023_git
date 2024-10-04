@@ -66,7 +66,7 @@ class HandlerAnhebung:
         self.ctx.hsm_zentral.update_hvv(hvv=evaluate.hvv)
 
     def anheben_plus_ein_haus(self, ctx: "Context", now_s: float) -> None:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel():
             return
         if self.last_anhebung_prozent >= 100.0:
             return
@@ -75,7 +75,7 @@ class HandlerAnhebung:
         self.actiontimer.action = AnhebungAction.HAUS_PLUS
 
     def anheben_minus_ein_haus(self, ctx: "Context", now_s: float) -> None:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel:
             return
         if self.last_anhebung_prozent <= 0.0:
             return

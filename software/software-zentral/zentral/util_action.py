@@ -96,6 +96,12 @@ class ActionTimer:
         self._log(f"is_over() -> {result}")
         return result
 
+    def is_over_and_cancel(self) -> bool:
+        over = self.is_over
+        if over:
+            self.cancel()
+        return over
+
     def set_is_over(self) -> None:
         """
         To be used for debugging

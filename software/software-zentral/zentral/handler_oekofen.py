@@ -25,10 +25,6 @@ class HandlerOekofen:
         self.modulation_soll = ModulationSoll(modulation0=Modulation.OFF, modulation1=Modulation.OFF)
 
     @property
-    def is_over(self) -> bool:
-        return self.modulation_soll.actiontimer.is_over
-
-    @property
     def betrieb_notheizung(self) -> bool:
         brenner1, brenner2 = self.brenner_uebersicht_prozent
         return max(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER

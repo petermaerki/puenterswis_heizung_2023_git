@@ -92,8 +92,7 @@ class HandlerPumpe:
             # Speicher genug warm: Pumpe laufen lassen
             return True
 
-        if self._actiontimer_pumpe_aus_zu_kalt.is_over:
-            self._actiontimer_pumpe_aus_zu_kalt.cancel()
+        if self._actiontimer_pumpe_aus_zu_kalt.is_over_and_cancel():
             # Pumpe läuft nicht: Einschalten
             return True
 

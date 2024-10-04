@@ -240,7 +240,7 @@ class ModulationSoll:
         self._log_action(brenner=list_brenner_on[1], reason="zweiter_Brenner_abschalten(): Zweiten Brenner ausschalten.")
 
     def modulation_erhoehen(self, force=False) -> bool:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
         self._force(force=force)
@@ -255,7 +255,7 @@ class ModulationSoll:
         return False
 
     def brenner_zuenden(self, force=False) -> bool:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
@@ -271,7 +271,7 @@ class ModulationSoll:
         return False
 
     def modulation_reduzieren(self, force=False) -> bool:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
@@ -287,7 +287,7 @@ class ModulationSoll:
         return False
 
     def brenner_loeschen(self, force=False) -> bool:
-        if not self.actiontimer.is_over:
+        if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
