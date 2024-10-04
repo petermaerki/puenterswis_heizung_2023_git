@@ -1,7 +1,7 @@
 from enum import Enum, StrEnum, auto
 
 
-def ensure_enum(enum_type: Enum, name: str | Enum) -> Enum:
+def ensure_enum(enum_type: Enum, name: str | Enum) -> str:
     """
     A enum value is expected.
     However, if a string was given, it will be converted into the enum name.

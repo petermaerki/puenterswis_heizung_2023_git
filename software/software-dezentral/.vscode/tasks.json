@@ -39,7 +39,7 @@
             "label": "mypy",
             "type": "shell",
             // "command": "python -m mypy --config-file pyproject.toml src tests || true",
-            "command": "python -m myp zentral || true",
+            "command": "python -m mypy zentral || true",
             "options": {
                 "cwd": "${workspaceFolder:zentral}",
                 "env": {

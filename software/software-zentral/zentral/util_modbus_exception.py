@@ -34,6 +34,6 @@ async def exception_handler_and_exit(ctx: Context, task_name: str, exit_code: in
     try:
         yield
     except Exception as e:
-        await do_exit(e, "Fatal error")
+        do_exit(e, "Fatal error")
     except SystemExit as e:
-        await do_exit(e, "Application wants to terminate")
+        do_exit(e, "Application wants to terminate")

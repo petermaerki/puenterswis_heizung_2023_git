@@ -213,7 +213,7 @@ class HsmZentral(hsm.HsmMixin):
                 raise hsm.StateChangeException(self.state_error, why=f"{e!r}!")
             logger.warning(f"uptime={self.uptime_s:0.1f}s < _UPTIME_MODBUS_SILENT_S: {e!r}")
 
-    def get_hauser_ladung(self) -> HaeuserLadung:
+    def get_haeuser_ladung(self) -> HaeuserLadung:
         haeuser_ladung = HaeuserLadung()
         for haus in self.ctx.config_etappe.haeuser:
             assert haus.status_haus is not None

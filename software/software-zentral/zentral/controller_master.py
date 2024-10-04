@@ -25,11 +25,10 @@ class ControllerMaster:
         self.now_s = now_s
         self.handler_oekofen = HandlerOekofen(ctx=ctx, now_s=now_s)
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
-        # ladung = ctx.hsm_zentral.get_hauser_ladung()
+        # ladung = ctx.hsm_zentral.get_haeuser_ladung()
         # last_valve_open_count = ladung.valve_open_count
         last_valve_open_count = 0  # TODO: Add correct value
         self.handler_anhebung = HandlerAnhebung(
-            ctx=ctx,
             now_s=now_s,
             last_anhebung_prozent=0.0,
             last_valve_open_count=last_valve_open_count,
@@ -40,7 +39,9 @@ class ControllerMaster:
 
     def process(self, now_s: float) -> None:
         self._process(now_s=now_s)
-        self.handler_anhebung.update_valves()
+
+        hvv = self.handler_anhebung.calculate_hvv(haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
+        self.ctx.hsm_zentral.update_hvv(hvv=hvv)
 
     def _process(self, now_s: float) -> None:
         ctx = self.ctx
@@ -70,7 +71,7 @@ class ControllerMaster:
 
         # Anhebung hinunter, Modulation erhöhen
         if sp_ladung_zentral <= SpLadung.LEVEL1:
-            self.handler_anhebung.anheben_minus_ein_haus(ctx=ctx, now_s=now_s)
+            self.handler_anhebung.anheben_minus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
 
         if sp_ladung_zentral == SpLadung.LEVEL0:
             if all_valves_closed:
@@ -82,7 +83,7 @@ class ControllerMaster:
         # Anhebung hinauf, Modulation reduzieren
         if sp_ladung_zentral >= SpLadung.LEVEL3:
             if not self.handler_oekofen.modulation_reduzieren():
-                self.handler_anhebung.anheben_plus_ein_haus(ctx=ctx, now_s=now_s)
+                self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
 
         if sp_ladung_zentral == SpLadung.LEVEL4:
             self.handler_oekofen.brenner_loeschen()

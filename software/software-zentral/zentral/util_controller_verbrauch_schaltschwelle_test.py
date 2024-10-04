@@ -5,6 +5,7 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import pytest
 
+from zentral.handler_anhebung import HandlerAnhebung
 from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
 from zentral.util_controller_verbrauch_schaltschwelle import Evaluate, HauserValveVariante, VerbrauchLadungSchaltschwellen
 from zentral.util_matplotlib import matplot_reset
@@ -213,7 +214,7 @@ def do_find_anhebung(testfall: str):
         hvv = HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent)
 
     if testfall == "plus_ein_haus":
-        controller = ControllerHaeuser(
+        controller = HandlerAnhebung(
             now_s=0.0,
             last_anhebung_prozent=hlf.given_anhebung_prozent,
             last_valve_open_count=haeuser_ladung.valve_open_count,
@@ -224,7 +225,7 @@ def do_find_anhebung(testfall: str):
         )
 
     if testfall == "minus_ein_haus":
-        controller = ControllerHaeuser(
+        controller = HandlerAnhebung(
             now_s=0.0,
             last_anhebung_prozent=hlf.given_anhebung_prozent,
             last_valve_open_count=haeuser_ladung.valve_open_count,

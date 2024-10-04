@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import logging
+import typing
 
 from zentral.controller_master import ControllerMaster
 from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
+
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 

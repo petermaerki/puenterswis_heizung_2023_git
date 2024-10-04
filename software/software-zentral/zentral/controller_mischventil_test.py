@@ -135,6 +135,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
         await ctx.init()
         ctx.modbus_communication.pcbs_dezentral_heizzentrale.set_mock(dict_temperatures_C=testparam.dict_temperatures_C)
 
+        # TODO: Dieser Mock funktioniert NICHT mehr!
         class ControllerMischventilTest(ControllerMischventil):
             _FAKTOR_STABILITAET_1 = testparam.CONTROLLER_FAKTOR_STABILITAET_1
 
