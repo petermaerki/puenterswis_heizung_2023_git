@@ -9,6 +9,7 @@ import time
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Type, TypeVar
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
+from zentral.util_modulation_soll import BrennerAction, BrennerNum, Modulation
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -441,19 +442,17 @@ class ScenarioOekofenRegister(ScenarioBase):
     value: float = 0.0
 
 
-if False:
+@dataclasses.dataclass
+class ScenarioOekofenBrennerModulation(ScenarioBase):
+    brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
+    modulation: Modulation = Modulation.MEDIUM
+    action_min: BrennerAction = BrennerAction.NICHTS
 
-    @dataclasses.dataclass
-    class ScenarioOekofenBrennerModulation(ScenarioBase):
-        brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
-        modulation: Modulation = Modulation.MEDIUM
-        action_min: BrennerAction = BrennerAction.NICHTS
-
-        def action(self, ctx: "Context") -> None:
-            """
-            Predefined method name 'action': Will be called automatically.
-            """
-            ctx.hsm_zentral.oekofen_modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation, action=self.action_min)
+    def action(self, ctx: "Context") -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        ctx.hsm_zentral.controller_master.handler_oekofen.modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation, action=self.action_min)
 
 
 @dataclasses.dataclass
