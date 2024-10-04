@@ -8,7 +8,6 @@ Sperrt Brenner
 import logging
 import typing
 
-from zentral.controller_base import ControllerMasterABC
 from zentral.handler_anhebung import HandlerAnhebung
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
@@ -20,19 +19,24 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ControllerMaster(ControllerMasterABC):
+class ControllerMaster:
     def __init__(self, ctx: "Context", now_s: float) -> None:
-        super().__init__(ctx=ctx, now_s=now_s)
+        self.ctx = ctx
+        self.now_s = now_s
         self.handler_oekofen = HandlerOekofen(ctx=ctx, now_s=now_s)
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
         # ladung = ctx.hsm_zentral.get_hauser_ladung()
-        # ladung.valve_open_count
+        # last_valve_open_count = ladung.valve_open_count
+        last_valve_open_count = 0  # TODO: Add correct value
         self.handler_anhebung = HandlerAnhebung(
             ctx=ctx,
             now_s=now_s,
             last_anhebung_prozent=0.0,
-            last_valve_open_count=0,  # TODO: Add correct value
+            last_valve_open_count=last_valve_open_count,
         )
+
+    def done(self) -> bool:
+        return False
 
     def process(self, now_s: float) -> None:
         self._process(now_s=now_s)

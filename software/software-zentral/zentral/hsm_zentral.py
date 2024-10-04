@@ -5,7 +5,7 @@ import typing
 
 from hsm import hsm
 
-from zentral.controller_base import ControllerMasterABC, ControllerMischventilABC
+from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_master import ControllerMaster
 from zentral.controller_master_none import ControllerMasterNone
 from zentral.controller_master_valveopen import ControllerMasterValveOpenIterator
@@ -96,7 +96,7 @@ class HsmZentral(hsm.HsmMixin):
         self.solltemperatur_Tfv: float = 68.0
         self._programm_start_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=self._programm_start_s)
-        self.controller_master: ControllerMasterABC
+        self.controller_master: ControllerMaster
         self._set_controller_master_none()
         self.grundzustand_manuell()
         self.modbus_mischventil_registers: MischventilRegisters | None = None
@@ -239,7 +239,7 @@ class HsmZentral(hsm.HsmMixin):
     def grundzustand_manuell(self) -> None:
         now_s = time.monotonic()
         self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=now_s)
-        self.controller_master: ControllerMasterABC = ControllerMasterNone(ctx=self.ctx, now_s=now_s)
+        self.controller_master = ControllerMasterNone(ctx=self.ctx, now_s=now_s)
         self.relais.relais_0_mischventil_automatik = False
         self.relais.relais_6_pumpe_gesperrt = True
         self.relais.relais_7_automatik = False
