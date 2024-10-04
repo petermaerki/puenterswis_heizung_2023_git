@@ -45,23 +45,25 @@ class HandlerAnhebung:
         )
         return evaluate.hvv
 
-    def anheben_plus_ein_haus(self, now_s: float, haeuser_ladung: HaeuserLadung) -> None:
+    def anheben_plus_ein_haus(self, now_s: float, haeuser_ladung: HaeuserLadung) -> HauserValveVariante | None:
         if not self.actiontimer.is_over_and_cancel():
-            return
+            return None
         if self.last_anhebung_prozent >= 100.0:
-            return
+            return None
         hvv = self._find_anhebung_plus_ein_haus(haeuser_ladung=haeuser_ladung, anhebung_prozent=self.last_anhebung_prozent)
         self.last_anhebung_prozent = hvv.anhebung_prozent
         self.actiontimer.action = AnhebungAction.HAUS_PLUS
+        return hvv
 
-    def anheben_minus_ein_haus(self, now_s: float, haeuser_ladung: HaeuserLadung) -> None:
+    def anheben_minus_ein_haus(self, now_s: float, haeuser_ladung: HaeuserLadung) -> HauserValveVariante | None:
         if not self.actiontimer.is_over_and_cancel():
-            return
+            return None
         if self.last_anhebung_prozent <= 0.0:
-            return
+            return None
         hvv = self._find_anhebung_minus_ein_haus(haeuser_ladung=haeuser_ladung, anhebung_prozent=self.last_anhebung_prozent)
         self.last_anhebung_prozent = hvv.anhebung_prozent
         self.actiontimer.action = AnhebungAction.HAUS_MINUS
+        return hvv
 
     def _find_anhebung_plus_ein_haus(self, haeuser_ladung: HaeuserLadung, anhebung_prozent: float) -> HauserValveVariante:
         while True:

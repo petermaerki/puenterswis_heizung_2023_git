@@ -208,31 +208,28 @@ def test_find_anhebung(testfall: str):
 def do_find_anhebung(testfall: str):
     hlf = HAEUSER_LADUNG_FACTORY_2_30
     haeuser_ladung = hlf.get_haeuser_ladung()
+    hvv: HauserValveVariante | None
 
     if testfall == "vorher":
         hvv = HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent)
 
     if testfall == "plus_ein_haus":
-        controller = HandlerAnhebung(
+        handler = HandlerAnhebung(
             now_s=0.0,
             last_anhebung_prozent=hlf.given_anhebung_prozent,
             last_valve_open_count=haeuser_ladung.valve_open_count,
         )
-        hvv = controller.find_anhebung_plus_ein_haus(
-            haeuser_ladung=haeuser_ladung,
-            anhebung_prozent=hlf.given_anhebung_prozent,
-        )
+        hvv = handler.anheben_plus_ein_haus(now_s=1.0, haeuser_ladung=haeuser_ladung)
+        assert hvv is not None
 
     if testfall == "minus_ein_haus":
-        controller = HandlerAnhebung(
+        handler = HandlerAnhebung(
             now_s=0.0,
             last_anhebung_prozent=hlf.given_anhebung_prozent,
             last_valve_open_count=haeuser_ladung.valve_open_count,
         )
-        hvv = controller.find_anhebung_minus_ein_haus(
-            haeuser_ladung=haeuser_ladung,
-            anhebung_prozent=hlf.given_anhebung_prozent,
-        )
+        hvv = handler.anheben_minus_ein_haus(now_s=1.0, haeuser_ladung=haeuser_ladung)
+        assert hvv is not None
 
     # pylint: disable=possibly-used-before-assignment  # E0606: Possibly using variable 'hvv' before assignment (possibly-used-before-assignment)
     filename_png = DIRECTORY_TESTRESULTS / f"do_find_anhebung_{testfall}.png"
