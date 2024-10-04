@@ -5,7 +5,6 @@ import enum
 import logging
 
 from zentral.util_action import ActionBaseEnum, ActionTimer
-from zentral.util_sp_ladung_zentral import SpLadung
 
 logger = logging.getLogger(__name__)
 
@@ -218,26 +217,6 @@ class ModulationSoll:
     def _force(self, force: bool) -> None:
         if force:
             assert self.actiontimer.action == BrennerAction.NICHTS
-
-    def abschalten_zweiter_Brenner(self, sp_ladung: SpLadung, force: bool) -> None:
-        self._force(force=force)
-
-        list_brenner_on = self.zwei_brenner.on()
-        if len(list_brenner_on) < 2:
-            return
-        if sp_ladung < SpLadung.LEVEL4:
-            return
-
-        # Beide Brenner brennen und Speicher ist maximal warm
-
-        # Erster Brenner auf MIN setzen
-        list_brenner_on[0].set_modulation(Modulation.MIN)
-        self._log_action(brenner=list_brenner_on[0], reason="zweiter_Brenner_abschalten(): Erster Brenner auf Minimum.")
-
-        # Zweiter Brenner direkt ausschalten
-        list_brenner_on[1].set_modulation(Modulation.OFF)
-        self.actiontimer.action = BrennerAction.LOESCHEN
-        self._log_action(brenner=list_brenner_on[1], reason="zweiter_Brenner_abschalten(): Zweiten Brenner ausschalten.")
 
     def modulation_erhoehen(self, force=False) -> bool:
         if not self.actiontimer.is_over_and_cancel():

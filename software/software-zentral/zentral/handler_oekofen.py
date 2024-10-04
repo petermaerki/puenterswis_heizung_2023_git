@@ -9,7 +9,7 @@ import logging
 import typing
 
 from zentral.handler_elektro_notheizung import HandlerElektroNotheizung
-from zentral.util_modulation_soll import BrennerAction, Modulation, ModulationSoll
+from zentral.util_modulation_soll import Modulation, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht, brenner_uebersicht_prozent
 
 if typing.TYPE_CHECKING:
@@ -85,43 +85,3 @@ class HandlerOekofen:
         relais.relais_4_brenner2_sperren = self.modulation_soll.zwei_brenner[1].is_off
         relais.relais_3_brenner1_anforderung = self.modulation_soll.zwei_brenner[0].is_on
         relais.relais_5_brenner2_anforderung = self.modulation_soll.zwei_brenner[1].is_on
-
-    async def process_obsolete(self, ctx: "Context", now_s: float) -> None:
-        hsm_zentral = ctx.hsm_zentral
-        relais = hsm_zentral.relais
-
-        brenner1, brenner2 = hsm_zentral.brenner_uebersicht_prozent
-        betrieb_notheizung = max(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
-        self.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
-        if betrieb_notheizung:
-            return
-
-        relais.relais_2_brenner1_sperren = self.modulation_soll.zwei_brenner[0].is_off
-        relais.relais_4_brenner2_sperren = self.modulation_soll.zwei_brenner[1].is_off
-        relais.relais_3_brenner1_anforderung = self.modulation_soll.zwei_brenner[0].is_on
-        relais.relais_5_brenner2_anforderung = self.modulation_soll.zwei_brenner[1].is_on
-
-        if hsm_zentral.haeuser_all_valves_closed:
-            self.modulation_soll.set_modulation_min()
-
-        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
-        sp_ladung = pcbs.sp_ladung_zentral
-        self.modulation_soll.abschalten_zweiter_Brenner(sp_ladung=sp_ladung)
-
-        if not self.actiontimer_brenner.is_over:
-            # Ein Brenner started/stoppt/moduliert
-            # Wir warten bis der neue Zustand stabil ist.
-            return
-
-        manual_mode = min(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
-
-        # influx_data = InfluxData(ctx=ctx)
-        # influx_data.add(zwei_brenner=oekofen_modulation_soll.zwei_brenner)
-
-        # TICK!!!
-        self.modulation_soll.tick(sp_ladung=sp_ladung, manual_mode=manual_mode)
-        self.actiontimer_brenner.action = modulation_soll.action
-        if modulation_soll.action != BrennerAction.NICHTS:
-            # influx_data.add(zwei_brenner=oekofen_modulation_soll.zwei_brenner)
-            # await influx_data.send()
-            logger.info(f"Modulation: {modulation_soll.short}")

@@ -56,21 +56,6 @@ class SpTemperaturZentral:
     Tsz4_C: float
 
     @property
-    def energie_J(self) -> float:
-        """
-        TODO: OBSOLETE
-        """
-        if self.Tsz4_C > LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C:
-            energie_1_J = (self.Tsz1_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_1_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
-            energie_2_J = (self.Tsz2_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_2_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
-            energie_3_J = (self.Tsz3_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_3_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
-            energie_4_J = (self.Tsz4_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_4_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
-            return max(energie_1_J, 0) + max(energie_2_J, 0) + max(energie_3_J, 0) + max(energie_4_J, 0)
-
-        # Fuer kontinuierlichen Uebergang nur obere Temperatur und gesamtes Wasser
-        return (self.Tsz4_C - LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C) * LadungZentral.SP_WASSER_KG * LadungZentral.KAPAZITAET_WASSER_J_kg_K
-
-    @property
     def ladung(self) -> SpLadung:
         """
         Level: [0..4]
@@ -103,14 +88,6 @@ class LadungZentral:
 
     def __init__(self, sp_temperatur: SpTemperaturZentral):
         self.sp_temperatur = sp_temperatur
-
-    @property
-    def energie_J(self) -> float:
-        """
-        TODO: OBSOLETE
-        """
-        raise NotImplementedError("Achtung: Unterschied Wassermenge Bochs/Puent!")
-        # return self.sp_temperatur.energie_J
 
     @property
     def ladung_prozent(self) -> float:

@@ -135,22 +135,6 @@ class Relais:
     def __init__(self, modbus):
         self._modbus = modbus
 
-    async def relais_set_obsolete(self):
-        for coils in ([1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 1]):
-            response = await self._modbus.write_coils(
-                slave=MODBUS_ADDRESS_RELAIS,
-                address=0,
-                values=coils,
-            )
-            print(response)
-
-            response = await self._modbus.read_coils(
-                slave=MODBUS_ADDRESS_RELAIS,
-                address=0,
-                count=8,
-            )
-            print(response)
-            await asyncio.sleep(0.5)
 
     async def set(self, list_relays: tuple[bool]) -> None:
         assert isinstance(list_relays, (list, tuple))

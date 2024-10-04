@@ -232,26 +232,19 @@ class PcbsDezentralHeizzentrale:
         self.dict_mock_temperatures_C = dict_temperatures_C
 
     @property
-    def sp_ladung_zentral_prozent(self) -> float:
-        """
-        TODO: OBSOLETE
-        """
+    def _sp_ladung_zentral(self) -> LadungZentral:
         sp_temperatur = SpTemperaturZentral(
             Tsz1_C=self.Tsz1_C,
             Tsz2_C=self.Tsz2_C,
             Tsz3_C=self.Tsz3_C,
             Tsz4_C=self.Tsz4_C,
         )
-        ladung_zentral = LadungZentral(sp_temperatur=sp_temperatur)
-        return ladung_zentral.ladung_prozent
+        return LadungZentral(sp_temperatur=sp_temperatur)
+
+    @property
+    def sp_ladung_zentral_prozent(self) -> float:
+        return self._sp_ladung_zentral.ladung_prozent
 
     @property
     def sp_ladung_zentral(self) -> SpLadung:
-        sp_temperatur = SpTemperaturZentral(
-            Tsz1_C=self.Tsz1_C,
-            Tsz2_C=self.Tsz2_C,
-            Tsz3_C=self.Tsz3_C,
-            Tsz4_C=self.Tsz4_C,
-        )
-        ladung_zentral = LadungZentral(sp_temperatur=sp_temperatur)
-        return ladung_zentral.ladung
+        return self._sp_ladung_zentral.ladung
