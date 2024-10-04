@@ -1,4 +1,3 @@
-# pylint: disable=cyclic-import  # R0401: Cyclic import (zentral.config_base -> zentral.hsm_dezentral -> zentral.util_history_verbrauch_haus -> zentral.util_influx) (cyclic-import)
 from zentral.util_transition import linear_transition, sine_transition
 
 

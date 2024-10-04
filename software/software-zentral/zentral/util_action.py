@@ -111,6 +111,7 @@ class ActionTimer:
 
 
 def main():
+    # pylint: disable=pointless-statement
     logging.basicConfig(level=logging.DEBUG)
 
     class BrennerAction(ActionBaseEnum):
