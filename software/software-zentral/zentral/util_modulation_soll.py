@@ -119,6 +119,12 @@ class ModulationBrenner:
     def absenken(self) -> None:
         self.modulation = self.modulation.abgesenkt
 
+    def zuenden(self) -> None:
+        self.modulation = Modulation.MIN
+
+    def loeschen(self) -> None:
+        self.modulation = Modulation.OFF
+
     @property
     def is_off(self) -> bool:
         return self.modulation == Modulation.OFF
@@ -186,7 +192,10 @@ class ModulationSoll:
 
     @property
     def short(self) -> str:
-        return f"{ self.zwei_brenner.short},{self.actiontimer.wartezeit_min:2d}min"
+        wartezeit_text = "--min"
+        if self.actiontimer.action is not None:
+            wartezeit_text = f"{self.actiontimer.action.wartezeit_min:2d}min"
+        return f"{self.zwei_brenner.short},{wartezeit_text}"
 
     def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
         logger.info(f"{self.actiontimer.action_name_full} brenner idx0={brenner.idx0}, {brenner.short}. {reason}")
@@ -243,7 +252,7 @@ class ModulationSoll:
         list_brenner_off = self.zwei_brenner.off()
         if len(list_brenner_off) > 0:
             # Brenner einschalten
-            list_brenner_off[0].erhoehen()
+            list_brenner_off[0].zuenden()
             self.actiontimer.action = BrennerAction.ZUENDEN
             self._log_action(brenner=list_brenner_off[0], reason="Brenner einschalten.")
             return True
@@ -278,7 +287,7 @@ class ModulationSoll:
             return False
 
         # Brenner ausschalten
-        list_brenner_on[0].absenken()
+        list_brenner_on[0].loeschen()
         self.actiontimer.action = BrennerAction.LOESCHEN
         self._log_action(brenner=list_brenner_on[0], reason="Brenner ausschalten.")
         return True

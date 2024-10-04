@@ -5,7 +5,6 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import pytest
 
-from zentral.controller_haeuser import ControllerHaeuser
 from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
 from zentral.util_controller_verbrauch_schaltschwelle import Evaluate, HauserValveVariante, VerbrauchLadungSchaltschwellen
 from zentral.util_matplotlib import matplot_reset

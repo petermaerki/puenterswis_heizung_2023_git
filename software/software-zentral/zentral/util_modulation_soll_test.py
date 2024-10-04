@@ -16,7 +16,6 @@ import pytest
 from zentral.constants import add_path_software_zero_dezentral
 from zentral.util_modulation_soll import Modulation, ModulationBrenner, ModulationSoll
 from zentral.util_pytest_git import assert_git_unchanged
-from zentral.util_sp_ladung_zentral import SpLadung
 
 add_path_software_zero_dezentral()
 
@@ -27,16 +26,30 @@ DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "util_modulation_soll_testresul
 
 @dataclasses.dataclass(frozen=True, repr=True)
 class Tick:
-    sp_ladung: SpLadung
+    modulation_erhoehen: bool = False
+    modulation_reduzieren: bool = False
+    brenner_zuenden: bool = False
+    brenner_loeschen: bool = False
     comment: str | None = None
 
     def __post_init__(self):
-        assert isinstance(self.sp_ladung, SpLadung)
+        assert isinstance(self.modulation_erhoehen, bool)
+        assert isinstance(self.modulation_reduzieren, bool)
+        assert isinstance(self.brenner_zuenden, bool)
+        assert isinstance(self.brenner_loeschen, bool)
         assert isinstance(self.comment, str | None)
 
     @property
     def short(self) -> str:
-        s = f" {self.sp_ladung.lower_level_prozent:5.1f}%"
+        s = ""
+        if self.modulation_erhoehen:
+            s += "m+"
+        if self.modulation_reduzieren:
+            s += "m-"
+        if self.brenner_zuenden:
+            s += "b+"
+        if self.brenner_loeschen:
+            s += "b-"
         if self.comment is not None:
             s += f" {self.comment}"
         return s
@@ -69,14 +82,15 @@ _TESTPARAMS = [
         modulation0=Modulation.OFF,
         modulation1=Modulation.OFF,
         ticks=[
-            Tick(sp_ladung=SpLadung.LEVEL1, comment="Kein Einschalten da genug warm."),
-            Tick(sp_ladung=SpLadung.LEVEL0, comment="Einschalten da kalt."),
-            Tick(sp_ladung=SpLadung.LEVEL2, comment="Keine Änderung da Ladung ok"),
-            *3 * [Tick(sp_ladung=SpLadung.LEVEL1, comment="Increment bis ein Brenner auf 100%")],
-            Tick(sp_ladung=SpLadung.LEVEL0, comment="Zweiter Brenner einschalten"),
-            *3 * [Tick(sp_ladung=SpLadung.LEVEL1, comment="Increment bis zweiter Brenner auf 100%")],
-            *5 * [Tick(sp_ladung=SpLadung.LEVEL3, comment="Decrement bis beide Brenner auf 30%")],
-            *3 * [Tick(sp_ladung=SpLadung.LEVEL4, comment="Ersten und zweiten Brenner ausschalten")],
+            Tick(modulation_erhoehen=True, comment="Modulation nicht erhoehen, da noch kein Brenner brennt"),
+            Tick(brenner_zuenden=True, comment="Erster Brenner zuenden."),
+            *5 * [Tick(modulation_erhoehen=True, comment="Modulation des ersten Brenners erhöhen bis 100%")],
+            *5 * [Tick(modulation_reduzieren=True, comment="Modulation des ersten Brenners absenken")],
+            *3 * [Tick(brenner_zuenden=True, comment="Zweiten Brenner zuenden.")],
+            *5 * [Tick(modulation_erhoehen=True, comment="Modulation beider Brenner erhöhen bis 100%")],
+            *5 * [Tick(modulation_reduzieren=True, comment="Modulation beider Brenner reduzieren auf 30%")],
+            *6 * [Tick(modulation_erhoehen=True, comment="Modulation beider Brenner erhöhen bis 100%")],
+            *6 * [Tick(brenner_loeschen=True, comment="Alle Brenner loeschen.")],
         ],
     ),
 ]
@@ -88,8 +102,17 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
     with testparam.filename_txt.open("w") as f:
         modulation_soll = ModulationSoll(modulation0=testparam.modulation0, modulation1=testparam.modulation1)
         for tick in testparam.ticks:
-            modulation_soll.tick(sp_ladung=tick.sp_ladung, manual_mode=False)
-            f.write(f"{modulation_soll.short} \u2190 {tick.short}\n")
+            modulation_soll.actiontimer.cancel()
+
+            if tick.modulation_erhoehen:
+                modulation_soll.modulation_erhoehen()
+            if tick.modulation_reduzieren:
+                modulation_soll.modulation_reduzieren()
+            if tick.brenner_zuenden:
+                modulation_soll.brenner_zuenden()
+            if tick.brenner_loeschen:
+                modulation_soll.brenner_loeschen()
+            f.write(f"{modulation_soll.short}  \u2190  {tick.short}\n")
 
     assert_git_unchanged(testparam.filename_txt)
 

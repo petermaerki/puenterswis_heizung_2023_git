@@ -1,18 +1,37 @@
-  0%(61.2),  0%(61.2), 1min ←   25.0% Kein Einschalten da genug warm.
- 30%(69.3),  0%(61.2),30min ←    0.0% Einschalten da kalt.
- 30%(69.3),  0%(61.2), 1min ←   50.0% Keine Änderung da Ladung ok
- 65%(78.8),  0%(61.2),15min ←   25.0% Increment bis ein Brenner auf 100%
-100%(85.0),  0%(61.2),15min ←   25.0% Increment bis ein Brenner auf 100%
-100%(85.0),  0%(61.2), 1min ←   25.0% Increment bis ein Brenner auf 100%
-100%(85.0), 30%(69.3),30min ←    0.0% Zweiter Brenner einschalten
-100%(85.0), 65%(78.8),15min ←   25.0% Increment bis zweiter Brenner auf 100%
-100%(85.0),100%(85.0),15min ←   25.0% Increment bis zweiter Brenner auf 100%
-100%(85.0),100%(85.0), 1min ←   25.0% Increment bis zweiter Brenner auf 100%
- 65%(78.8),100%(85.0),15min ←   75.0% Decrement bis beide Brenner auf 30%
- 30%(69.3),100%(85.0),15min ←   75.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 65%(78.8),15min ←   75.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 30%(69.3),15min ←   75.0% Decrement bis beide Brenner auf 30%
- 30%(69.3), 30%(69.3), 1min ←   75.0% Decrement bis beide Brenner auf 30%
-  0%(61.2), 30%(69.3),16min ←  100.0% Ersten und zweiten Brenner ausschalten
-  0%(61.2),  0%(61.2),16min ←  100.0% Ersten und zweiten Brenner ausschalten
-  0%(61.2),  0%(61.2), 1min ←  100.0% Ersten und zweiten Brenner ausschalten
+  0%(61.2),  0%(61.2),--min  ←  m+ Modulation nicht erhoehen, da noch kein Brenner brennt
+ 30%(69.3),  0%(61.2),30min  ←  b+ Erster Brenner zuenden.
+ 65%(78.8),  0%(61.2),15min  ←  m+ Modulation des ersten Brenners erhöhen bis 100%
+100%(85.0),  0%(61.2),15min  ←  m+ Modulation des ersten Brenners erhöhen bis 100%
+100%(85.0),  0%(61.2),--min  ←  m+ Modulation des ersten Brenners erhöhen bis 100%
+100%(85.0),  0%(61.2),--min  ←  m+ Modulation des ersten Brenners erhöhen bis 100%
+100%(85.0),  0%(61.2),--min  ←  m+ Modulation des ersten Brenners erhöhen bis 100%
+ 65%(78.8),  0%(61.2),15min  ←  m- Modulation des ersten Brenners absenken
+ 30%(69.3),  0%(61.2),15min  ←  m- Modulation des ersten Brenners absenken
+ 30%(69.3),  0%(61.2),--min  ←  m- Modulation des ersten Brenners absenken
+ 30%(69.3),  0%(61.2),--min  ←  m- Modulation des ersten Brenners absenken
+ 30%(69.3),  0%(61.2),--min  ←  m- Modulation des ersten Brenners absenken
+ 30%(69.3), 30%(69.3),30min  ←  b+ Zweiten Brenner zuenden.
+ 30%(69.3), 30%(69.3),--min  ←  b+ Zweiten Brenner zuenden.
+ 30%(69.3), 30%(69.3),--min  ←  b+ Zweiten Brenner zuenden.
+ 65%(78.8), 30%(69.3),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0), 30%(69.3),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0), 65%(78.8),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0),100%(85.0),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+ 65%(78.8),100%(85.0),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 30%(69.3),100%(85.0),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 30%(69.3), 65%(78.8),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 30%(69.3), 30%(69.3),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 30%(69.3), 30%(69.3),--min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 65%(78.8), 30%(69.3),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0), 30%(69.3),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0), 65%(78.8),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0),100%(85.0),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
+  0%(61.2),100%(85.0),16min  ←  b- Alle Brenner loeschen.
+  0%(61.2),  0%(61.2),16min  ←  b- Alle Brenner loeschen.
+  0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
+  0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
+  0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
+  0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
