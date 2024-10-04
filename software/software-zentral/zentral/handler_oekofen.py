@@ -75,6 +75,12 @@ class HandlerOekofen:
         self._update_relais()
         return ok
 
+    def erster_brenner_zuenden(self) -> bool:
+        list_brenner = self.modulation_soll.zwei_brenner.on()
+        if len(list_brenner) == 0:
+            return self.brenner_zuenden()
+        return False
+
     def brenner_zuenden(self) -> bool:
         ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()
