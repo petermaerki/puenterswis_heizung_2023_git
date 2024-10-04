@@ -21,17 +21,16 @@ class HaeuserLadungFactory:
     given_anhebung_prozent: float
     factory_raw: Callable[[], HaeuserLadung]
 
+    def get_haeuser_ladung(self) -> HaeuserLadung:
+        haeuser_ladung = self.factory_raw()
 
-def get_haeuser_ladung(self) -> HaeuserLadung:
-    haeuser_ladung = self.factory_raw()
-
-    # Überprüfen, of vavles_open eingeschwungen
-    evaluate = Evaluate(
-        anhebung_prozent=self.given_anhebung_prozent,
-        haeuser_ladung=haeuser_ladung,
-    )
-    assert haeuser_ladung.valve_open_count == evaluate.valve_open_count, "valves_open NICHT eingeschwungen!"
-    return haeuser_ladung
+        # Überprüfen, of vavles_open eingeschwungen
+        evaluate = Evaluate(
+            anhebung_prozent=self.given_anhebung_prozent,
+            haeuser_ladung=haeuser_ladung,
+        )
+        assert haeuser_ladung.valve_open_count == evaluate.valve_open_count, "valves_open NICHT eingeschwungen!"
+        return haeuser_ladung
 
 
 def _factory_2_30() -> HaeuserLadung:

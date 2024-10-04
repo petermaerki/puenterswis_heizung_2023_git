@@ -254,6 +254,12 @@ class ControllerMischventil(ControllerMischventilSimple):
         # zusaetzlich warten bis Mischventil fertig bewegt hat
         self.next_control.add(abs(stellwert_aenderung_V) / self._MOTOR_GESCHWINDIGKEIT_V_PRO_S)
 
+    def _pumpe_und_stabil(self, ctx: "Context", now_s: float) -> bool:
+        """
+        Note: The Mock will override this method!
+        """
+        return ctx.hsm_zentral.controller_master.handler_pumpe.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s)
+
     def process(self, ctx: "Context", now_s: float) -> None:
         scenario = SCENARIOS.find(ScenarioZentralSolltemperatur)
         if scenario is not None:
@@ -272,7 +278,7 @@ class ControllerMischventil(ControllerMischventilSimple):
         # )
         # TODO(HandlerPumpe)
         # if not self.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s):
-        if not ctx.hsm_zentral.controller_master.handler_pumpe.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s):
+        if not self._pumpe_und_stabil(ctx=ctx, now_s=now_s):
             return
 
         if self.next_control.wait(now_s=now_s):
