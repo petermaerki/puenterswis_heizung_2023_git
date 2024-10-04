@@ -16,7 +16,7 @@ from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
 from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
 from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_modulation_soll import ZweiBrenner
+from zentral.util_modulation_soll import ListBrenner
 from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioOekofenRegister, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
 from zentral.util_watchdog import Watchdog
 
@@ -212,7 +212,7 @@ class ModbusCommunication:
                 await self._handle_modbus_haeuser()
                 await asyncio.sleep(MODBUS_HAEUSER_SLEEP_S)
 
-    async def update_oekofen(self, zwei_brenner: ZweiBrenner) -> None:
+    async def update_oekofen(self, zwei_brenner: ListBrenner) -> None:
         """
         Für jeden Brenner:
         Berechne die Regeltemperatur für die gewünschte Modulation.

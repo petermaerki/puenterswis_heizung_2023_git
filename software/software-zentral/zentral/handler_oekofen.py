@@ -9,7 +9,7 @@ import logging
 import typing
 
 from zentral.handler_elektro_notheizung import HandlerElektroNotheizung
-from zentral.util_modulation_soll import Modulation, ModulationSoll
+from zentral.util_modulation_soll import BrennerZustaende, BrennerZustand, Modulation, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht, brenner_uebersicht_prozent
 
 if typing.TYPE_CHECKING:
@@ -23,11 +23,32 @@ class HandlerOekofen:
         self.ctx = ctx
         self.handler_elektro_notheizung = HandlerElektroNotheizung(now_s=now_s)
         self.modulation_soll = ModulationSoll(modulation0=Modulation.OFF, modulation1=Modulation.OFF)
+        self._initialized = False
 
     @property
     def betrieb_notheizung(self) -> bool:
+        if not self._initialized:
+            _ = self.brenner_zustaende
         brenner1, brenner2 = self.brenner_uebersicht_prozent
         return max(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
+
+    @property
+    def brenner_zustaende(self) -> BrennerZustaende:
+        modbus_oekofen_registers = self.ctx.hsm_zentral.modbus_oekofen_registers
+        if modbus_oekofen_registers is None:
+            return BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=0.0, fa_runtime_h=0, verfuegbar=False),
+                    BrennerZustand(fa_temp_C=0.0, fa_runtime_h=0, verfuegbar=False),
+                )
+            )
+        brenner_zustaende = modbus_oekofen_registers.brenner_zustaende
+        if not self._initialized:
+            self._initialized = True
+            for brenner_zustand in brenner_zustaende:
+                logger.info(f"modulation_soll.initialize({brenner_zustand})")
+            self.modulation_soll.initialize(brenner_zustaende=brenner_zustaende)
+        return brenner_zustaende
 
     @property
     def brenner_uebersicht_prozent(self) -> tuple[int, int]:
@@ -41,7 +62,7 @@ class HandlerOekofen:
         Return True: Falls die Leistung erhöht werden konnte.
         Return False: Bereits auf maximum Leistung.
         """
-        ok = self.modulation_soll.modulation_erhoehen()
+        ok = self.modulation_soll.modulation_erhoehen(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()
         return ok
 
@@ -50,17 +71,17 @@ class HandlerOekofen:
         Return True: Falls die Leistung reduziert werden konnte.
         Return False: Bereits auf minimaler Leistung.
         """
-        ok = self.modulation_soll.modulation_reduzieren()
+        ok = self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()
         return ok
 
     def brenner_zuenden(self) -> bool:
-        ok = self.modulation_soll.brenner_zuenden()
+        ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()
         return ok
 
     def brenner_loeschen(self) -> bool:
-        ok = self.modulation_soll.brenner_loeschen()
+        ok = self.modulation_soll.brenner_loeschen(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()
         return ok
 

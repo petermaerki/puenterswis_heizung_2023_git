@@ -14,7 +14,7 @@ import pathlib
 import pytest
 
 from zentral.constants import add_path_software_zero_dezentral
-from zentral.util_modulation_soll import Modulation, ModulationBrenner, ModulationSoll
+from zentral.util_modulation_soll import BrennerZustaende, BrennerZustand, Modulation, ModulationBrenner, ModulationSoll
 from zentral.util_pytest_git import assert_git_unchanged
 
 add_path_software_zero_dezentral()
@@ -99,19 +99,25 @@ _TESTPARAMS = [
 def run_modulation_soll(testparam: Ttestparam) -> None:
     testparam.filename_txt.parent.mkdir(parents=True, exist_ok=True)
 
+    bz = BrennerZustaende(
+        (
+            BrennerZustand(fa_temp_C=50.0, fa_runtime_h=1),
+            BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2),
+        )
+    )
     with testparam.filename_txt.open("w") as f:
         modulation_soll = ModulationSoll(modulation0=testparam.modulation0, modulation1=testparam.modulation1)
         for tick in testparam.ticks:
             modulation_soll.actiontimer.cancel()
 
             if tick.modulation_erhoehen:
-                modulation_soll.modulation_erhoehen()
+                modulation_soll.modulation_erhoehen(brenner_zustaende=bz)
             if tick.modulation_reduzieren:
-                modulation_soll.modulation_reduzieren()
+                modulation_soll.modulation_reduzieren(brenner_zustaende=bz)
             if tick.brenner_zuenden:
-                modulation_soll.brenner_zuenden()
+                modulation_soll.brenner_zuenden(brenner_zustaende=bz)
             if tick.brenner_loeschen:
-                modulation_soll.brenner_loeschen()
+                modulation_soll.brenner_loeschen(brenner_zustaende=bz)
             f.write(f"{modulation_soll.short}  \u2190  {tick.short}\n")
 
     assert_git_unchanged(testparam.filename_txt)
@@ -158,6 +164,90 @@ def test_modulation_absenken() -> None:
     assert m is Modulation.OFF
     m = m.abgesenkt
     assert m is Modulation.OFF
+
+
+@pytest.mark.parametrize(
+    "bz,expeced_order,comment",
+    (
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=50.0, fa_runtime_h=1),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2),
+                )
+            ),
+            "01",
+            "Order by fa_temp_C remains",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1),
+                    BrennerZustand(fa_temp_C=50.0, fa_runtime_h=2),
+                )
+            ),
+            "10",
+            "Order by fa_temp_C reverse",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2),
+                )
+            ),
+            "01",
+            "Order by fa_runtime_h remains",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1),
+                )
+            ),
+            "10",
+            "Order by fa_runtime_h reverse",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2, verfuegbar=False),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1),
+                )
+            ),
+            "1",
+            "First not verfuegbar",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1, verfuegbar=False),
+                )
+            ),
+            "0",
+            "Second not verfuegbar",
+        ),
+        (
+            BrennerZustaende(
+                (
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=2, verfuegbar=False),
+                    BrennerZustand(fa_temp_C=30.0, fa_runtime_h=1, verfuegbar=False),
+                )
+            ),
+            "",
+            "Both not verfuegbar",
+        ),
+    ),
+)
+def test_brenner_selektion(bz: BrennerZustaende, expeced_order: str, comment: str) -> None:
+    assert isinstance(bz, BrennerZustaende)
+    assert isinstance(expeced_order, str)
+    assert isinstance(comment, str)
+    modulation_soll = ModulationSoll(modulation0=Modulation.OFF, modulation1=Modulation.OFF)
+    list_brenner = modulation_soll.list_brenner(brenner_zustaende=bz)
+    print(list_brenner.short_idx0)
 
 
 def main():

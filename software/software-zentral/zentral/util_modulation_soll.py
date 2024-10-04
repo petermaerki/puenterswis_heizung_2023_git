@@ -39,6 +39,18 @@ class BrennerNum(enum.IntEnum):
         return self.value
 
 
+@dataclasses.dataclass(frozen=True)
+class BrennerZustand:
+    fa_temp_C: float
+    fa_runtime_h: float
+    verfuegbar: bool = True
+    brennt: bool = False
+
+
+class BrennerZustaende(tuple[BrennerZustand, BrennerZustand]):
+    pass
+
+
 class Modulation(enum.IntEnum):
     OFF = 0
     MIN = 30
@@ -113,6 +125,10 @@ class ModulationBrenner:
         modbus_FAx_REGEL_TEMP_C = self.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=76.0)
         return f"{self.modulation.prozent:3d}%({modbus_FAx_REGEL_TEMP_C:4.1f})"
 
+    @property
+    def short_idx0(self) -> str:
+        return str(self.idx0)
+
     def erhoehen(self) -> None:
         self.modulation = self.modulation.erhoeht
 
@@ -145,6 +161,15 @@ class ModulationBrenner:
     def is_over_min(self) -> bool:
         return self.modulation > Modulation.MIN
 
+    def verfuegbar(self, brenner_zustaende: BrennerZustaende) -> bool:
+        return brenner_zustaende[self.idx0].verfuegbar
+
+    def fa_temp_C(self, brenner_zustaende: BrennerZustaende) -> float:
+        return brenner_zustaende[self.idx0].fa_temp_C
+
+    def fa_runtime_h(self, brenner_zustaende: BrennerZustaende) -> float:
+        return brenner_zustaende[self.idx0].fa_runtime_h
+
 
 class BrennerAction(ActionBaseEnum):
     ZUENDEN = 30
@@ -153,10 +178,14 @@ class BrennerAction(ActionBaseEnum):
     NICHTS = 1
 
 
-class ZweiBrenner(list[ModulationBrenner]):
+class ListBrenner(list[ModulationBrenner]):
     @property
     def short(self) -> str:
         return ",".join([b.short for b in self])
+
+    @property
+    def short_idx0(self) -> str:
+        return "".join([b.short_idx0 for b in self])
 
     def on_but_not_max(self) -> list[ModulationBrenner]:
         return [b for b in self if b.is_on and not b.is_max]
@@ -182,7 +211,7 @@ class ZweiBrenner(list[ModulationBrenner]):
 
 class ModulationSoll:
     def __init__(self, modulation0: Modulation = Modulation.OFF, modulation1: Modulation = Modulation.OFF) -> None:
-        self.zwei_brenner = ZweiBrenner(
+        self.zwei_brenner = ListBrenner(
             (
                 ModulationBrenner(idx0=0, modulation=modulation0),
                 ModulationBrenner(idx0=1, modulation=modulation1),
@@ -196,6 +225,37 @@ class ModulationSoll:
         if self.actiontimer.action is not None:
             wartezeit_text = f"{self.actiontimer.action.wartezeit_min:2d}min"
         return f"{self.zwei_brenner.short},{wartezeit_text}"
+
+    def initialize(self, brenner_zustaende: BrennerZustaende) -> None:
+        assert len(brenner_zustaende) == 2
+        assert len(self.zwei_brenner) == 2
+        for brenner, brenner_zustand in zip(self.zwei_brenner, brenner_zustaende):
+            if not brenner_zustand.verfuegbar:
+                brenner.set_modulation(modulation=Modulation.OFF)
+                continue
+
+            modulation = Modulation.MIN if brenner_zustand.brennt else Modulation.OFF
+            brenner.set_modulation(modulation=modulation)
+
+    def list_brenner(self, brenner_zustaende: BrennerZustaende) -> ListBrenner:
+        """
+        Entfernen der Brenner, die nicht verfügbar (z. B. 'Touchscreen-Aus') sind.
+        Ordnen nach Temperatur absteigend, Betriebsdauer aufsteigend,
+        """
+        assert len(self.zwei_brenner) == 2
+        zwei_brenner_copy = ListBrenner(self.zwei_brenner)
+
+        # Annahme: 'self.zwei_brenner[x]' entspricht 'brenner_zustaende[x]'
+        diff_C = brenner_zustaende[0].fa_temp_C - brenner_zustaende[1].fa_temp_C
+        if abs(diff_C) > 10.0:
+            if diff_C < 0.0:
+                zwei_brenner_copy.reverse()
+        else:
+            if brenner_zustaende[0].fa_runtime_h > brenner_zustaende[1].fa_runtime_h:
+                zwei_brenner_copy.reverse()
+
+        zwei_brenner_copy = ListBrenner([b for b in zwei_brenner_copy if b.verfuegbar(brenner_zustaende)])
+        return zwei_brenner_copy
 
     def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
         logger.info(f"{self.actiontimer.action_name_full} brenner idx0={brenner.idx0}, {brenner.short}. {reason}")
@@ -227,67 +287,78 @@ class ModulationSoll:
         if force:
             assert self.actiontimer.action == BrennerAction.NICHTS
 
-    def modulation_erhoehen(self, force=False) -> bool:
+    def modulation_erhoehen(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
         self._force(force=force)
 
-        list_brenner_on = self.zwei_brenner.on_but_not_max()
-        if len(list_brenner_on) >= 1:
-            # Brenner moduliert bereits
-            list_brenner_on[0].erhoehen()
-            self.actiontimer.action = BrennerAction.MODULIEREN
-            self._log_action(brenner=list_brenner_on[0], reason="Erhoehen. Brenner moduliert bereits.")
-            return True
-        return False
-
-    def brenner_zuenden(self, force=False) -> bool:
-        if not self.actiontimer.is_over_and_cancel():
-            # We have to wait for the previous action to be finished
+        list_brenner = self.list_brenner(brenner_zustaende).on_but_not_max()
+        try:
+            brenner = list_brenner.pop(0)
+        except IndexError:
             return False
+        # Brenner moduliert bereits
+        brenner.erhoehen()
+        self.actiontimer.action = BrennerAction.MODULIEREN
+        self._log_action(brenner=brenner, reason="Erhoehen. Brenner moduliert bereits.")
+        return True
 
-        self._force(force=force)
-
-        list_brenner_off = self.zwei_brenner.off()
-        if len(list_brenner_off) > 0:
-            # Brenner einschalten
-            list_brenner_off[0].zuenden()
-            self.actiontimer.action = BrennerAction.ZUENDEN
-            self._log_action(brenner=list_brenner_off[0], reason="Brenner einschalten.")
-            return True
-        return False
-
-    def modulation_reduzieren(self, force=False) -> bool:
+    def brenner_zuenden(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
         self._force(force=force)
 
-        list_brenner_is_over_min = self.zwei_brenner.is_over_min()
-        if len(list_brenner_is_over_min) >= 1:
-            # Brenner moduliert bereits
-            list_brenner_is_over_min[0].absenken()
-            self.actiontimer.action = BrennerAction.MODULIEREN
-            self._log_action(brenner=list_brenner_is_over_min[0], reason="Absenken. Brenner moduliert bereits.")
-            return True
-        return False
+        list_brenner = self.list_brenner(brenner_zustaende).off()
+        try:
+            brenner = list_brenner.pop(0)
+        except IndexError:
+            return False
 
-    def brenner_loeschen(self, force=False) -> bool:
+        # Brenner einschalten
+        brenner.zuenden()
+        self.actiontimer.action = BrennerAction.ZUENDEN
+        self._log_action(brenner=brenner, reason="Brenner einschalten.")
+        return True
+
+    def modulation_reduzieren(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
         self._force(force=force)
 
-        list_brenner_on = self.zwei_brenner.on()
-        if len(list_brenner_on) == 0:
+        list_brenner = self.list_brenner(brenner_zustaende).is_over_min()
+        try:
+            brenner = list_brenner.pop(-1)
+        except IndexError:
+            return False
+
+        # Brenner moduliert bereits
+        brenner.absenken()
+        self.actiontimer.action = BrennerAction.MODULIEREN
+        self._log_action(brenner=brenner, reason="Absenken. Brenner moduliert bereits.")
+        return True
+
+    def brenner_loeschen(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
+        if not self.actiontimer.is_over_and_cancel():
+            # We have to wait for the previous action to be finished
+            return False
+
+        self._force(force=force)
+
+        list_brenner = self.list_brenner(brenner_zustaende).on()
+        try:
+            # Wir nehmen den Brenner zuerst, der die höhere Betriebsdauer hat.
+            brenner = list_brenner.pop(-1)
+        except IndexError:
             # Beide Brenner sind bereits aus
             return False
 
-        # Brenner ausschalten
-        list_brenner_on[0].loeschen()
+        # Brenner loeschen
+        brenner.loeschen()
         self.actiontimer.action = BrennerAction.LOESCHEN
-        self._log_action(brenner=list_brenner_on[0], reason="Brenner ausschalten.")
+        self._log_action(brenner=brenner, reason="Brenner ausschalten.")
         return True

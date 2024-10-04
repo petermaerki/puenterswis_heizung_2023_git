@@ -12,6 +12,7 @@ from zentral.constants import DIRECTORY_LOG
 from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, RegDefI
 from zentral.util_modbus_wrapper import ModbusWrapper
+from zentral.util_modulation_soll import BrennerZustaende, BrennerZustand
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +167,7 @@ class OekofenRegisters:
 
         return value * factor
 
-    def _get_register_name(self, brenner_idx1: int, attribute_template: str) -> int | float:
+    def _get_register_name(self, brenner_idx1: int, attribute_template: str) -> str:
         """
         Example:
           brenner = 1
@@ -192,6 +193,18 @@ class OekofenRegisters:
         v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODE")
         return FA_Mode(v)
 
+    def fa_temp_C(self, brenner_idx1: int) -> float:
+        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_TEMP_C")
+
+    def fa_runtime_h(self, brenner_idx1: int) -> int:
+        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_RUNTIME_H")
+
+    def verfuegbar(self, brenner_idx1: int) -> bool:
+        return (self.plant_mode() is PlantMode.AUTO) and (self.fa_mode(brenner_idx1=brenner_idx1) is FA_Mode.AUTO)
+
+    def brennt(self, brenner_idx1: int) -> bool:
+        return FA_State.IGNITION <= self.fa_state(brenner_idx1=brenner_idx1) <= FA_State.RUN_ON_TIME
+
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")
         return PlantMode(v)
@@ -205,6 +218,18 @@ class OekofenRegisters:
     async def set_regel_temp_C(self, oekofen: Oekofen, brenner_idx1: int, temp_C: float) -> None:
         attribute_name = self._get_register_name(brenner_idx1=brenner_idx1, attribute_template="FAx_REGEL_TEMP_C")
         await oekofen.set_register(name=attribute_name, value=temp_C)
+
+    @property
+    def brenner_zustaende(self) -> BrennerZustaende:
+        def f(brenner_idx1):
+            return BrennerZustand(
+                fa_temp_C=self.fa_temp_C(brenner_idx1),
+                fa_runtime_h=self.fa_runtime_h(brenner_idx1),
+                verfuegbar=self.verfuegbar(brenner_idx1),
+                brennt=self.brennt(brenner_idx1),
+            )
+
+        return BrennerZustaende([f(brenner_idx1) for brenner_idx1 in (1, 2)])
 
 
 class Oekofen:

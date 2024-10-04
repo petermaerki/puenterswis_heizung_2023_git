@@ -18,9 +18,9 @@
 100%(85.0), 65%(78.8),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
 100%(85.0),100%(85.0),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
 100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
- 65%(78.8),100%(85.0),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
- 30%(69.3),100%(85.0),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
- 30%(69.3), 65%(78.8),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+100%(85.0), 65%(78.8),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+100%(85.0), 30%(69.3),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
+ 65%(78.8), 30%(69.3),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
  30%(69.3), 30%(69.3),15min  ←  m- Modulation beider Brenner reduzieren auf 30%
  30%(69.3), 30%(69.3),--min  ←  m- Modulation beider Brenner reduzieren auf 30%
  65%(78.8), 30%(69.3),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
@@ -29,7 +29,7 @@
 100%(85.0),100%(85.0),15min  ←  m+ Modulation beider Brenner erhöhen bis 100%
 100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
 100%(85.0),100%(85.0),--min  ←  m+ Modulation beider Brenner erhöhen bis 100%
-  0%(61.2),100%(85.0),16min  ←  b- Alle Brenner loeschen.
+100%(85.0),  0%(61.2),16min  ←  b- Alle Brenner loeschen.
   0%(61.2),  0%(61.2),16min  ←  b- Alle Brenner loeschen.
   0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
   0%(61.2),  0%(61.2),--min  ←  b- Alle Brenner loeschen.
