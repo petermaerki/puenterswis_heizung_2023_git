@@ -27,6 +27,21 @@ else:
     INFLUX_FLASH_INTERVAL_MS = 60_000
 
 
+class ValueObserver:
+    def __init__(self) -> None:
+        self.value: float = 0.0
+
+    def changed(self, value: float) -> bool:
+        """
+        Return True if changed
+        """
+        if abs(self.value - value) < 0.01:
+            return False
+
+        self.value = value
+        return True
+
+
 class InfluxRecords:
     """
     Add timestamp:
@@ -76,6 +91,9 @@ class Influx:
             exponential_base=2,  # base for the exponential retry delay
         )
         self._api = self._client.write_api(write_options=write_options)
+
+        self.mbus_energy_E1_minus_E3_Wh = ValueObserver()
+        self.mbus_power_W = ValueObserver()
 
     def close_and_flush(self):
         self._client.close()
@@ -172,7 +190,7 @@ class Influx:
 
     async def send_mbus(self, haus: Haus, mbus_measurement: MBusMeasurement) -> None:
         r = InfluxRecords(haus=haus)
-        r.add_fields(fields=mbus_measurement.influx_fields("dezentral_mbus_tmp_"))
+        r.add_fields(fields=mbus_measurement.influx_fields("mbus_dezentral_"))
         await self.write_records(records=r)
 
     async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:
@@ -181,6 +199,27 @@ class Influx:
             "hsm_zentral_state_value": state.value,
         }
         r.add_fields(fields=fields)
+
+        def mbus_sum():
+            energy_E1_minus_E3_Wh = 0.0
+            power_W = 0.0
+
+            for haus in ctx.config_etappe.haeuser:
+                if haus.status_haus is None:
+                    # Sum will not be valid if one Haus is missing.
+                    return
+                mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
+                if mbus_measurement is None:
+                    # Sum will not be valid if one Haus is missing.
+                    return
+                energy_E1_minus_E3_Wh += mbus_measurement.energy_E1_minus_E3_Wh
+                power_W += mbus_measurement.power_W
+
+            if self.mbus_energy_E1_minus_E3_Wh.changed(energy_E1_minus_E3_Wh):
+                fields["mbus_sum_energy_E1_minus_E3_Wh"] = energy_E1_minus_E3_Wh
+
+            if self.mbus_power_W.changed(power_W):
+                fields["mbus_sum_power_W"] = power_W
 
         def actiontimer():
             ctx.hsm_zentral.controller_master.influxdb_add_fields(fields=fields)
@@ -255,6 +294,7 @@ class Influx:
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
             fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
+        mbus_sum()
         actiontimer()
         haeuser_ladung_minimum_prozent()
         oekofen_summary()
