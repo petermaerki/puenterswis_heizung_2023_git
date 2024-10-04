@@ -446,7 +446,7 @@ class ScenarioOekofenRegister(ScenarioBase):
 class ScenarioOekofenBrennerModulation(ScenarioBase):
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
     modulation: Modulation = Modulation.MEDIUM
-    action_min: BrennerAction = BrennerAction.NICHTS
+    action_min: BrennerAction = BrennerAction.MODULIEREN
 
     def action(self, ctx: "Context") -> None:
         """

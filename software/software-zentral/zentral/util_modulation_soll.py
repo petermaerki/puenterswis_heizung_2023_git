@@ -175,7 +175,6 @@ class BrennerAction(ActionBaseEnum):
     ZUENDEN = 30
     LOESCHEN = 16
     MODULIEREN = 15
-    NICHTS = 1
 
 
 class ListBrenner(list[ModulationBrenner]):
@@ -285,7 +284,7 @@ class ModulationSoll:
 
     def _force(self, force: bool) -> None:
         if force:
-            assert self.actiontimer.action == BrennerAction.NICHTS
+            assert self.actiontimer.action is None
 
     def modulation_erhoehen(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
         if not self.actiontimer.is_over_and_cancel():

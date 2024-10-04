@@ -114,17 +114,16 @@ def main():
     # pylint: disable=pointless-statement
     logging.basicConfig(level=logging.DEBUG)
 
-    class BrennerAction(ActionBaseEnum):
+    class TestAction(ActionBaseEnum):
         EIN = 30
         AUS = 16
         MODULIEREN = 15
-        NICHTS = 1
 
     timebase_mock = TimeBaseMock()
     x = ActionTimer(timebase=timebase_mock)
 
     timebase_mock.now_s = 0.0
-    x.action = BrennerAction.EIN
+    x.action = TestAction.EIN
 
     timebase_mock.now_s = 10.0
     x.is_over
@@ -142,7 +141,7 @@ def main():
     x.remaining_s
 
     timebase_mock.now_s = 60.0
-    x.action = BrennerAction.AUS
+    x.action = TestAction.AUS
 
     timebase_mock.now_s = 90.0
     x.remaining_s
