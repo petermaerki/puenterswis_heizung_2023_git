@@ -35,7 +35,7 @@ class SpLadung(enum.IntEnum):
     def band_width_prozent(self) -> int:
         return self.upper_level_prozent - self.lower_level_prozent
 
-    def get_C(self, sp_temperatur: SpTemperaturZentral) -> tuple[float, float]:
+    def get_C(self, sp_temperatur: SpLadungZentral) -> tuple[float, float]:
         """
         lower and upper temperature
         """
@@ -48,8 +48,24 @@ class SpLadung(enum.IntEnum):
         }[self]
 
 
+_KAPAZITAET_WASSER_J_kg_K = 4190
+
+_SP_WASSER_KG = 1250.0
+"""
+Puent!
+"""
+_SP_1_WASSER_KG = _SP_WASSER_KG * 0.25
+_SP_2_WASSER_KG = _SP_WASSER_KG * 0.25
+_SP_3_WASSER_KG = _SP_WASSER_KG * 0.25
+_SP_4_WASSER_KG = _SP_WASSER_KG * 0.25
+assert abs(_SP_1_WASSER_KG + _SP_2_WASSER_KG + _SP_3_WASSER_KG + _SP_4_WASSER_KG - _SP_WASSER_KG) < 0.1
+
+
+_MIN_NUETZLICHE_TEMPERATUR_C = 65.0
+
+
 @dataclasses.dataclass
-class SpTemperaturZentral:
+class SpLadungZentral:
     Tsz1_C: float
     Tsz2_C: float
     Tsz3_C: float
@@ -62,45 +78,19 @@ class SpTemperaturZentral:
         """
         level = 4
         for TszX_C in (self.Tsz1_C, self.Tsz2_C, self.Tsz3_C, self.Tsz4_C):
-            if TszX_C > LadungZentral.MIN_NUETZLICHE_TEMPERATUR_C:
+            if TszX_C > _MIN_NUETZLICHE_TEMPERATUR_C:
                 return SpLadung(level)
             level -= 1
         return SpLadung(0)
 
-
-class LadungZentral:
-    KAPAZITAET_WASSER_J_kg_K = 4190
-
-    SP_WASSER_KG = 1250.0
-    """
-    Puent!
-    """
-    SP_1_WASSER_KG = SP_WASSER_KG * 0.25
-    SP_2_WASSER_KG = SP_WASSER_KG * 0.25
-    SP_3_WASSER_KG = SP_WASSER_KG * 0.25
-    SP_4_WASSER_KG = SP_WASSER_KG * 0.25
-    assert abs(SP_1_WASSER_KG + SP_2_WASSER_KG + SP_3_WASSER_KG + SP_4_WASSER_KG - SP_WASSER_KG) < 0.1
-
-    # Fuer die definition der Ladung 100%
-    SPEICHER_100_PROZENT_C = 75.0
-
-    MIN_NUETZLICHE_TEMPERATUR_C = 65.0
-
-    def __init__(self, sp_temperatur: SpTemperaturZentral):
-        self.sp_temperatur = sp_temperatur
-
     @property
     def ladung_prozent(self) -> float:
         for sp_ladung in reversed(SpLadung):
-            lower_C, upper_C = sp_ladung.get_C(self.sp_temperatur)
-            below_upper_C = upper_C - self.MIN_NUETZLICHE_TEMPERATUR_C
+            lower_C, upper_C = sp_ladung.get_C(self)
+            below_upper_C = upper_C - _MIN_NUETZLICHE_TEMPERATUR_C
             if below_upper_C > 0.0:
                 diff2_C = max(0.1, upper_C - lower_C)
                 anteil_below_upper = below_upper_C / diff2_C
                 return anteil_below_upper * sp_ladung.band_width_prozent + sp_ladung.lower_level_prozent
 
         raise ValueError
-
-    @property
-    def ladung(self) -> SpLadung:
-        return self.sp_temperatur.ladung
