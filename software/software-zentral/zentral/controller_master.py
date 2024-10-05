@@ -48,11 +48,6 @@ class ControllerMaster:
         sp_ladung_zentral = pcbs.sp_ladung_zentral
         self.handler_sp_zentral.set(ladung_prozent=pcbs._sp_ladung_zentral.ladung_prozent)
 
-        if sp_ladung_zentral > SpLadung.LEVEL1:
-            self.handler_pumpe.tick(now_s=now_s)
-        else:
-            self.handler_pumpe.tick_pwm(now_s=now_s)
-
         betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
         self.handler_oekofen.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
 
@@ -61,19 +56,26 @@ class ControllerMaster:
             # TODO: Aufstarten... Flash nicht zu oft schreiben
             self.handler_oekofen.set_brenner_modulation_manual_max()
 
+        # Falls alle valve zu sind, Modulation auf Minimum
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
         logger.debug(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
         if all_valves_closed:
-            logger.debug("set_modulation_min()")
+            logger.debug("set_modulation_min() weil alle valves closed")
             self.handler_oekofen.set_modulation_min()
 
+        # Fernleitungspumpe Modulieren
+        if sp_ladung_zentral > SpLadung.LEVEL1:
+            self.handler_pumpe.tick(now_s=now_s)
+        else:
+            self.handler_pumpe.tick_pwm(now_s=now_s)
+
         # Anhebung hinunter
-        if sp_ladung_zentral <= SpLadung.LEVEL1:
+        if pcbs._sp_ladung_zentral.ladung_prozent < 50.0:
             if self.handler_sp_zentral.sinkt:
                 self.handler_anhebung.anheben_minus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
 
         #  Anhebung hinauf
-        if sp_ladung_zentral >= SpLadung.LEVEL3:
+        if pcbs._sp_ladung_zentral.ladung_prozent > 85.0:
             if self.handler_oekofen.anzahl_brenner_on > 0:
                 if self.handler_sp_zentral.steigt:
                     haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
@@ -81,20 +83,23 @@ class ControllerMaster:
                         self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=haeuser_ladung)
 
         # Brenner zünden
-        if pcbs._sp_ladung_zentral.ladung_prozent < 25.0:
+        if pcbs._sp_ladung_zentral.ladung_prozent < 40.0:
             if self.handler_oekofen.erster_brenner_zuenden():
                 return
 
         # Modulation erhöhen
-        if sp_ladung_zentral == SpLadung.LEVEL0:
+        if pcbs._sp_ladung_zentral.ladung_prozent < 40.0:
             if not all_valves_closed:
                 if self.handler_sp_zentral.sinkt:
                     if not self.handler_oekofen.modulation_erhoehen():
-                        if self.handler_oekofen.brenner_zuenden():
-                            return
+                        if ctx.hsm_zentral.haeuser_ladung_minimum_prozent < 0.0:
+                            # Todo: if letzte Massnahme länger als 40 min her oder if erster Brenner seit länger als 30 min auf 100%
+                            if sp_ladung_zentral == SpLadung.LEVEL0:
+                                if self.handler_oekofen.brenner_zuenden():
+                                    return
 
         # Modulation reduzieren
-        if pcbs._sp_ladung_zentral.ladung_prozent > 55.0:
+        if pcbs._sp_ladung_zentral.ladung_prozent > 75.0:
             if self.handler_sp_zentral.steigt:
                 if self.handler_oekofen.modulation_reduzieren():
                     return

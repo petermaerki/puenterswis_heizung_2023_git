@@ -172,9 +172,9 @@ class ModulationBrenner:
 
 
 class BrennerAction(ActionBaseEnum):
-    ZUENDEN = 30
-    LOESCHEN = 16
-    MODULIEREN = 15
+    ZUENDEN = 40
+    LOESCHEN = 20
+    MODULIEREN = 20
 
 
 class ListBrenner(list[ModulationBrenner]):
