@@ -182,18 +182,22 @@ class ModbusCommunication:
 
                 _overwrite, relais_6_pumpe_gesperrt = relais.relais_6_pumpe_gesperrt_overwrite
                 _overwrite, relais_0_mischventil_automatik = relais.relais_0_mischventil_automatik_overwrite
-                await self.r.set(
-                    list_gpio=(
-                        relais_0_mischventil_automatik,
-                        relais.relais_1_elektro_notheizung if OEKOFEN_CONTROL_ON else False,
-                        relais.relais_2_brenner1_sperren if OEKOFEN_CONTROL_ON else False,
-                        relais.relais_3_brenner1_anforderung if OEKOFEN_CONTROL_ON else False,
-                        relais.relais_4_brenner2_sperren if OEKOFEN_CONTROL_ON else False,
-                        relais.relais_5_brenner2_anforderung if OEKOFEN_CONTROL_ON else False,
-                        relais_6_pumpe_gesperrt,
-                        relais.relais_7_automatik,
+                logger.debug(f"Modbus start ueberwachung: {self.context.hsm_zentral.get_state().name=}")
+                if not self.context.hsm_zentral.is_initializing():
+                    logger.debug(f"Modbus start ueberwachung: Brenner 1 sperren={relais.relais_2_brenner1_sperren}, anforderung={relais.relais_3_brenner1_anforderung}")
+                    logger.debug(f"Modbus start ueberwachung: Brenner 2 sperren={relais.relais_4_brenner2_sperren}, anforderung={relais.relais_5_brenner2_anforderung}")
+                    await self.r.set(
+                        list_gpio=(
+                            relais_0_mischventil_automatik,
+                            relais.relais_1_elektro_notheizung if OEKOFEN_CONTROL_ON else False,
+                            relais.relais_2_brenner1_sperren if OEKOFEN_CONTROL_ON else False,
+                            relais.relais_3_brenner1_anforderung if OEKOFEN_CONTROL_ON else False,
+                            relais.relais_4_brenner2_sperren if OEKOFEN_CONTROL_ON else False,
+                            relais.relais_5_brenner2_anforderung if OEKOFEN_CONTROL_ON else False,
+                            relais_6_pumpe_gesperrt,
+                            relais.relais_7_automatik,
+                        )
                     )
-                )
 
                 self.drehschalter.ok()
                 self.context.hsm_zentral.dispatch(SignalDrehschalter())
@@ -234,6 +238,14 @@ class ModbusCommunication:
                 if self.o.allowed_to_write_flash():
                     await modbus_oekofen_registers.set_regel_temp_C(oekofen=self.o, brenner_idx1=brenner.idx0 + 1, temp_C=regel_temp_soll_C)
 
+    async def read_modbus_oekofen(self) -> OekofenRegisters:
+        with self._watchdog_modbus_oekofen.activity("oekofen"):
+            all_registers = await self.o.all_registers
+        modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
+        # modbus_oekofen_registers.append_to_file()
+        self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
+        return modbus_oekofen_registers
+
     async def task_modbus_oekofen(self) -> None:
         async def sleep() -> None:
             """
@@ -257,14 +269,11 @@ class ModbusCommunication:
                 try:
                     await handle_scenarios()
 
-                    with self._watchdog_modbus_oekofen.activity("oekofen"):
-                        all_registers = await self.o.all_registers
-                    modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
-                    modbus_oekofen_registers.append_to_file()
-                    self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
+                    modbus_oekofen_registers = await self.read_modbus_oekofen()
                     await self.context.influx.send_oekofen(ctx=self.context, modbus_oekofen_registers=modbus_oekofen_registers)
 
-                    await self.update_oekofen(zwei_brenner=self.context.hsm_zentral.controller_master.handler_oekofen.modulation_soll.zwei_brenner)
+                    if not self.context.hsm_zentral.is_initializing():
+                        await self.update_oekofen(zwei_brenner=self.context.hsm_zentral.controller_master.handler_oekofen.modulation_soll.zwei_brenner)
                 except ModbusException as e:
                     self.context.hsm_zentral.modbus_oekofen_registers = None
 

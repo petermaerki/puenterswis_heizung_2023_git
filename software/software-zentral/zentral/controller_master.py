@@ -52,10 +52,8 @@ class ControllerMaster:
         self.handler_sp_zentral.set(ladung_prozent=pcbs._sp_ladung_zentral.ladung_prozent)
 
         if sp_ladung_zentral > SpLadung.LEVEL1:
-            logger.info("handler_pumpe.run()")
             self.handler_pumpe.tick(now_s=now_s)
         else:
-            logger.info("handler_pumpe.run_pwm()")
             self.handler_pumpe.tick_pwm(now_s=now_s)
 
         betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
@@ -67,9 +65,9 @@ class ControllerMaster:
             self.handler_oekofen.set_brenner_modulation_manual_max()
 
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
-        logger.info(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
+        logger.debug(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
         if all_valves_closed:
-            logger.info("set_modulation_min()")
+            logger.debug("set_modulation_min()")
             self.handler_oekofen.set_modulation_min()
 
         # Anhebung hinunter

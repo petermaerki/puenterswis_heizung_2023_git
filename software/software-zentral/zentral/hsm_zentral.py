@@ -113,6 +113,9 @@ class HsmZentral(hsm.HsmMixin):
     def is_drehschalterauto_regeln(self) -> bool:
         return self.is_state(self.state_ok_drehschalterauto_regeln)
 
+    def is_initializing(self) -> bool:
+        return self.is_state(self.state_initializing)
+
     @property
     def haeuser_all_valves_closed(self) -> bool:
         """

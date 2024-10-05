@@ -86,7 +86,10 @@ class ActionTimer:
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
         if self._action is None:
             return
-        fields[f"actiontimer_{self._action.__class__.__name__}_{self._action.name}_min"] = self._remaining_s / 60.0
+        remaining_s = self._remaining_s
+        if remaining_s < 120.0:
+            return
+        fields[f"actiontimer_{self._action.__class__.__name__}_{self._action.name}_min"] = remaining_s / 60.0
 
     @property
     def is_over(self) -> bool:

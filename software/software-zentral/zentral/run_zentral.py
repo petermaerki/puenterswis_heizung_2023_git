@@ -18,6 +18,11 @@ async def start_application(ctx: Context) -> None:
 
     # The pcbs_dezentral are essential for the following calculations: Initialize it first!
     await ctx.modbus_communication.read_modbus_pcbs_dezentral_heizzentrale()
+    try:
+        await ctx.modbus_communication.read_modbus_oekofen()
+    except Exception as e:
+        logger.warning(f"Initial reading of oekofen-modbus failed: {e}")
+        logger.exception(e)
 
     asyncio.create_task(ctx.modbus_communication.task_modbus_haeuser())
     asyncio.create_task(ctx.modbus_communication.task_modbus_oekofen())
