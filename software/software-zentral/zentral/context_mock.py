@@ -160,7 +160,7 @@ class ContextMock(Context):
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunicationMock(self)
 
-    def _factory_mbus_communication(self) -> MBus:
+    def _factory_mbus_communication(self) -> None|MBus:
         return None
 
     @property

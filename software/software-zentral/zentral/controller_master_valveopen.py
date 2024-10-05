@@ -64,13 +64,11 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
         if self.actual_haus_idx0 == -1:
             # All valves open
             for haus_idx0, haus in enumerate(self.ctx.config_etappe.haeuser):
-                assert haus.status_haus is not None
                 hvv.haeuser_valve_to_open.append(haus.config_haus.nummer)
             return hvv
 
         # Close all valves but one
         for haus_idx0, haus in enumerate(self.ctx.config_etappe.haeuser):
-            assert haus.status_haus is not None
             if haus_idx0 == self.actual_haus_idx0:
                 hvv.haeuser_valve_to_open.append(haus.config_haus.nummer)
             else:

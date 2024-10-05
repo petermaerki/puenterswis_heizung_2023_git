@@ -218,7 +218,6 @@ class HsmZentral(hsm.HsmMixin):
     def get_haeuser_ladung(self) -> HaeuserLadung:
         haeuser_ladung = HaeuserLadung()
         for haus in self.ctx.config_etappe.haeuser:
-            assert haus.status_haus is not None
             haus_ladung = haus.status_haus.hsm_dezentral.haus_ladung
             if haus_ladung is None:
                 continue
@@ -228,9 +227,7 @@ class HsmZentral(hsm.HsmMixin):
     def update_hvv(self, hvv: HauserValveVariante) -> None:
         def set_valve(nummer: int, valve_open: bool) -> None:
             haus = self.ctx.config_etappe.get_haus_by_nummer(nummer=nummer)
-            status_haus = haus.status_haus
-            assert status_haus is not None
-            status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
+            haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
 
         for nummer in hvv.haeuser_valve_to_open:
             set_valve(nummer=nummer, valve_open=True)
@@ -247,7 +244,6 @@ class HsmZentral(hsm.HsmMixin):
         self.relais.relais_7_automatik = False
 
         for haus in self.ctx.config_etappe.haeuser:
-            assert haus.status_haus is not None
             haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = False
 
     def _drehschalter_switch_state(self) -> typing.NoReturn:

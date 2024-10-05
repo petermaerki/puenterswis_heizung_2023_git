@@ -49,7 +49,7 @@ class Context:
     def _factory_modbus_communication(self) -> ModbusCommunication:
         return ModbusCommunication(self)
 
-    def _factory_mbus_communication(self) -> MBus:
+    def _factory_mbus_communication(self) -> None | MBus:
         port = get_serial_port2(n=Waveshare_4RS232.MBUS_WAERMEZAEHLER)
         return MBus(port=port)
 
@@ -60,8 +60,8 @@ class Context:
     def close_and_flush_influx(self) -> None:
         self.influx.close_and_flush()
         for haus in self.config_etappe.haeuser:
-            if haus.status_haus is not None:
-                haus.status_haus.hsm_dezentral.save_persistence(why="Exiting app")
+            if haus.status_haus_or_None is not None:
+                haus.status_haus_or_None.hsm_dezentral.save_persistence(why="Exiting app")
 
         self._persistence_legionellen.save(force=True, why="Exiting app")
         PersistenceMischventil.save(self.hsm_zentral.mischventil_stellwert_100)
@@ -70,7 +70,6 @@ class Context:
         self.config_etappe.init()
 
         for haus in self.config_etappe.haeuser:
-            assert haus.status_haus is not None
             haus.status_haus.hsm_dezentral._context = self
             haus.status_haus.hsm_dezentral.init()
 
@@ -110,7 +109,6 @@ class Context:
         async with exception_handler_and_exit(ctx=self, task_name="hsm", exit_code=45):
             while True:
                 for haus in self.config_etappe.haeuser:
-                    assert haus.status_haus is not None
                     await self.influx.send_hsm_dezental(
                         haus=haus,
                         state=haus.status_haus.hsm_dezentral.get_state(),
@@ -122,8 +120,6 @@ class Context:
                     and update '_haueser_last_legionenellen_killed'.
                     """
                     for haus in self.config_etappe.haeuser:
-                        assert haus.status_haus is not None
-
                         sp_temperatur = haus.get_sp_temperatur()
                         if sp_temperatur is None:
                             continue
@@ -142,7 +138,6 @@ class Context:
         async with exception_handler_and_exit(ctx=self, task_name="verbrauch", exit_code=46):
             while True:
                 for haus in self.config_etappe.haeuser:
-                    assert haus.status_haus is not None
                     await haus.status_haus.hsm_dezentral.handle_history_verbrauch()
 
                 await asyncio.sleep(INTERVAL_VERBRAUCH_HAUS_S / 100.0)
@@ -151,17 +146,21 @@ class Context:
         async with exception_handler_and_exit(ctx=self, task_name="mbus", exit_code=46):
 
             async def read(haus: Haus) -> None:
-                if haus.status_haus is None:
+                if haus.status_haus_or_None is None:
                     relais_valve_open = False
                 else:
-                    relais_valve_open = haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open
+                    relais_valve_open = haus.status_haus_or_None.hsm_dezentral.dezentral_gpio.relais_valve_open
                 max_retries = 5
                 for _ in range(max_retries):
+                    if self.mbus is None:
+                        continue
                     measurement = await self.mbus.read_mulical303_or_None(
                         address=haus.config_haus.mbus_address,
                         relais_valve_open=relais_valve_open,
                     )
                     if measurement is None:
+                        continue
+                    if haus.status_haus.hsm_dezentral is None:
                         continue
                     haus.status_haus.hsm_dezentral.mbus_measurement = measurement
                     await self.influx.send_mbus(haus=haus, mbus_measurement=measurement)

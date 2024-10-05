@@ -43,7 +43,7 @@
             "options": {
                 "cwd": "${workspaceFolder:zentral}",
                 "env": {
-                    "PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:zero}"
+                    "PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}"
                 }
             },
             "problemMatcher": [],

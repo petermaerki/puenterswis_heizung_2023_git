@@ -124,8 +124,6 @@ class Influx:
         #     logger.exception("Failed to write to influx")
 
     async def send_modbus_iregs_all(self, haus: Haus, modbus_iregs_all: "ModbusIregsAll", temperatur_aussen_C: float) -> None:
-        assert haus.status_haus is not None
-
         if not haus.status_haus.interval_haus_temperatures.time_over:
             return
 
@@ -168,7 +166,6 @@ class Influx:
 
     async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
         r = InfluxRecords(haus=haus)
-        assert haus.status_haus is not None
         hsm_dezentral = haus.status_haus.hsm_dezentral
         influx_offset08 = haus.config_haus.influx_offset05
         fields = {}
@@ -205,9 +202,6 @@ class Influx:
             power_W = 0.0
 
             for haus in ctx.config_etappe.haeuser:
-                if haus.status_haus is None:
-                    # Sum will not be valid if one Haus is missing.
-                    return
                 mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
                 if mbus_measurement is None:
                     # Sum will not be valid if one Haus is missing.

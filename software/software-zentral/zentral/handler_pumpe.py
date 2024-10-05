@@ -5,7 +5,7 @@ from zentral.controller_mischventil import PumpeAnlaufzeitMischventil
 from zentral.util_action import ActionBaseEnum, ActionTimer
 
 if typing.TYPE_CHECKING:
-    pass
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 

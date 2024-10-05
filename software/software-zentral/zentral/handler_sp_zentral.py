@@ -29,5 +29,5 @@ class HandlerSpZentral:
             logger.debug(f"ladung_aufwaerts = False, last_ladung_prozent {self.last_ladung_prozent}")
 
     @property
-    def sinkt(self) -> None:
+    def sinkt(self) -> bool:
         return not self.steigt

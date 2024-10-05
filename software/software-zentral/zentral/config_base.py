@@ -76,14 +76,19 @@ class ConfigHaus:
 class Haus:
     config_haus: ConfigHaus = dataclasses.field(hash=True, compare=False)
     # status_haus: StatusHaus = dataclasses.field(default_factory=lambda: StatusHaus(), hash=False, compare=False)
-    status_haus: Union[StatusHaus, None] = dataclasses.field(default=None, hash=False, compare=False)
+    status_haus_or_None: Union[StatusHaus, None] = dataclasses.field(default=None, hash=False, compare=False)
 
     def __post_init__(self):
         self.config_haus.etappe.append_haus(self)
-        self.status_haus = StatusHaus(self)
+        self.status_haus_or_None = StatusHaus(self)
 
     def __hash__(self):
         return self.config_haus.nummer
+
+    @property
+    def status_haus(self) -> StatusHaus:
+        assert self.status_haus_or_None is not None
+        return self.status_haus_or_None
 
     @property
     def label(self) -> str:
@@ -100,7 +105,6 @@ class Haus:
           * If hsm_dezentral != state_ok
           * I other contidtions fail
         """
-        assert self.status_haus is not None
         hsm_dezentral = self.status_haus.hsm_dezentral
         if not hsm_dezentral.is_state(hsm_dezentral.state_ok):
             return None

@@ -1,6 +1,7 @@
 import asyncio
 import dataclasses
 import pathlib
+import typing
 
 import matplotlib.pyplot as plt
 import pytest
@@ -18,6 +19,8 @@ from zentral import config_etappe
 from zentral.context_mock import ContextMock
 from zentral.controller_mischventil import ControllerMischventil
 
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_TESTRESULTS = DIRECTORY_OF_THIS_FILE / "controller_mischventil_testresults"
 
@@ -33,7 +36,7 @@ def modell_mischventil(Tsz4_C: float, Tfr_C: float, stellwert_100: float) -> flo
 
 
 class Plot:
-    def __init__(self):
+    def __init__(self) -> None:
         self.now_s: list[float] = []
         self.valve_100: list[float] = []
         self.Tsz4_C: list[float] = []
