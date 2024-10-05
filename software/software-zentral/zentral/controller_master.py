@@ -38,6 +38,8 @@ class ControllerMaster:
 
     def process(self, now_s: float) -> None:
         self._process(now_s=now_s)
+
+        self.handler_anhebung.update_last_hvv(haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
         self.ctx.hsm_zentral.update_hvv(hvv=self.handler_anhebung.last_hvv)
 
     def _process(self, now_s: float) -> None:

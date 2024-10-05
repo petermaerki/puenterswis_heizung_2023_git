@@ -33,10 +33,6 @@ class HandlerAnhebung:
         self.actiontimer = ActionTimer()
         self.mock_solltemperatur_Tfv_C: float | None = None
 
-    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
-        self.actiontimer.influxdb_add_fields(fields=fields)
-        fields["anhebung_dezentral_prozent"] = self.last_hvv.anhebung_prozent
-
     @property
     def solltemperatur_Tfv_C(self) -> float:
         if self.mock_solltemperatur_Tfv_C is not None:
@@ -44,6 +40,18 @@ class HandlerAnhebung:
         if self.last_hvv.legionellen_kill_in_progress:
             return 75.0
         return 68.0
+
+    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
+        self.actiontimer.influxdb_add_fields(fields=fields)
+        fields["anhebung_dezentral_prozent"] = self.last_hvv.anhebung_prozent
+
+    def update_last_hvv(self, haeuser_ladung: HaeuserLadung) -> HauserValveVariante:
+        evaluate = Evaluate(
+            anhebung_prozent=self.last_hvv.anhebung_prozent,
+            haeuser_ladung=haeuser_ladung,
+        )
+        self.last_hvv = evaluate.hvv
+        return self.last_hvv
 
     def anheben_plus_ein_haus(self, now_s: float, haeuser_ladung: HaeuserLadung) -> HauserValveVariante | None:
         if not self.actiontimer.is_over_and_cancel():
