@@ -11,6 +11,7 @@ import typing
 from zentral.handler_anhebung import HandlerAnhebung
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
+from zentral.handler_sp_zentral import HandlerSpZentral
 from zentral.util_sp_ladung_zentral import SpLadung
 
 if typing.TYPE_CHECKING:
@@ -33,6 +34,7 @@ class ControllerMaster:
             last_anhebung_prozent=0.0,
             last_valve_open_count=last_valve_open_count,
         )
+        self.handler_sp_zentral = HandlerSpZentral()
 
     def done(self) -> bool:
         return False
@@ -47,6 +49,7 @@ class ControllerMaster:
         ctx = self.ctx
         pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
         sp_ladung_zentral = pcbs.sp_ladung_zentral
+        self.handler_sp_zentral.set(ladung_prozent=pcbs._sp_ladung_zentral.ladung_prozent)
 
         if sp_ladung_zentral > SpLadung.LEVEL1:
             logger.info("handler_pumpe.run()")
@@ -69,30 +72,38 @@ class ControllerMaster:
             logger.info("set_modulation_min()")
             self.handler_oekofen.set_modulation_min()
 
-        # Anhebung hinunter, Modulation erhöhen
+        # Anhebung hinunter
         if sp_ladung_zentral <= SpLadung.LEVEL1:
-            self.handler_anhebung.anheben_minus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
-
-        if pcbs._sp_ladung_zentral.ladung_prozent < 25.0:
-            if not all_valves_closed:
-                if self.handler_oekofen.erster_brenner_zuenden():
-                    return
-
-        if sp_ladung_zentral == SpLadung.LEVEL0:
-            if not all_valves_closed:
-                if not self.handler_oekofen.modulation_erhoehen():
-                    if self.handler_oekofen.brenner_zuenden():
-                        return
-
-        # Modulation reduzieren
-        if pcbs._sp_ladung_zentral.ladung_prozent > 55.0:
-            if self.handler_oekofen.modulation_reduzieren():
-                return
+            if self.handler_sp_zentral.sinkt:
+                self.handler_anhebung.anheben_minus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
 
         #  Anhebung hinauf
         if sp_ladung_zentral >= SpLadung.LEVEL3:
-            self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
+            if self.handler_oekofen.anzahl_brenner_on > 0:
+                if self.handler_sp_zentral.steigt:
+                    if self.handler_anhebung.last_valve_open_count < 5:
+                        self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
 
+        # Brenner zünden
+        if pcbs._sp_ladung_zentral.ladung_prozent < 25.0:
+            if self.handler_oekofen.erster_brenner_zuenden():
+                return
+
+        # Modulation erhöhen
+        if sp_ladung_zentral == SpLadung.LEVEL0:
+            if not all_valves_closed:
+                if self.handler_sp_zentral.sinkt:
+                    if not self.handler_oekofen.modulation_erhoehen():
+                        if self.handler_oekofen.brenner_zuenden():
+                            return
+
+        # Modulation reduzieren
+        if pcbs._sp_ladung_zentral.ladung_prozent > 55.0:
+            if self.handler_sp_zentral.steigt:
+                if self.handler_oekofen.modulation_reduzieren():
+                    return
+
+        #  Brenner löschen
         if sp_ladung_zentral == SpLadung.LEVEL4:
             self.handler_oekofen.brenner_loeschen()
 
