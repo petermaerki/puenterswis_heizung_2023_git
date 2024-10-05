@@ -38,10 +38,10 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
         return self.actual_haus_idx0 >= self.scenario.haeuser_count
 
     def process(self, now_s: float) -> None:
-        hvv = self._process(now_s=now_s)
+        hvv = self._process2(now_s=now_s)
         self.ctx.hsm_zentral.update_hvv(hvv=hvv)
 
-    def _process(self, now_s: float) -> HauserValveVariante:
+    def _process2(self, now_s: float) -> HauserValveVariante:
         self.handler_pumpe.run_forced()
 
         if time.monotonic() > self.actual_haus_end_s:
