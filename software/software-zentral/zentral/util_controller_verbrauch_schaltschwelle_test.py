@@ -137,7 +137,7 @@ class Plot:
         y = haus_ladung.ladung_Prozent
 
         r = self.vls.veraenderung(haus_ladung=haus_ladung)
-        do_close, do_open = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=self.vls.anhebung_prozent)
+        do_close, do_open, legionellen_kill_in_progress = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=self.vls.anhebung_prozent)
         color = {
             (False, False): "black",
             (True, False): "red",
@@ -208,7 +208,7 @@ def test_find_anhebung(testfall: str):
 def do_find_anhebung(testfall: str):
     hlf = HAEUSER_LADUNG_FACTORY_2_30
     haeuser_ladung = hlf.get_haeuser_ladung()
-    hvv: HauserValveVariante | None
+    hvv: HauserValveVariante = HauserValveVariante(anhebung_prozent=0.0)
 
     if testfall == "vorher":
         hvv = HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent)
@@ -216,8 +216,7 @@ def do_find_anhebung(testfall: str):
     if testfall == "plus_ein_haus":
         handler = HandlerAnhebung(
             now_s=0.0,
-            last_anhebung_prozent=hlf.given_anhebung_prozent,
-            last_valve_open_count=haeuser_ladung.valve_open_count,
+            last_hvv=HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent),
         )
         hvv = handler.anheben_plus_ein_haus(now_s=1.0, haeuser_ladung=haeuser_ladung)
         assert hvv is not None
@@ -225,8 +224,7 @@ def do_find_anhebung(testfall: str):
     if testfall == "minus_ein_haus":
         handler = HandlerAnhebung(
             now_s=0.0,
-            last_anhebung_prozent=hlf.given_anhebung_prozent,
-            last_valve_open_count=haeuser_ladung.valve_open_count,
+            last_hvv=HauserValveVariante(anhebung_prozent=hlf.given_anhebung_prozent),
         )
         hvv = handler.anheben_minus_ein_haus(now_s=1.0, haeuser_ladung=haeuser_ladung)
         assert hvv is not None

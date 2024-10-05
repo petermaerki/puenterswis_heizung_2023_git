@@ -12,13 +12,14 @@ class SchaltschwellenResult:
     aus_prozent: float
     ein_prozent: float
 
-    def open_close(self, haus_ladung: HausLadung, anhebung_prozent: float) -> tuple[bool, bool]:
+    def open_close(self, haus_ladung: HausLadung, anhebung_prozent: float) -> tuple[bool, bool, bool]:
         """
-        Return do_close, do_open
+        Return do_close, do_open, do_legionellen_kill
         """
         assert isinstance(haus_ladung, HausLadung)
         assert isinstance(anhebung_prozent, float)
 
+        legionellen_kill_in_progress = False
         do_close = haus_ladung.ladung_Prozent > self.aus_prozent
         do_open = haus_ladung.ladung_Prozent < self.ein_prozent
 
@@ -28,15 +29,17 @@ class SchaltschwellenResult:
                     # if Legionellen fällig in weniger als 1 Tage und Anhebung > 5%:
                     # do_close = False # so lange nicht schliessen bis Legionellen erledigt
                     do_close = False
+                    legionellen_kill_in_progress = True
 
         if haus_ladung.next_legionellen_kill_s < -2 * 24 * 3600.0:
             if do_close:
                 # if Legionellen überfällig mehr als 2 Tage:
                 # do_close = False # so lange nicht schliessen bis Legionellen erledigt
                 do_close = False
+                legionellen_kill_in_progress = True
 
         assert not (do_close and do_open)
-        return do_close, do_open
+        return do_close, do_open, legionellen_kill_in_progress
 
 
 class VerbrauchLadungSchaltschwellen:
@@ -110,7 +113,7 @@ class VerbrauchLadungSchaltschwellen:
         return self.diagram(verbrauch_prozent=verbrauch_prozent)
 
 
-@dataclasses.dataclass(frozen=True, repr=True)
+@dataclasses.dataclass(repr=True)
 class HauserValveVariante:
     """
     Ein Vorschlag, welche Ventile geöffnet/geschlossen werden sollen.
@@ -119,6 +122,7 @@ class HauserValveVariante:
     anhebung_prozent: float
     haeuser_valve_to_open: list[int] = dataclasses.field(default_factory=list)
     haeuser_valve_to_close: list[int] = dataclasses.field(default_factory=list)
+    legionellen_kill_in_progress: bool = False
 
     def to_open(self, haus_ladung: HausLadung) -> None:
         if haus_ladung.valve_open:
@@ -155,7 +159,9 @@ class Evaluate:
         )
         for haus_ladung in haeuser_ladung:
             r = vls.veraenderung(haus_ladung=haus_ladung)
-            do_close, do_open = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=vls.anhebung_prozent)
+            do_close, do_open, legionellen_kill_in_progress = r.open_close(haus_ladung=haus_ladung, anhebung_prozent=vls.anhebung_prozent)
+            if legionellen_kill_in_progress:
+                self.hvv.legionellen_kill_in_progress = True
             if do_open:
                 self.hvv.to_open(haus_ladung)
             if do_close:

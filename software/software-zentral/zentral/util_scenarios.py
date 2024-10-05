@@ -462,7 +462,7 @@ class ScenarioZentralDrehschalterManuell(ScenarioBase):
 
 @dataclasses.dataclass
 class ScenarioZentralSolltemperatur(ScenarioBase):
-    solltemperature_Tfv: float = 65.0
+    solltemperature_Tfv_C: float = 65.0
 
 
 def register_scenarios() -> None:

@@ -12,6 +12,7 @@ from zentral.handler_anhebung import HandlerAnhebung
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
 from zentral.handler_sp_zentral import HandlerSpZentral
+from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 from zentral.util_sp_ladung_zentral import SpLadung
 
 if typing.TYPE_CHECKING:
@@ -26,13 +27,9 @@ class ControllerMaster:
         self.now_s = now_s
         self.handler_oekofen = HandlerOekofen(ctx=ctx, now_s=now_s)
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
-        # ladung = ctx.hsm_zentral.get_haeuser_ladung()
-        # last_valve_open_count = ladung.valve_open_count
-        last_valve_open_count = 0  # TODO: Add correct value
         self.handler_anhebung = HandlerAnhebung(
             now_s=now_s,
-            last_anhebung_prozent=0.0,
-            last_valve_open_count=last_valve_open_count,
+            last_hvv=HauserValveVariante(anhebung_prozent=0.0),
         )
         self.handler_sp_zentral = HandlerSpZentral()
 
@@ -41,9 +38,7 @@ class ControllerMaster:
 
     def process(self, now_s: float) -> None:
         self._process(now_s=now_s)
-
-        hvv = self.handler_anhebung.calculate_hvv(haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
-        self.ctx.hsm_zentral.update_hvv(hvv=hvv)
+        self.ctx.hsm_zentral.update_hvv(hvv=self.handler_anhebung.last_hvv)
 
     def _process(self, now_s: float) -> None:
         ctx = self.ctx
@@ -79,8 +74,9 @@ class ControllerMaster:
         if sp_ladung_zentral >= SpLadung.LEVEL3:
             if self.handler_oekofen.anzahl_brenner_on > 0:
                 if self.handler_sp_zentral.steigt:
-                    if self.handler_anhebung.last_valve_open_count < 5:
-                        self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
+                    haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
+                    if haeuser_ladung.valve_open_count < 5:
+                        self.handler_anhebung.anheben_plus_ein_haus(now_s=now_s, haeuser_ladung=haeuser_ladung)
 
         # Brenner zünden
         if pcbs._sp_ladung_zentral.ladung_prozent < 25.0:

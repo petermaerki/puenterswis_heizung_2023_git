@@ -207,13 +207,15 @@ class ControllerMischventil(ControllerMischventilSimple):
             now_s=now_s,
             Tfr_C=pcbs.Tfr_C,
             Tsz4_C=pcbs.Tsz4_C,
-            Tfv_soll_C=ctx.hsm_zentral.solltemperatur_Tfv,
+            Tfv_soll_C=ctx.hsm_zentral.controller_master.handler_anhebung.solltemperatur_Tfv_C,
         )
 
-        logger.debug(f"ctx.hsm_zentral.solltemperatur_Tfv={ctx.hsm_zentral.solltemperatur_Tfv:0.1f}, Tfv_C={pcbs.Tfv_C:0.1f}, Tfr_C={pcbs.Tfr_C:0.1f}, Tsz4_C={pcbs.Tsz4_C:0.1f}")
+        logger.debug(
+            f"ctx.hsm_zentral.controller_master.handler_anhebung.solltemperatur_Tfv_C={ctx.hsm_zentral.controller_master.handler_anhebung.solltemperatur_Tfv_C:0.1f}, Tfv_C={pcbs.Tfv_C:0.1f}, Tfr_C={pcbs.Tfr_C:0.1f}, Tsz4_C={pcbs.Tsz4_C:0.1f}"
+        )
 
         duration_since_last_stellwert_change_s = now_s - self.last_stellwert_change_s
-        abweichung_C = ctx.hsm_zentral.solltemperatur_Tfv - pcbs.Tfv_C
+        abweichung_C = ctx.hsm_zentral.controller_master.handler_anhebung.solltemperatur_Tfv_C - pcbs.Tfv_C
         if duration_since_last_stellwert_change_s < 5 * 60.0:
             if abs(abweichung_C) < self._Tfv_TOLERANZ_C:  # Genuegend genau, nichts machen
                 logger.debug(f"abs(abweichung_C:{abweichung_C:0.2f}) < self._Tfv_TOLERANZ_C:{self._Tfv_TOLERANZ_C:0.2f}  # Genuegend genau, nichts machen")
@@ -264,7 +266,7 @@ class ControllerMischventil(ControllerMischventilSimple):
         scenario = SCENARIOS.find(ScenarioZentralSolltemperatur)
         if scenario is not None:
             SCENARIOS.remove(scenario)
-            ctx.hsm_zentral.solltemperatur_Tfv = scenario.solltemperature_Tfv
+            ctx.hsm_zentral.controller_master.handler_anhebung.mock_solltemperatur_Tfv_C = scenario.solltemperature_Tfv_C
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
         # TODO(HandlerPumpe)
