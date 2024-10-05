@@ -31,13 +31,9 @@ must be one line in
 
 Copy lines from the template [822_pc-template-ssh-config.txt](822_pc-template-ssh-config.txt).
 
-## Start ssh tunnels
+## Simplified access. Works if ports 8851-8853 are exposed on www.maerki.com
 
-Start a bash (git-bash or terminal-bash in VSCdoe) and type:
-```bash
-ssh -o TCPKeepAlive=no -o ServerAliveInterval=15 -nNT -L 8851:localhost:8851 -L 8852:localhost:8852 -L 8853:localhost:8853 www-data@www.maerki.com
-```
-Important: The command *hangs* and does not produce any output.
+`ssh -p 8852 zero@www.maerki.com`
 
 ## Work with VSCode
 

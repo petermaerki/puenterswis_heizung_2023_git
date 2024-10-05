@@ -2,19 +2,19 @@
 	"folders": [
 		{
 			"name": "dezentral",
-			"path": "."
+			"path": "./software-dezentral"
 		},
 		{
 			"name": "zentral",
-			"path": "../software-zentral"
+			"path": "./software-zentral"
+		},
+		{
+			"name": "zero",
+			"path": "./software-zero"
 		},
 		{
 			"name": "repo",
 			"path": ".."
-		},
-		{
-			"name": "zero",
-			"path": "../software-zero"
 		}
 	],
 	"tasks": {
@@ -25,6 +25,68 @@
 				"type": "shell",
 				"command": "echo PYTHONPATH=${PYTHONPATH}",
 				"problemMatcher": []
+			},
+			{
+				"label": "static check",
+				"type": "shell",
+				"command": "echo DONE",
+				"problemMatcher": [],
+				"dependsOn": [
+					"ruff",
+					"mypy",
+					"pylint",
+				],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "ruff",
+				"type": "shell",
+				// "command": "ruff check --config pyproject.toml --fix || true",
+				"command": "ruff check zentral --fix || true",
+				"options": {
+					"cwd": "${workspaceFolder:zentral}",
+					"env": {
+						"PYTHONPATH": "${workspaceFolder:zentral}${workspaceFolder:zero}:"
+					}
+				},
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			},
+			{
+				"label": "mypy",
+				"type": "shell",
+				// "command": "python -m mypy --config-file pyproject.toml src tests || true",
+				"command": "python -m mypy zentral || true",
+				"options": {
+					"cwd": "${workspaceFolder:zentral}",
+					"env": {
+						"PYTHONPATH": "${workspaceFolder:zentral}:${workspaceFolder:dezentral}:${workspaceFolder:zero}"
+					}
+				},
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			},
+			{
+				"label": "pylint",
+				"type": "shell",
+				"command": "PYTHONPATH=${workspaceFolder}:${workspaceFolder:zero} python -m pylint zentral || true",
+				"options": {
+					"cwd": "${workspaceFolder:zentral}"
+				},
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
 			}
 		]
 	},
@@ -36,7 +98,7 @@
 				"type": "debugpy",
 				"request": "launch",
 				"module": "pytest",
-				"cwd": "${workspaceFolder:repo}",
+				"cwd": "${workspaceFolder:repo}/software",
 				"console": "integratedTerminal",
 				"args": [
 					"-v",
@@ -51,7 +113,7 @@
 				"type": "debugpy",
 				"request": "launch",
 				"module": "ruff",
-				"cwd": "${workspaceFolder:repo}",
+				"cwd": "${workspaceFolder:repo}/software",
 				"console": "integratedTerminal",
 				"args": [
 					"check",
@@ -69,15 +131,6 @@
 				"program": "${workspaceFolder:dezentral}/run_from_pc.py",
 				"console": "integratedTerminal",
 				"cwd": "${workspaceFolder:dezentral}",
-				"justMyCode": false
-			},
-			{
-				"name": "simple_rtu_client",
-				"type": "debugpy",
-				"request": "launch",
-				"program": "${workspaceFolder:zero}/src/simple_rtu_client.py",
-				"cwd": "${workspaceFolder:zero}",
-				"console": "integratedTerminal",
 				"justMyCode": false
 			},
 			{
@@ -180,30 +233,6 @@
 				"justMyCode": false
 			},
 			{
-				"name": "controller_mischventil_test",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "zentral.controller_mischventil_test",
-				"cwd": "${workspaceFolder:zentral}",
-				"console": "integratedTerminal",
-				"env": {
-					"PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
-				},
-				"justMyCode": false
-			},
-			{
-				"name": "controller_intelligent_test",
-				"type": "debugpy",
-				"request": "launch",
-				"module": "zentral.controller_intelligent_test",
-				"cwd": "${workspaceFolder:zentral}",
-				"console": "integratedTerminal",
-				"env": {
-					"PYTHONPATH": "${workspaceFolder:zentral}${pathSeparator}${workspaceFolder:dezentral}${pathSeparator}${workspaceFolder:zero}",
-				},
-				"justMyCode": false
-			},
-			{
 				"name": "Current File (Linux)",
 				"type": "debugpy",
 				"request": "launch",
@@ -238,7 +267,7 @@
 			"${workspaceFolder:dezentral}",
 			"${workspaceFolder:zentral}"
 		],
-		"python.testing.cwd": "${workspaceFolder:repo}",
+		"python.testing.cwd": "${workspaceFolder:repo}/software/",
 		"python.testing.unittestEnabled": false,
 		"python.testing.pytestEnabled": true,
 		"python.autoComplete.extraPaths": [
@@ -282,6 +311,10 @@
 			"hediet.vscode-drawio",
 			"joffreykern.markdown-toc",
 			"mhutchie.git-graph",
+			"ms-python.black-formatter",
+			"ms-python.isort",
+			"ms-python.mypy-type-checker",
+			"ms-python.pylint",
 			"ms-python.python"
 		]
 	}

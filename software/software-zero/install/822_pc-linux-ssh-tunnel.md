@@ -16,13 +16,19 @@ DICT_SSH_TUNNEL_PORT = {
 }
 ```
 
-## bochspi/puentpi
+## Simplified access. Works if ports 8851-8853 are exposed on www.maerki.com
+
+`ssh -p 8852 zero@www.maerki.com`
+
+## Difficult acccess (Reverse Tunnel): Start ssh tunnels
+
+### bochspi/puentpi
 
 ```bash
 ssh -o TCPKeepAlive=no -o ServerAliveInterval=15 -nNT -R 8852:localhost:22 www-insecure@www.maerki.com
 ```
 
-## On PC
+### On PC
 
 ```bash
 ssh -o TCPKeepAlive=no -o ServerAliveInterval=15 -nNT -L 8851:localhost:8851 -L 8852:localhost:8852 -L 8853:localhost:8853 www-data@www.maerki.com
