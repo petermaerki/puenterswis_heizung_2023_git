@@ -35,6 +35,7 @@ def main():
     utils_install.copy_influxdb_secrets()
 
     utils_install_services.install_services()
+    utils_install_services.install_etc_watchdog()
 
     input("Reboot now? <ctrl-C>: abort, <ENTER>: reboot")
     os.system("reboot --reboot")

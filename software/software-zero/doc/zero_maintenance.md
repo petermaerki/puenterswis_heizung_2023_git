@@ -35,6 +35,7 @@ zero:
 ```bash
 systemctl status heizung-app.service
 systemctl status heizung-ssh-tunnel.service
+systemctl status watchdog.service
 ```
 
 ### service journal
@@ -44,7 +45,12 @@ zero:
 journalctl --lines=100 --follow --unit heizung-app.service
 ```
 
-### service journal
+### system update
+
+zero:
+```bash
+time (sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y)
+```
 
 ## Change from `zero-virgin` to `zero-puent`
 

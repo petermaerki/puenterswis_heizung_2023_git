@@ -18,8 +18,10 @@ Use password authentication!
 zero:
 ```
 LC_ALL=en_GB.UTF-8 sudo apt update \
-  && sudo apt upgrade -y && sudo apt install -y python3-pip git \
+  && sudo apt upgrade -y && sudo apt install -y python3-pip git watchdog \
   && sudo apt autoremove -y
+
+echo 'dtparam=watchdog=on' >> /boot/firmware/config.txt
 ```
 
 
