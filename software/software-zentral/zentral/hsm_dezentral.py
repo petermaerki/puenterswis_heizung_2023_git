@@ -75,6 +75,9 @@ class HsmDezentral(hsm.HsmMixin):
         sp_temperatur = modbus_iregs_all.sp_temperatur
         if sp_temperatur is None:
             return None
+        max_verbrauch_avg_W = self.context.hsm_zentral.max_verbrauch_avg_W
+        if max_verbrauch_avg_W is None:
+            return None
 
         TaussenU_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
         ladung_minimum = LadungMinimum(
@@ -83,9 +86,10 @@ class HsmDezentral(hsm.HsmMixin):
         )
 
         return HausLadung(
-            nummer=self.haus.config_haus.nummer,
-            verbrauch_W=self.verbrauch.verbrauch_avg_W,
-            ladung_Prozent=ladung_minimum.ladung_prozent,
+            haus=self.haus,
+            verbrauch_avg_W=max(0.0, self.verbrauch.verbrauch_avg_W),
+            max_verbrauch_avg_W=max_verbrauch_avg_W,
+            ladung_prozent=ladung_minimum.ladung_prozent,
             valve_open=self.dezentral_gpio.relais_valve_open,
             next_legionellen_kill_s=self.next_legionellen_kill_s,
         )

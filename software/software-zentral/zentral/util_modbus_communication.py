@@ -100,6 +100,7 @@ class ModbusCommunication:
                 await self.context.influx.write_records(records=r)
 
             # await modbus_haus.reboot_reset(haus=haus)
+        self.context.hsm_zentral.update_max_verbrauch_avg_W()
 
     async def read_modbus_pcbs_dezentral_heizzentrale(self):
         # We wait for max 20s. This may happen if a pcb reboots.

@@ -80,9 +80,13 @@ class HandlerOekofen:
         return ok
 
     def erster_brenner_zuenden(self) -> bool:
-        list_brenner = self.modulation_soll.zwei_brenner.on()
-        if len(list_brenner) == 0:
+        if self.anzahl_brenner_on == 0:
             return self.brenner_zuenden()
+        return False
+
+    def zweiter_brenner_loeschen(self) -> bool:
+        if self.anzahl_brenner_on == 2:
+            return self.brenner_loeschen()
         return False
 
     def brenner_zuenden(self) -> bool:

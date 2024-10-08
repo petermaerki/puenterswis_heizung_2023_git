@@ -20,8 +20,8 @@ class SchaltschwellenResult:
         assert isinstance(anhebung_prozent, float)
 
         legionellen_kill_in_progress = False
-        do_close = haus_ladung.ladung_Prozent > self.aus_prozent
-        do_open = haus_ladung.ladung_Prozent < self.ein_prozent
+        do_close = haus_ladung.ladung_prozent > self.aus_prozent
+        do_open = haus_ladung.ladung_prozent < self.ein_prozent
 
         if haus_ladung.next_legionellen_kill_s < 1 * 24 * 3600.0:
             if anhebung_prozent > 5.0:
@@ -97,9 +97,9 @@ class VerbrauchLadungSchaltschwellen:
         return r
 
     def get_verbrauch_prozent(self, haus_ladung: HausLadung) -> float:
-        if haus_ladung.verbrauch_W is None:
+        if haus_ladung.verbrauch_avg_W is None:
             return 100.0
-        verbrauch_prozent = 100.0 * haus_ladung.verbrauch_W / self.verbrauch_max_W
+        verbrauch_prozent = 100.0 * haus_ladung.verbrauch_avg_W / self.verbrauch_max_W
         return max(min(verbrauch_prozent, 100.0), 0.0)
 
     def veraenderung(self, haus_ladung: HausLadung) -> SchaltschwellenResult:
@@ -119,10 +119,8 @@ class HauserValveVariante:
     Ein Vorschlag, welche Ventile geöffnet/geschlossen werden sollen.
     """
 
-    anhebung_prozent: float
     haeuser_valve_to_open: list[int] = dataclasses.field(default_factory=list)
     haeuser_valve_to_close: list[int] = dataclasses.field(default_factory=list)
-    legionellen_kill_in_progress: bool = False
 
     def to_open(self, haus_ladung: HausLadung) -> None:
         if haus_ladung.valve_open:
@@ -155,7 +153,7 @@ class Evaluate:
         self.hvv = HauserValveVariante(anhebung_prozent=anhebung_prozent)
         vls = VerbrauchLadungSchaltschwellen(
             anhebung_prozent=anhebung_prozent,
-            verbrauch_max_W=haeuser_ladung.max_verbrauch_W,
+            verbrauch_max_W=haeuser_ladung.max_verbrauch_avg_W,
         )
         for haus_ladung in haeuser_ladung:
             r = vls.veraenderung(haus_ladung=haus_ladung)

@@ -174,7 +174,7 @@ class ModulationBrenner:
 class BrennerAction(ActionBaseEnum):
     ZUENDEN = 40
     LOESCHEN = 20
-    MODULIEREN = 20
+    MODULIEREN = 15
 
 
 class ListBrenner(list[ModulationBrenner]):
@@ -259,17 +259,16 @@ class ModulationSoll:
     def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
         logger.info(f"{self.actiontimer.action_name_full} brenner idx0={brenner.idx0}, {brenner.short}. {reason}")
 
-    def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation, action: BrennerAction) -> None:
+    def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation) -> None:
         """
         Only referenced by ScenarioOekofenBrennerModulation.
         """
         assert isinstance(brenner_num, BrennerNum)
         assert isinstance(modulation, Modulation)
-        assert isinstance(action, BrennerAction)
+        # assert isinstance(action, BrennerAction)
 
         brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
-        self.actiontimer.action = action
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
 
     def set_modulation_min(self) -> None:

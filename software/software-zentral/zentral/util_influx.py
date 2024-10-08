@@ -182,6 +182,11 @@ class Influx:
         except AttributeError:
             pass
 
+        if True:
+            haus_ladung = hsm_dezentral.haus_ladung
+            if haus_ladung is not None:
+                fields["ladung_individuell_prozent"] = haus_ladung.ladung_individuell_prozent
+
         r.add_fields(fields=fields)
         await self.write_records(records=r)
 
@@ -216,12 +221,20 @@ class Influx:
                 fields["mbus_sum_power_W"] = power_W
 
         def actiontimer():
-            ctx.hsm_zentral.controller_master.influxdb_add_fields(fields=fields)
+            controller_master = ctx.hsm_zentral.controller_master
+            controller_master.influxdb_add_fields(fields=fields)
+
+            handler_last = controller_master.handler_last
+            valve_open_count = ctx.hsm_zentral.get_haeuser_ladung().valve_open_count
+            fields["target_valve_open_count"] = handler_last.target_valve_open_count + 0.1
+            fields["effective_valve_open_count"] = valve_open_count + 0.2
+            fields["sp_zentral_steigung"] = controller_master.handler_sp_zentral.grafana
 
         def haeuser_ladung_minimum_prozent():
-            minimum_prozent = ctx.hsm_zentral.haeuser_ladung_minimum_prozent
-            if minimum_prozent is not None:
-                fields["haeuser_ladung_minimum_prozent"] = minimum_prozent
+            minimum, avg = ctx.hsm_zentral.tuple_haeuser_ladung_minimum_prozent
+            if minimum is not None:
+                fields["haeuser_ladung_minimum_prozent"] = minimum
+                fields["haeuser_ladung_avg_prozent"] = avg
 
         def oekofen_summary():
             controller_master = ctx.hsm_zentral.controller_master
@@ -286,7 +299,7 @@ class Influx:
         def ladung_zentral():
             pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
             fields["sp_ladung_zentral_prozent"] = pcbs.sp_ladung_zentral_prozent
-            fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
+            # fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
         mbus_sum()
         actiontimer()

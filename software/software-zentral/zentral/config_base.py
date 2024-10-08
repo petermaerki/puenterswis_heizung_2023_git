@@ -165,14 +165,6 @@ class ConfigEtappe:
     def hausnummern(self) -> List[int]:
         return sorted([haus.config_haus.nummer for haus in self.dict_haeuser.values()])
 
-    def get_haus_by_nummer(self, nummer: int) -> Haus:
-        assert self.lowest_haus_nummer is not None
-
-        try:
-            return self.dict_haeuser[nummer]
-        except KeyError as ex:
-            raise AttributeError(f"Haus mit nummer {nummer} nicht gefunden") from ex
-
     def get_haus_by_modbus_server_id(self, modbus_server_id: int) -> Haus:
         assert self.lowest_haus_nummer is not None
 

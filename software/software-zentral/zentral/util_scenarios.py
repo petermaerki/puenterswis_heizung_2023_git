@@ -374,7 +374,7 @@ class ScenarioSetLogLevel(ScenarioBase):
 
 
 class ActionTimerEnum(enum.StrEnum):
-    ANHEBUNG = "anhebung"
+    LAST = "last"
     PUMPE_PWM = "pumpe_pwm"
     PUMPE_AUS_ZU_KALT = "pumpe_aus_zu_kalt"
     BRENNER_MODULATION_SOLL = "brenner_modulation_soll"
@@ -382,7 +382,7 @@ class ActionTimerEnum(enum.StrEnum):
 
 @dataclasses.dataclass
 class ScenarioActionTimerTimeOver(ScenarioBase):
-    actiontimer: ActionTimerEnum = ActionTimerEnum.ANHEBUNG
+    actiontimer: ActionTimerEnum = ActionTimerEnum.LAST
 
     def action(self, ctx: "Context") -> None:
         """
@@ -394,7 +394,7 @@ class ScenarioActionTimerTimeOver(ScenarioBase):
         logger.info(f"Action: actiontimer={self.actiontimer}")
         controller_master: ControllerMaster = ctx.hsm_zentral.controller_master
         actiontimer: ActionTimer = {
-            ActionTimerEnum.ANHEBUNG: controller_master.handler_anhebung.actiontimer,
+            ActionTimerEnum.LAST: controller_master.handler_last.actiontimer,
             ActionTimerEnum.PUMPE_PWM: controller_master.handler_pumpe._actiontimer_pwm,
             ActionTimerEnum.PUMPE_AUS_ZU_KALT: controller_master.handler_pumpe._actiontimer_pumpe_aus_zu_kalt,
             ActionTimerEnum.BRENNER_MODULATION_SOLL: controller_master.handler_oekofen.modulation_soll.actiontimer,
@@ -446,13 +446,12 @@ class ScenarioOekofenRegister(ScenarioBase):
 class ScenarioOekofenBrennerModulation(ScenarioBase):
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
     modulation: Modulation = Modulation.MEDIUM
-    action_min: BrennerAction = BrennerAction.MODULIEREN
 
     def action(self, ctx: "Context") -> None:
         """
         Predefined method name 'action': Will be called automatically.
         """
-        ctx.hsm_zentral.controller_master.handler_oekofen.modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation, action=self.action_min)
+        ctx.hsm_zentral.controller_master.handler_oekofen.modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation)
 
 
 @dataclasses.dataclass
@@ -463,6 +462,17 @@ class ScenarioZentralDrehschalterManuell(ScenarioBase):
 @dataclasses.dataclass
 class ScenarioZentralSolltemperatur(ScenarioBase):
     solltemperature_Tfv_C: float = 65.0
+
+
+@dataclasses.dataclass
+class ScenarioZentralLastHandler(ScenarioBase):
+    target_valve_open_count: int = 2
+
+    def action(self, ctx: "Context") -> None:
+        """
+        Predefined method name 'action': Will be called automatically.
+        """
+        ctx.hsm_zentral.controller_master.handler_last.target_valve_open_count = self.target_valve_open_count
 
 
 def register_scenarios() -> None:
@@ -480,3 +490,5 @@ def register_scenarios() -> None:
 
 
 register_scenarios()
+
+SCENARIOS.add(ctx=None, scenario=ScenarioInfluxWriteCrazy(duration_s=5 * 60.0))

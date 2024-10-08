@@ -5,7 +5,6 @@ import time
 import typing
 
 from zentral.controller_master import ControllerMaster
-from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 from zentral.util_scenarios import ScenarioMasterValveOpenIterator
 
 if typing.TYPE_CHECKING:
@@ -38,10 +37,6 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
         return self.actual_haus_idx0 >= self.scenario.haeuser_count
 
     def process(self, now_s: float) -> None:
-        hvv = self._process2(now_s=now_s)
-        self.ctx.hsm_zentral.update_hvv(hvv=hvv)
-
-    def _process2(self, now_s: float) -> HauserValveVariante:
         self.handler_pumpe.run_forced()
 
         if time.monotonic() > self.actual_haus_end_s:
@@ -60,18 +55,15 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
             self.actual_haus_idx0 += 1
             self.actual_haus_end_s += self.scenario.duration_haus_s
 
-        hvv = HauserValveVariante(anhebung_prozent=self.TODO_ANHEBUNG_PROZENT)
         if self.actual_haus_idx0 == -1:
             # All valves open
-            for haus_idx0, haus in enumerate(self.ctx.config_etappe.haeuser):
-                hvv.haeuser_valve_to_open.append(haus.config_haus.nummer)
-            return hvv
+            for haus in self.ctx.config_etappe.haeuser:
+                haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = True
+            return
 
         # Close all valves but one
         for haus_idx0, haus in enumerate(self.ctx.config_etappe.haeuser):
-            if haus_idx0 == self.actual_haus_idx0:
-                hvv.haeuser_valve_to_open.append(haus.config_haus.nummer)
-            else:
-                hvv.haeuser_valve_to_close.append(haus.config_haus.nummer)
+            valve_open = haus_idx0 == self.actual_haus_idx0
+            haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
 
-        return hvv
+        return

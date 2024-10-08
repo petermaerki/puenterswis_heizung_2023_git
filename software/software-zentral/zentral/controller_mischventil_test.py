@@ -149,14 +149,14 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
         Tsz4_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tsz4_C
         Tfr_C = ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfr_C
         ctx.hsm_zentral.mischventil_stellwert_100 = ControllerMischventil.calculate_valve_100(stellwert_V=1.0)
-        ctx.hsm_zentral.controller_master.handler_anhebung.mock_solltemperatur_Tfv_C = testparam.Tfv_set_C
+        ctx.hsm_zentral.controller_master.handler_last.mock_solltemperatur_Tfv_C = testparam.Tfv_set_C
         ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = True
 
         p = Plot()
         for now_s in range(30 * 60):
             if True:  # Todo "Set wechsel"
                 if now_s == 1000:
-                    ctx.hsm_zentral.controller_master.handler_anhebung.mock_solltemperatur_Tfv_C = 30.0
+                    ctx.hsm_zentral.controller_master.handler_last.mock_solltemperatur_Tfv_C = 30.0
             ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = True
             ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C = modell_mischventil(
                 Tsz4_C=Tsz4_C,
@@ -168,7 +168,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
                 Tsz4_C=Tsz4_C,
                 Tfr_C=Tfr_C,
                 Tfv_C=ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C,
-                Tfv_set_C=ctx.hsm_zentral.controller_master.handler_anhebung.solltemperatur_Tfv_C,
+                Tfv_set_C=ctx.hsm_zentral.controller_master.handler_last.solltemperatur_Tfv_C,
                 stellwert_100=ctx.hsm_zentral.mischventil_stellwert_100,
                 mischventil_actuation_credit_prozent=ctl.credit.mischventil_actuation_credit_100,
             )

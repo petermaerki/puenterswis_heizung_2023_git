@@ -13,7 +13,6 @@ from zentral.controller_mischventil import ControllerMischventil, controller_mis
 from zentral.controller_mischventil_simple import ControllerMischventilNone
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_controller_haus_ladung import HaeuserLadung
-from zentral.util_controller_verbrauch_schaltschwelle import HauserValveVariante
 from zentral.util_logger import HsmLoggingLogger
 from zentral.util_modbus_mischventil import MischventilRegisters
 from zentral.util_modbus_oekofen import OekofenRegisters
@@ -104,6 +103,7 @@ class HsmZentral(hsm.HsmMixin):
         None: If not modbus communication!
         """
         self._state_error_last_error_s: float = 0.0
+        self.max_verbrauch_avg_W: float | None = None
 
     @property
     def uptime_s(self) -> float:
@@ -135,9 +135,16 @@ class HsmZentral(hsm.HsmMixin):
             return False
         return v < 0.0
 
+    def update_max_verbrauch_avg_W(self) -> None:
+        self.max_verbrauch_avg_W = 0.0
+        for haus in self.ctx.config_etappe.haeuser:
+            self.max_verbrauch_avg_W = max(self.max_verbrauch_avg_W, haus.status_haus.hsm_dezentral.verbrauch.verbrauch_avg_W)
+
     @property
-    def haeuser_ladung_minimum_prozent(self) -> float | None:
+    def tuple_haeuser_ladung_minimum_prozent(self) -> tuple[float | None, float | None]:
         """
+        Return (min, avg)
+
         Bestimmt die tiefste Ladung aller Häuser.
         Häuser, die über modbus NICHT erreichbar sind, werden ignoriert.
         return None: Falls keine Modbusdaten des Aussenfühlers bekannt.
@@ -145,7 +152,7 @@ class HsmZentral(hsm.HsmMixin):
         try:
             temperatur_aussen_C = self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
         except MissingModbusDataException:
-            return None
+            return None, None
 
         list_prozent: list[float] = []
         for haus in self.ctx.config_etappe.haeuser:
@@ -156,9 +163,17 @@ class HsmZentral(hsm.HsmMixin):
             list_prozent.append(ladung_minimum.ladung_prozent)
 
         if len(list_prozent) == 0:
-            return None
+            return None, None
 
-        return min(list_prozent)
+        return min(list_prozent), sum(list_prozent) / len(list_prozent)
+
+    @property
+    def haeuser_ladung_minimum_prozent(self) -> float | None:
+        """
+        Bestimmt die durchschnittliche Ladung aller Häuser.
+        """
+        minimum, _avg = self.tuple_haeuser_ladung_minimum_prozent
+        return minimum
 
     @property
     def mischventil_stellwert_V(self) -> float:
@@ -217,23 +232,14 @@ class HsmZentral(hsm.HsmMixin):
 
     def get_haeuser_ladung(self) -> HaeuserLadung:
         haeuser_ladung = HaeuserLadung()
+
         for haus in self.ctx.config_etappe.haeuser:
             haus_ladung = haus.status_haus.hsm_dezentral.haus_ladung
             if haus_ladung is None:
                 continue
             haeuser_ladung.append(haus_ladung)
+
         return haeuser_ladung
-
-    def update_hvv(self, hvv: HauserValveVariante) -> None:
-        def set_valve(nummer: int, valve_open: bool) -> None:
-            haus = self.ctx.config_etappe.get_haus_by_nummer(nummer=nummer)
-            haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
-
-        for nummer in hvv.haeuser_valve_to_open:
-            set_valve(nummer=nummer, valve_open=True)
-
-        for nummer in hvv.haeuser_valve_to_close:
-            set_valve(nummer=nummer, valve_open=False)
 
     def grundzustand_manuell(self) -> None:
         now_s = time.monotonic()
