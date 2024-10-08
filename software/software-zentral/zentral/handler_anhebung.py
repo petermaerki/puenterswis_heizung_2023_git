@@ -12,8 +12,8 @@ class AnhebungAction(ActionBaseEnum):
     anhebung wird aktualisiert alle INTERVAL_ANHEBUNG_S.
     """
 
-    HAUS_PLUS = 12
-    HAUS_MINUS = 12
+    HAUS_PLUS = 5
+    HAUS_MINUS = 5
 
 
 class HandlerAnhebung:

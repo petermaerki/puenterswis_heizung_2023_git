@@ -59,7 +59,7 @@ class LadungBodenheizung(LadungBase):
     heizkurve_heizungswasser_C = (20.0 - self.stimuli.umgebungstemperatur_C) * 10.0 / 28.0 + 25.0  # gemaess Heizkurve VC Engineering
     """
 
-    OFFSET_C = 3.0
+    OFFSET_C = 3.0 + 4.0
     """
     Offset weil der Aussentemperaturfuehler auf einer Betonwand montiert ist und diese Wand durch die Abwaerme der Heizzentrale etwas waermer als die effektive Aussentempeatur ist.
     """

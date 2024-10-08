@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class HandlerSpZentral:
-    AUF_AB_PROZENT_HYSTERESE = 2.0
-    AUF_AB_PROZENT_INCREMENT = 0.5
+    AUF_AB_PROZENT_HYSTERESE = 1.0
+    AUF_AB_PROZENT_INCREMENT = 1.0
 
     def __init__(self) -> None:
         self.last_ladung_prozent: float | None = None
@@ -22,12 +22,12 @@ class HandlerSpZentral:
         if ladung_prozent > self.last_ladung_prozent + self.AUF_AB_PROZENT_HYSTERESE:
             self.last_ladung_prozent += self.AUF_AB_PROZENT_INCREMENT
             self.steigt = True
-            logger.debug(f"ladung_aufwaerts = True, last_ladung_prozent_auf_ab {self.last_ladung_prozent}")
+            logger.info(f"ladung_aufwaerts = True, last_ladung_prozent_auf_ab {self.last_ladung_prozent:.1f}")
 
         if ladung_prozent < self.last_ladung_prozent - self.AUF_AB_PROZENT_HYSTERESE:
             self.last_ladung_prozent -= self.AUF_AB_PROZENT_INCREMENT
             self.steigt = False
-            logger.debug(f"ladung_aufwaerts = False, last_ladung_prozent {self.last_ladung_prozent}")
+            logger.info(f"ladung_aufwaerts = False, last_ladung_prozent {self.last_ladung_prozent}")
 
     @property
     def sinkt(self) -> bool:
