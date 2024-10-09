@@ -202,8 +202,11 @@ class OekofenRegisters:
     def verfuegbar(self, brenner_idx1: int) -> bool:
         return (self.plant_mode() is PlantMode.AUTO) and (self.fa_mode(brenner_idx1=brenner_idx1) is FA_Mode.AUTO)
 
-    def brennt(self, brenner_idx1: int) -> bool:
+    def zuendet_oder_brennt(self, brenner_idx1: int) -> bool:
         return FA_State.IGNITION <= self.fa_state(brenner_idx1=brenner_idx1) <= FA_State.RUN_ON_TIME
+
+    def brennt(self, brenner_idx1: int) -> bool:
+        return self.fa_state(brenner_idx1=brenner_idx1) == FA_State.RUN_ON_TIME
 
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")
@@ -226,6 +229,7 @@ class OekofenRegisters:
                 fa_temp_C=self.fa_temp_C(brenner_idx1),
                 fa_runtime_h=self.fa_runtime_h(brenner_idx1),
                 verfuegbar=self.verfuegbar(brenner_idx1),
+                zuendet_oder_brennt=self.zuendet_oder_brennt(brenner_idx1),
                 brennt=self.brennt(brenner_idx1),
             )
 

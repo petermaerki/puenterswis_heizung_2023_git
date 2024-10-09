@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import OEKOFEN_CONTROL_ON, ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
+from zentral.constants import ENABLE_OEKOFEN_LOGFILE, OEKOFEN_CONTROL_ON, ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -61,8 +61,8 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self.context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
-        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200))
+        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600, retries=0))
+        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200, retries=10))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
         self._watchdog_modbus_oekofen = Watchdog(max_inactivity_s=MODBUS_OEKOFEN_MAX_INACTIVITY_S)
 
@@ -73,8 +73,8 @@ class ModbusCommunication:
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, ModbusAddressOeokofen.OEKOFEN)
 
-    def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
-        return get_modbus_client(n=n, baudrate=baudrate)
+    def _get_modbus_client(self, n: int, baudrate: int, retries: int) -> AsyncModbusSerialClient:
+        return get_modbus_client(n=n, baudrate=baudrate, retries=retries)
 
     async def connect(self):
         await self._modbus.connect()
@@ -243,7 +243,8 @@ class ModbusCommunication:
         with self._watchdog_modbus_oekofen.activity("oekofen"):
             all_registers = await self.o.all_registers
         modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
-        # modbus_oekofen_registers.append_to_file()
+        if ENABLE_OEKOFEN_LOGFILE:
+            modbus_oekofen_registers.append_to_file()
         self.context.hsm_zentral.modbus_oekofen_registers = modbus_oekofen_registers
         return modbus_oekofen_registers
 

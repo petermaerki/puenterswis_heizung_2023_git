@@ -6,8 +6,26 @@ import typing
 if typing.TYPE_CHECKING:
     from zentral.config_base import Haus
 
-_INDIVIDUELL_MAX_PROZENT = 100.0
-_INDIVIDUELL_MIN_PROZENT = 40.0
+_LADUNG_DEZENTRAL_MAX_PROZENT = 80.0
+"""
+Die folgenden Konstanten haben einen grossen Einfluss. 
+Es geht um die Ladung der dezentralen Speicher wenn ein Brenner brennt und der zentrale Speicher zu warm ist. 
+Jetzt wird Energie in die dezentralen Speicher gepumpt bis die individuelle Ladung der dezentralen Speicher 100% ist.
+Werden die Häuser höher geladen, so steigen die Verluste.
+Mehr Verluste in den dezentralen Speichern weil wärmer.
+Mehr Verluste weil das rücklaufende Wasser von den Speichern wärmer ist und daher der Wirkungsgrad vom Brenner sinkt.
+_LADUNG_DEZENTRAL_MAX_PROZENT kann z.B. von 70.0 bis 110% gewählt werden.
+"""
+
+_INDIVIDUELL_MAX_PROZENT = 100.0 * _LADUNG_DEZENTRAL_MAX_PROZENT
+"""
+Haus mit maximalem Verbrauch: Individuell 100% entspricht so vielen Prozent Ladung.
+"""
+
+_INDIVIDUELL_MIN_PROZENT = 40.0 * _LADUNG_DEZENTRAL_MAX_PROZENT
+"""
+Haus mit mimimalem Verbrauch: Individuell 100% entspricht so vielen Prozent Ladung.
+"""
 
 
 @dataclasses.dataclass(repr=True, frozen=True)

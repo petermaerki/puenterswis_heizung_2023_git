@@ -17,7 +17,7 @@ async def main():
     # async with Context(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname)) as context:
     if True:
         context = Context(config_etappe.create_config_etappe(hostname=raspi_os_config.hostname))
-        modbus_client = get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200)
+        modbus_client = get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200, retries=0)
         await  modbus_client.connect()
         modbus = ModbusWrapper(context=context, modbus_client=modbus_client)
 

@@ -186,8 +186,6 @@ class ControllerMischventil(ControllerMischventilSimple):
 
     def __init__(self, now_s: float) -> None:
         super().__init__(now_s=now_s)
-        # TODO(HandlerPumpe)
-        # self.pumpe_anlaufzeit_mischventil = PumpeAnlaufzeitMischventil()
         self.next_control = NextControl()
         self.credit = Credit(now_s=now_s)
         self.last_stellwert_change_s = now_s
@@ -269,17 +267,8 @@ class ControllerMischventil(ControllerMischventilSimple):
             ctx.hsm_zentral.controller_master.handler_last.mock_solltemperatur_Tfv_C = scenario.solltemperature_Tfv_C
 
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
-        # TODO(HandlerPumpe)
-        # ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = not self.get_pumpe_ein(ctx=ctx, now_s=now_s)
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
-        # TODO(HandlerPumpe)
-        # self.pumpe_anlaufzeit_mischventil.pumpe(
-        #     now_s=now_s,
-        #     ein=not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
-        # )
-        # TODO(HandlerPumpe)
-        # if not self.pumpe_anlaufzeit_mischventil.pumpe_und_stabil(now_s=now_s):
         if not self._pumpe_und_stabil(ctx=ctx, now_s=now_s):
             return
 

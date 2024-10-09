@@ -37,72 +37,6 @@ class ControllerMaster:
 
         self._process(now_s=now_s)
 
-    def _process_obsolete(self, now_s: float) -> None:
-        ctx = self.ctx
-        pcbs = ctx.modbus_communication.pcbs_dezentral_heizzentrale
-        sp_ladung_zentral = pcbs.sp_ladung_zentral
-        self.handler_sp_zentral.set(ladung_prozent=pcbs._sp_ladung_zentral.ladung_prozent)
-
-        betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
-        self.handler_oekofen.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
-
-        if not ctx.hsm_zentral.is_drehschalterauto_regeln():
-            # Manual Mode
-            # TODO: Aufstarten... Flash nicht zu oft schreiben
-            self.handler_oekofen.set_brenner_modulation_manual_max()
-
-        # Falls alle valve zu sind, Modulation auf Minimum
-        all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
-        logger.debug(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
-        if all_valves_closed:
-            logger.debug("set_modulation_min() weil alle valves closed")
-            self.handler_oekofen.set_modulation_min()
-
-        # Fernleitungspumpe Modulieren
-        if sp_ladung_zentral > SpLadung.LEVEL1:
-            self.handler_pumpe.tick(now_s=now_s)
-        else:
-            self.handler_pumpe.tick_pwm(now_s=now_s)
-
-        # Last hinunter
-        if pcbs._sp_ladung_zentral.ladung_prozent < 50.0:
-            if self.handler_sp_zentral.sinkt:
-                self.handler_last.minus_1_valve(now_s=now_s, haeuser_ladung=self.ctx.hsm_zentral.get_haeuser_ladung())
-
-        #  Last hinauf
-        if pcbs._sp_ladung_zentral.ladung_prozent > 85.0:
-            if self.handler_oekofen.anzahl_brenner_on > 0:
-                if self.handler_sp_zentral._steigt:
-                    haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
-                    if haeuser_ladung.valve_open_count < 5:
-                        self.handler_last.plus_1_valve(now_s=now_s, haeuser_ladung=haeuser_ladung)
-
-        # Brenner zünden
-        if pcbs._sp_ladung_zentral.ladung_prozent < 40.0:
-            if self.handler_oekofen.erster_brenner_zuenden():
-                return
-
-        # Modulation erhöhen
-        if pcbs._sp_ladung_zentral.ladung_prozent < 40.0:
-            if not all_valves_closed:
-                if self.handler_sp_zentral.sinkt:
-                    if not self.handler_oekofen.modulation_erhoehen():
-                        if ctx.hsm_zentral.haeuser_ladung_minimum_prozent < 0.0:
-                            # Todo: if letzte Massnahme länger als 40 min her oder if erster Brenner seit länger als 30 min auf 100%
-                            if sp_ladung_zentral == SpLadung.LEVEL0:
-                                if self.handler_oekofen.brenner_zuenden():
-                                    return
-
-        # Modulation reduzieren
-        if pcbs._sp_ladung_zentral.ladung_prozent > 75.0:
-            if self.handler_sp_zentral.steigt:
-                if self.handler_oekofen.modulation_reduzieren():
-                    return
-
-        #  Brenner löschen
-        if sp_ladung_zentral == SpLadung.LEVEL4:
-            self.handler_oekofen.brenner_loeschen()
-
     def _action_in_progress(self) -> bool:
         if self.handler_oekofen.modulation_soll.actiontimer.is_over:
             if self.handler_last.actiontimer.is_over:
@@ -134,6 +68,9 @@ class ControllerMaster:
             self.handler_pumpe.tick(now_s=now_s)
         else:
             self.handler_pumpe.tick_pwm(now_s=now_s)
+
+        # Brenner mit Störung
+        self.handler_oekofen.handle_brenner_mit_stoerung()
 
         # Brenner loeschen
         if sp_ladung_zentral == SpLadung.LEVEL4:

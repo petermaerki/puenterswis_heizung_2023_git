@@ -44,6 +44,7 @@ class BrennerZustand:
     fa_temp_C: float
     fa_runtime_h: float
     verfuegbar: bool = True
+    zuendet_oder_brennt: bool = False
     brennt: bool = False
 
 
@@ -233,7 +234,7 @@ class ModulationSoll:
                 brenner.set_modulation(modulation=Modulation.OFF)
                 continue
 
-            modulation = Modulation.MIN if brenner_zustand.brennt else Modulation.OFF
+            modulation = Modulation.MIN if brenner_zustand.zuendet_oder_brennt else Modulation.OFF
             brenner.set_modulation(modulation=modulation)
 
     def list_brenner(self, brenner_zustaende: BrennerZustaende) -> ListBrenner:

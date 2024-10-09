@@ -89,6 +89,18 @@ class HandlerOekofen:
             return self.brenner_loeschen()
         return False
 
+    def handle_brenner_mit_stoerung(self) -> bool:
+        if self.modulation_soll.actiontimer.action == BrennerAction.ZUENDEN:
+            # Während dem Zünden dürfen "Fehler" auftreten
+            return
+
+        # Alle Brenner die nicht brennen, also z, B. zünden oder Störung,
+        # sollen mit dem Relais gesperrt sein.
+        # Kein Action Timeout auslösen!
+        for idx0, brenner_zustand in enumerate(self.brenner_zustaende):
+            if not brenner_zustand.brennt:
+                self.modulation_soll.zwei_brenner[idx0].loeschen()
+
     def brenner_zuenden(self) -> bool:
         ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
         self._update_relais()

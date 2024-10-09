@@ -15,6 +15,10 @@ OEKOFEN_CONTROL_ON = True
 In der Testphase, relais nicht schalten
 """
 
+ENABLE_OEKOFEN_LOGFILE = True
+"""
+Write a lot to the sdcard.
+"""
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
