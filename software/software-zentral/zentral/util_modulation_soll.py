@@ -266,10 +266,10 @@ class ModulationSoll:
         """
         assert isinstance(brenner_num, BrennerNum)
         assert isinstance(modulation, Modulation)
-        # assert isinstance(action, BrennerAction)
 
         brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
+        self.actiontimer.action = BrennerAction.ZUENDEN
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
 
     def set_modulation_min(self) -> None:

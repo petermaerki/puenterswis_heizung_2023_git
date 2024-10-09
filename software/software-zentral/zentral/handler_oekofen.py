@@ -99,7 +99,12 @@ class HandlerOekofen:
         # Kein Action Timeout auslösen!
         for idx0, brenner_zustand in enumerate(self.brenner_zustaende):
             if not brenner_zustand.brennt:
-                self.modulation_soll.zwei_brenner[idx0].loeschen()
+                brenner = self.modulation_soll.zwei_brenner[idx0]
+                modulation_before = brenner.modulation
+                brenner.loeschen()
+                modulation_after = brenner.modulation
+                if modulation_before != modulation_after:
+                    logger.info(f"handle_brenner_mit_stoerung(): {brenner.label}: brenner_zustand={brenner_zustand} modulation={modulation_before.name}->{modulation_after.name}")
 
     def brenner_zuenden(self) -> bool:
         ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)

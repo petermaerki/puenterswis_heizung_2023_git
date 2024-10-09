@@ -92,7 +92,13 @@ class FA_State(enum.IntEnum):
     IGNITION = 2
     SOFTSTART = 3
     HEATING_FULL_POWER = 4
+    """
+    Im Touch Screen: Leistungsbrand
+    """
     RUN_ON_TIME = 5
+    """
+    Im Touch Screen: "Nachlauf"
+    """
     OFF = 6
     SUCTION = 7
     ASH = 8
@@ -206,7 +212,7 @@ class OekofenRegisters:
         return FA_State.IGNITION <= self.fa_state(brenner_idx1=brenner_idx1) <= FA_State.RUN_ON_TIME
 
     def brennt(self, brenner_idx1: int) -> bool:
-        return self.fa_state(brenner_idx1=brenner_idx1) == FA_State.HEATING_FULL_POWER
+        return self.fa_state(brenner_idx1=brenner_idx1) in (FA_State.HEATING_FULL_POWER, FA_State.RUN_ON_TIME)
 
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")
