@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from hsm.hsm import HsmLogger, HsmMixin, HsmState
+from hsm.hsm import HsmLogger, HsmMixin, HsmState  # type: ignore[import]
 
 from program.constants import DIRECTORY_LOG
 
@@ -40,9 +40,7 @@ class ZeroLogger(HsmLogger):
         text_entry_exit = "==>"
         if len(list_entry_exit) > 0:
             text_entry_exit = f"==>{'==>'.join(list_entry_exit)}==>"
-        logger.info(
-            f"{self._prefix}: {before.full_name} {text_entry_exit} {after.full_name}{why_text}"
-        )
+        logger.info(f"{self._prefix}: {before.full_name} {text_entry_exit} {after.full_name}{why_text}")
 
 
 class ColorFormatter(logging.Formatter):
@@ -89,9 +87,7 @@ def initialize_logger() -> None:
     ch.setLevel(level=logging.INFO)
 
     # create formatter
-    formatter = ColorFormatter(
-        fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s"
-    )
+    formatter = ColorFormatter(fmt="%(filename)s:%(lineno)s - %(levelname)s - %(message)s")
 
     # add formatter to ch
     ch.setFormatter(formatter)

@@ -1,7 +1,7 @@
 import time
 
 import numpy as np
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator  # type: ignore[import]
 
 
 class InterpolatorInput:

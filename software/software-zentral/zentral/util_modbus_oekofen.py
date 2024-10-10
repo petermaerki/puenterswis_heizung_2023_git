@@ -136,7 +136,6 @@ class OekofenRegisters:
             now = time.time()
             time_ = time.strftime(_TIMESTAMP_FORMAT, time.localtime(now))
             values = format(now, "0.0f"), time_, *[self.attr_str(reg.name) for reg in REG_DEFS]
-
             f.write(" ".join(values))
             f.write("\n")
 
@@ -149,7 +148,7 @@ class OekofenRegisters:
             return self._read_16bit_float(reg_def.address, factor=0.1)
         return self._read_16bit_int(reg_def.address)
 
-    def attr_str(self, attribute_name: str) -> int | float:
+    def attr_str(self, attribute_name: str) -> str:
         v = self._attr_value(attribute_name=attribute_name)
         if isinstance(v, float):
             return format(v, "2.1f")
@@ -189,21 +188,27 @@ class OekofenRegisters:
         return self._attr_value(attribute_name=attribute_name)
 
     def modulation_percent(self, brenner_idx1: int) -> int:
-        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODULATION_PERCENT")
+        v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODULATION_PERCENT")
+        assert isinstance(v, int)
+        return v
 
     def fa_state(self, brenner_idx1: int) -> FA_State:
         v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_STATE")
+        assert isinstance(v, int)
         return FA_State(v)
 
     def fa_mode(self, brenner_idx1: int) -> FA_Mode:
         v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_MODE")
+        assert isinstance(v, int)
         return FA_Mode(v)
 
     def fa_temp_C(self, brenner_idx1: int) -> float:
         return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_TEMP_C")
 
     def fa_runtime_h(self, brenner_idx1: int) -> int:
-        return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_RUNTIME_H")
+        v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_RUNTIME_H")
+        assert isinstance(v, int)
+        return v
 
     def verfuegbar(self, brenner_idx1: int) -> bool:
         return (self.plant_mode() is PlantMode.AUTO) and (self.fa_mode(brenner_idx1=brenner_idx1) is FA_Mode.AUTO)
@@ -216,6 +221,7 @@ class OekofenRegisters:
 
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")
+        assert isinstance(v, int)
         return PlantMode(v)
 
     def uw_temp_on_C(self, brenner_idx1: int) -> float:

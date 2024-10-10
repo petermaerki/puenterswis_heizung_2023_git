@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from hsm import hsm
+from hsm import hsm  # type: ignore[import]
 
 from program.hsm_signal import LegionellenLadungSignal, SignalBase, TimeSignal
 from program.util_logger import ZeroLogger

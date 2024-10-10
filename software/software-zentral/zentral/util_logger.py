@@ -4,7 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from typing import List
 
-from hsm.hsm import HsmLoggerProtocol, HsmState
+from hsm.hsm import HsmLoggerProtocol, HsmState  # type: ignore[import]
 
 from zentral.constants import DIRECTORY_LOG
 

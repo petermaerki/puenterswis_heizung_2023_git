@@ -1,24 +1,28 @@
-from enum import Enum, StrEnum, auto
+from __future__ import annotations
+
+import enum
 
 
-def ensure_enum(enum_type: Enum, name: str | Enum) -> str:
+def ensure_enum(enum_type: enum.EnumType, name: str | enum.Enum) -> str:
     """
     A enum value is expected.
     However, if a string was given, it will be converted into the enum name.
     If the string is not a valid enum name, a exception will show all valid values.
     """
     if isinstance(name, enum_type):
-        return name
+        assert isinstance(name, enum.Enum)
+        return name.name
     assert isinstance(name, str)
     try:
         return enum_type[name]
     except KeyError as e:
-        valid_values = sorted([e.name for e in enum_type])
+        names = [i.name for i in enum_type]  # type: ignore
+        valid_values = sorted(names)
         valid_values_text = " ".join(valid_values)
         raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}") from e
 
 
-class SpPosition(StrEnum):
+class SpPosition(enum.StrEnum):
     UNUSED = "unused"
     "Klemmenpaar DS_0, DS_1"
     UNTEN = "unten"
@@ -53,31 +57,31 @@ class SpPosition(StrEnum):
         return f"'{self.name}'"
 
 
-class DS18Index(StrEnum):
+class DS18Index(enum.StrEnum):
     """
     This corresponds to sensor numbering on the Dezentral PCB.
     """
 
-    UNUSED_A = auto()
-    UNUSED_B = auto()
-    UNTEN_A = auto()
-    UNTEN_B = auto()
-    MITTE_A = auto()
-    MITTE_B = auto()
-    OBEN_A = auto()
-    OBEN_B = auto()
+    UNUSED_A = enum.auto()
+    UNUSED_B = enum.auto()
+    UNTEN_A = enum.auto()
+    UNTEN_B = enum.auto()
+    MITTE_A = enum.auto()
+    MITTE_B = enum.auto()
+    OBEN_A = enum.auto()
+    OBEN_B = enum.auto()
 
     @property
     def index2(self) -> int:
         return {
-            self.UNUSED_A: 0,
-            self.UNUSED_B: 1,
-            self.UNTEN_A: 2,
-            self.UNTEN_B: 3,
-            self.MITTE_A: 4,
-            self.MITTE_B: 5,
-            self.OBEN_A: 6,
-            self.OBEN_B: 7,
+            DS18Index.UNUSED_A: 0,
+            DS18Index.UNUSED_B: 1,
+            DS18Index.UNTEN_A: 2,
+            DS18Index.UNTEN_B: 3,
+            DS18Index.MITTE_A: 4,
+            DS18Index.MITTE_B: 5,
+            DS18Index.OBEN_A: 6,
+            DS18Index.OBEN_B: 7,
         }[self]
 
     def __repr__(self) -> str:

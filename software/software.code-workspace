@@ -32,7 +32,8 @@
 				"command": "echo DONE",
 				"problemMatcher": [],
 				"dependsOn": [
-					"ruff",
+					"ruff check",
+					"ruff format",
 					"mypy",
 					"pylint",
 				],
@@ -42,10 +43,26 @@
 				}
 			},
 			{
-				"label": "ruff",
+				"label": "ruff check",
 				"type": "shell",
 				// "command": "ruff check --config pyproject.toml --fix || true",
 				"command": "ruff check zentral --fix || true",
+				"options": {
+					"cwd": "${workspaceFolder:zentral}",
+					"env": {
+						"PYTHONPATH": "${workspaceFolder:zentral}${workspaceFolder:zero}:"
+					}
+				},
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			},
+			{
+				"label": "ruff format",
+				"type": "shell",
+				"command": "ruff format zentral || true",
 				"options": {
 					"cwd": "${workspaceFolder:zentral}",
 					"env": {
@@ -117,6 +134,7 @@
 				"console": "integratedTerminal",
 				"args": [
 					"check",
+					"format",
 					"--config=${workspaceFolder:repo}/.ruff.toml",
 					"--fix",
 					"${workspaceFolder:zentral}",

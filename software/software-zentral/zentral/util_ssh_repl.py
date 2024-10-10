@@ -48,7 +48,7 @@ async def create(repl_globals: dict, hausnummern: List[int], ssh_port: int = 802
         def configure(python_repl: repl.PythonRepl) -> None:
             python_repl.confirm_exit = False
 
-        await repl.embed(
+        await repl.embed(  # type: ignore[func-returns-value]
             return_asyncio_coroutine=True,
             configure=configure,
             globals=global_dict,

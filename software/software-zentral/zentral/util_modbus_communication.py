@@ -21,7 +21,7 @@ from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoRespons
 from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
-    from context import Context
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class Drehschalter:
 
     REQUIRED_NO_RESPONSES = 10
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._no_response_counter = 0
 
     def ok(self) -> None:
@@ -69,7 +69,7 @@ class ModbusCommunication:
         self.m = Mischventil(self._modbus, ModbusAddressHaeuser.BELIMO)
         self.r = ModbusRelais(self._modbus, ModbusAddressHaeuser.RELAIS)
         self.a = Dac(self._modbus, ModbusAddressHaeuser.DAC)
-        self.pcbs_dezentral_heizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
+        self.pcbs_dezentral_heizzentrale: PcbsDezentralHeizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, ModbusAddressOeokofen.OEKOFEN)
 
@@ -188,7 +188,7 @@ class ModbusCommunication:
                     logger.debug(f"Modbus start ueberwachung: Brenner 1 sperren={relais.relais_2_brenner1_sperren}, anforderung={relais.relais_3_brenner1_anforderung}")
                     logger.debug(f"Modbus start ueberwachung: Brenner 2 sperren={relais.relais_4_brenner2_sperren}, anforderung={relais.relais_5_brenner2_anforderung}")
                     await self.r.set(
-                        list_gpio=(
+                        list_gpio=[
                             relais_0_mischventil_automatik,
                             relais.relais_1_elektro_notheizung if OEKOFEN_CONTROL_ON else False,
                             relais.relais_2_brenner1_sperren if OEKOFEN_CONTROL_ON else False,
@@ -197,7 +197,7 @@ class ModbusCommunication:
                             relais.relais_5_brenner2_anforderung if OEKOFEN_CONTROL_ON else False,
                             relais_6_pumpe_gesperrt,
                             relais.relais_7_automatik,
-                        )
+                        ]
                     )
 
                 self.drehschalter.ok()
@@ -231,6 +231,7 @@ class ModbusCommunication:
         for brenner in zwei_brenner:
             if brenner.is_off:
                 continue
+            assert modbus_oekofen_registers is not None
             uw_temp_on_C = modbus_oekofen_registers.uw_temp_on_C(brenner_idx1=brenner.idx0 + 1)
             regel_temp_soll_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=uw_temp_on_C)
             regel_temp_ist_C = modbus_oekofen_registers.regel_temp_C(brenner_idx1=brenner.idx0 + 1)

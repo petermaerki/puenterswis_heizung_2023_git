@@ -27,7 +27,14 @@ def test_sp_ladung_dezentral():
         (70.0, 70.0, 70.0, 70.0, 100, 104.28),
     ),
 )
-def test_sp_ladung(Tsz1_C: float, Tsz2_C: float, Tsz3_C: float, Tsz4_C: float, expected_lower_level_prozent: int, expected_ladung_prozent: float):
+def test_sp_ladung(
+    Tsz1_C: float,
+    Tsz2_C: float,
+    Tsz3_C: float,
+    Tsz4_C: float,
+    expected_lower_level_prozent: int,
+    expected_ladung_prozent: float,
+):  # pylint: disable=too-many-positional-arguments
     ladung = SpLadungZentral(Tsz1_C=Tsz1_C, Tsz2_C=Tsz2_C, Tsz3_C=Tsz3_C, Tsz4_C=Tsz4_C)
     assert ladung.ladung.lower_level_prozent == expected_lower_level_prozent
     assert abs(ladung.ladung_prozent - expected_ladung_prozent) < 0.1, (ladung.ladung_prozent, expected_ladung_prozent)

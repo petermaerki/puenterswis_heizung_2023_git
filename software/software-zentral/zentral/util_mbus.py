@@ -9,8 +9,8 @@ import time
 import typing
 from decimal import Decimal
 
-import meterbus
-import serial
+import meterbus  # type: ignore[import]
+import serial  # type: ignore[import]
 from meterbus import MeasureUnit, VIFUnit
 
 logger = logging.getLogger(__name__)
@@ -39,10 +39,12 @@ class MbusMeasurementSpec:
 
     @property
     def expected_type_str(self) -> str:
+        assert self.expected_type is not None
         return self._enum_as_str(self.expected_type)
 
     @property
     def expected_unit_str(self) -> str:
+        assert self.expected_unit is not None
         return self._enum_as_str(self.expected_unit)
 
     @staticmethod
@@ -340,6 +342,7 @@ class MBusMeasurement:
             value = record["value"]
             assert type(value) is measurement.expected_python_type
             # print(f"*** {measurement.tag}: {value}")
+            assert measurement.tag is not None
             vargs[measurement.tag] = float(value)
 
         return MBusMeasurement(time_s=time_s, relais_valve_open=relais_valve_open, **vargs)

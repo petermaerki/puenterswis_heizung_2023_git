@@ -63,7 +63,7 @@ def brenner_uebersicht_prozent(registers: OekofenRegisters | None) -> tuple[int,
             # ein, Brenner startet
             return EnumBrennerUebersicht.BRENNER_STARTET + fa_state
 
-        logger.info(f"FA1_TEMP_C={registers.FA1_TEMP_C}")
+        logger.info(f"FA1_TEMP_C={registers.FA1_TEMP_C}")  # type: ignore[attr-defined]
         logger.warning(f"Programming error: {modulation=}, {fa_mode}, {fa_state}")
         return EnumBrennerUebersicht.PROGRAMMIERFEHLER
 

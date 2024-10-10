@@ -1,6 +1,6 @@
 import logging
 
-from mp.util_serial import FindArguments, SerialPortNotFoundException, find_serial_port
+from mp import util_serial  # type: ignore[import]
 from pymodbus import Framer
 from pymodbus.client import AsyncModbusSerialClient
 
@@ -34,13 +34,13 @@ def get_serial_port2(n: int):
     """
     for args in (
         # Waveshare "USB TO 4CH RS485"
-        FindArguments(vid=0x1A86, pid=0x55D5, n=n),
+        util_serial.FindArguments(vid=0x1A86, pid=0x55D5, n=n),
         # Waveshare "USB TO RS485"
-        FindArguments(vid=0x0403, pid=0x6001, n=0),
+        util_serial.FindArguments(vid=0x0403, pid=0x6001, n=0),
     ):
         try:
-            return find_serial_port(args)
-        except SerialPortNotFoundException:
+            return util_serial.find_serial_port(args)
+        except util_serial.SerialPortNotFoundException:
             continue
     raise AttributeError("No Modbus USB found!")
 

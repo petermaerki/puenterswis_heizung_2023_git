@@ -48,7 +48,7 @@ class Gpio:
         print(f"  returncode={proc.returncode}")
         print(f"  stdout={proc.stdout!s}")
         print(f"  stderr={proc.stderr!s}")
-        raise Exception(f"{cmd}: {proc.returncode}: {proc.stderr}")
+        raise Exception(f"{cmd}: {proc.returncode}: {proc.stderr!s}")
 
     def set_value(self, on: bool) -> None:
         if not self.is_raspberry:
@@ -65,6 +65,6 @@ class Gpio:
 
 
 class ScopeTrigger:
-    def __init__(self):
+    def __init__(self) -> None:
         self.modbus_error = Gpio("20")
         self.modbus_no_response = Gpio("21")

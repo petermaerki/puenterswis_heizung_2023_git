@@ -16,7 +16,7 @@ initialize_logger()
 
 
 class Globals:
-    def __init__(self):
+    def __init__(self) -> None:
         self.ctx: Context | None = None
 
 
@@ -45,7 +45,7 @@ APP = FastAPI(lifespan=lifespan)
 
 for cls_scenario in SCENARIO_CLASSES:
 
-    async def f(scenario: cls_scenario = Depends()):  # pylint: disable=cell-var-from-loop
+    async def f(scenario: cls_scenario = Depends()):  # type: ignore # pylint: disable=cell-var-from-loop
         assert _GLOBALS.ctx is not None
         SCENARIOS.add(ctx=_GLOBALS.ctx, scenario=scenario)
         return {"result": repr(scenario)}

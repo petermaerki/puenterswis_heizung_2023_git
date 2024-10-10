@@ -90,7 +90,7 @@ class HandlerOekofen:
             return self.brenner_loeschen()
         return False
 
-    def handle_brenner_mit_stoerung(self) -> bool:
+    def handle_brenner_mit_stoerung(self) -> None:
         if self.modulation_soll.actiontimer.action == BrennerAction.ZUENDEN:
             # Während dem Zünden dürfen "Fehler" auftreten
             return

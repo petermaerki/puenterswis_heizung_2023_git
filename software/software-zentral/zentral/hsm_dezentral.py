@@ -2,7 +2,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-from hsm import hsm
+from hsm import hsm  # type: ignore[import]
 from micropython.portable_modbus_registers import GpioBits
 
 from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN
@@ -85,6 +85,7 @@ class HsmDezentral(hsm.HsmMixin):
             temperatur_aussen_C=TaussenU_C,
         )
 
+        assert self.verbrauch.verbrauch_avg_W is not None
         return HausLadung(
             haus=self.haus,
             verbrauch_avg_W=max(0.0, self.verbrauch.verbrauch_avg_W),
@@ -107,6 +108,7 @@ class HsmDezentral(hsm.HsmMixin):
         """
         if self.modbus_iregs_all is None:
             return None
+        assert self.modbus_iregs_all.sp_temperatur is not None
         return self.modbus_iregs_all.sp_temperatur.energie_absolut_J
 
     @property

@@ -42,6 +42,7 @@ class ConfigHaus:
 
     @property
     def haus_idx0(self) -> int:
+        assert self.etappe.lowest_haus_nummer is not None
         idx0 = self.nummer - self.etappe.lowest_haus_nummer
         assert idx0 >= 0
         return idx0
@@ -134,7 +135,7 @@ class ConfigEtappe:
     def append_haus(self, haus: Haus):
         assert self.lowest_haus_nummer is None
         self.dict_haeuser[haus.config_haus.nummer] = haus
-        self.haus_enum = IntEnum(
+        self.haus_enum = IntEnum(  # type: ignore[misc]
             "haus_enum",
             {f"HAUS_{h.config_haus.nummer}": h.config_haus.nummer for h in self.dict_haeuser.values()},
         )

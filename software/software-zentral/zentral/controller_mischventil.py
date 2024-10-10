@@ -81,7 +81,7 @@ class PumpeAnlaufzeitMischventil:
     Siehe 20240914a_messung_totzeit.ods / log
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.pumpe_start_s: float = 0.0
         self.last_pumpe_ein = False
 
@@ -129,7 +129,7 @@ class NextControl:
     Siehe 20240914a_messung_totzeit.ods / log
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.next_s = 0.0
 
     def wait(self, now_s: float) -> bool:
@@ -151,7 +151,6 @@ class NextControl:
         self.next_s += add_s
 
 
-# TODO: Obsolete?
 class ControllerMischventil(ControllerMischventilSimple):
     _STEILHEIT_MISCHVENTIL_PRO_V = 0.25
     """

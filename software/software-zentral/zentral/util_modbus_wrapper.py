@@ -93,7 +93,7 @@ class ModbusWrapper:
                 logger.error(f"{slave_label}: Call SystemExit: {e!r}")
                 raise SystemExit(e) from e
             except ModbusException as e:
-                if "No response received" in e.message:  # pylint: disable=no-member # Instance of 'ModbusException' has no 'message' member
+                if "No response received" in e.message:  # type: ignore[attr-defined]  # pylint: disable=no-member
                     logger.debug(f"{slave_label}: No response: {e!r}")
                     with self._scope_trigger.modbus_no_response:
                         await asyncio.sleep(TIMEOUT_AFTER_MODBUS_NO_RESPONSE_S)

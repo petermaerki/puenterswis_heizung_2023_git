@@ -113,7 +113,7 @@ class ModulationBrenner:
         self.actiontimer_error.cancel()
 
     @property
-    def is_error_timer_over(self) -> None:
+    def is_error_timer_over(self) -> bool:
         return self.actiontimer_error.is_over
 
     def set_max(self) -> None:
@@ -190,6 +190,7 @@ class ModulationBrenner:
 
 class ZweiterBrennerSperrzeitAction(ActionBaseEnum):
     ZUENDEN = 90
+
 
 class BrennerAction(ActionBaseEnum):
     ZUENDEN = 40
@@ -309,7 +310,6 @@ class ModulationSoll:
                 brenner.set_modulation(modulation=Modulation.MIN)
                 self._log_action(brenner=brenner, reason="Absenken auf MIN, da kein Haus Enerige benötigt.")
 
-
     def modulation_erhoehen(self, brenner_zustaende: BrennerZustaende) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
@@ -356,8 +356,6 @@ class ModulationSoll:
             # We have to wait for the previous action to be finished
             return False
 
-        
-
         list_brenner = self.list_brenner(brenner_zustaende).is_over_min()
         try:
             brenner = list_brenner.pop(-1)
@@ -374,8 +372,6 @@ class ModulationSoll:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
-
-        
 
         list_brenner = self.list_brenner(brenner_zustaende).on()
         try:

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from zentral.util_matplotlib import matplot_reset
-from zentral.util_oekofen_ladung import InterpolatorInput, Interpolatoren
+from zentral.util_oekofen_ladung import Interpolatoren, InterpolatorInput
 
 
 def plot1(t: Interpolatoren) -> None:
@@ -42,7 +42,17 @@ def plot2(interpolator_input: InterpolatorInput) -> None:
     plt.xlabel("TPM_C")
     plt.ylabel("TPO_C")
     plt.plot([0, 100], [0, 100], color="red", linewidth=1)
-    plt.fill_between(x=np.linspace(0, 100, 500), y1=0, y2=np.linspace(0, 100, 500), where=(np.linspace(0, 100, 500) <= np.linspace(0, 100, 500)), facecolor="none", hatch=("\\"), edgecolor="red", alpha=1, zorder=4)
+    plt.fill_between(
+        x=np.linspace(0, 100, 500),
+        y1=0,
+        y2=np.linspace(0, 100, 500),
+        where=(np.linspace(0, 100, 500) <= np.linspace(0, 100, 500)),  # type: ignore
+        facecolor="none",
+        hatch=("\\"),
+        edgecolor="red",
+        alpha=1,
+        zorder=4,
+    )
     plt.show()
     matplot_reset()
 

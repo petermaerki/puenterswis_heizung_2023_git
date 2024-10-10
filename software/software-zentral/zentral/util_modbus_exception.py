@@ -6,7 +6,7 @@ import typing
 from contextlib import asynccontextmanager
 
 if typing.TYPE_CHECKING:
-    from context import Context
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 

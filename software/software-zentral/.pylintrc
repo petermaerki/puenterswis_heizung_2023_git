@@ -426,6 +426,8 @@ confidence=HIGH,
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
+
+# too-many-positional-arguments,
 disable=bad-inline-option,
         broad-exception-caught,
         broad-exception-raised,
@@ -454,7 +456,6 @@ disable=bad-inline-option,
         too-many-branches,
         too-many-instance-attributes,
         too-many-locals,
-        too-many-positional-arguments,
         too-many-public-methods,
         too-many-return-statements,
         too-many-statements,

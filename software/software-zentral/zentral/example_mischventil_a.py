@@ -9,7 +9,7 @@ from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.exceptions import ConnectionException, ModbusIOException
 from pymodbus.payload import BinaryPayloadDecoder
-from serial.tools import list_ports
+from serial.tools import list_ports  # type: ignore[import]
 
 modbus_time_1char_ms = 11 / 9600
 
@@ -109,7 +109,7 @@ class Mischventil:
         )
         return response.registers[0] * factor
 
-    async def _write_16bit(self, address: int, value: float, factor: float) -> float:
+    async def _write_16bit(self, address: int, value: float, factor: float) -> None:
         value_raw = round(value / factor)
         assert 0 <= value_raw < 2**16
         response = await self._modbus.write_registers(

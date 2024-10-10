@@ -6,7 +6,7 @@ import io
 import logging
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, Type, TypeVar
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
 from zentral.util_modulation_soll import BrennerNum, Modulation
@@ -22,6 +22,10 @@ _FUNC_SCENARIO_ADD = "scenario_add"
 
 
 class ScenarioBase(abc.ABC):
+    def __init__(self) -> None:
+        self.duration_s: float
+        self.counter: int
+
     def decrement(self) -> None:
         # pylint: disable=no-member
         # pylint: disable=attribute-defined-outside-init
@@ -66,10 +70,10 @@ TScenario = TypeVar("TScenario", bound=ScenarioBase)
 
 
 class Scenarios:
-    def __init__(self):
+    def __init__(self) -> None:
         self._scenarios: List[ScenarioBase] = []
 
-    def add(self, ctx: "Context", scenario: ScenarioBase) -> None:
+    def add(self, ctx: "Optional[Context]", scenario: ScenarioBase) -> None:
         assert isinstance(scenario, ScenarioBase)
 
         if isinstance(scenario, ScenarioClearScenarios):
@@ -100,7 +104,7 @@ class Scenarios:
         for scenario in self._scenarios:
             if scenario.__class__ is cls_scenario:
                 scenario.decrement()
-                return scenario
+                return scenario  # type: ignore
         return None
 
     def find_and_remove(self, cls_scenario: Type[TScenario]) -> TScenario | None:

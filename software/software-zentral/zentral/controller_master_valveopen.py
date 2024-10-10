@@ -44,11 +44,15 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
             if self.actual_haus_idx0 == -1:
                 # All valves open
                 for haus in self.ctx.config_etappe.haeuser:
-                    self._log(f"All valves open: {haus.influx_tag}: flow_v1_m3h={haus.status_haus.hsm_dezentral.mbus_measurement.flow_v1_m3h:0.5f}")
+                    mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
+                    assert mbus_measurement is not None
+                    self._log(f"All valves open: {haus.influx_tag}: flow_v1_m3h={mbus_measurement.flow_v1_m3h:0.5f}")
             else:
                 try:
                     haus = self.ctx.config_etappe.haeuser[self.actual_haus_idx0]
-                    self._log(f"One valve open: {haus.influx_tag}: flow_v1_m3h={haus.status_haus.hsm_dezentral.mbus_measurement.flow_v1_m3h:0.5f}")
+                    mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
+                    assert mbus_measurement is not None
+                    self._log(f"One valve open: {haus.influx_tag}: flow_v1_m3h={mbus_measurement.flow_v1_m3h:0.5f}")
                 except ImportError:
                     pass
 

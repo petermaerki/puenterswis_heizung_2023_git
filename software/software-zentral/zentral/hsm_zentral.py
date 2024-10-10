@@ -3,7 +3,7 @@ import logging
 import time
 import typing
 
-from hsm import hsm
+from hsm import hsm  # type: ignore[import]
 
 from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_master import ControllerMaster
@@ -138,7 +138,9 @@ class HsmZentral(hsm.HsmMixin):
     def update_max_verbrauch_avg_W(self) -> None:
         self.max_verbrauch_avg_W = 0.0
         for haus in self.ctx.config_etappe.haeuser:
-            self.max_verbrauch_avg_W = max(self.max_verbrauch_avg_W, haus.status_haus.hsm_dezentral.verbrauch.verbrauch_avg_W)
+            verbrauch_avg_W = haus.status_haus.hsm_dezentral.verbrauch.verbrauch_avg_W
+            assert verbrauch_avg_W is not None
+            self.max_verbrauch_avg_W = max(self.max_verbrauch_avg_W, verbrauch_avg_W)
 
     @property
     def tuple_haeuser_ladung_minimum_prozent(self) -> tuple[float | None, float | None]:
@@ -160,6 +162,7 @@ class HsmZentral(hsm.HsmMixin):
             if modbus_iregs_all is None:
                 continue
             ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
+            assert ladung_minimum is not None
             list_prozent.append(ladung_minimum.ladung_prozent)
 
         if len(list_prozent) == 0:
@@ -243,7 +246,7 @@ class HsmZentral(hsm.HsmMixin):
 
     def grundzustand_manuell(self) -> None:
         now_s = time.monotonic()
-        self.controller_mischventil: ControllerMischventilABC = ControllerMischventilNone(now_s=now_s)
+        self.controller_mischventil = ControllerMischventilNone(now_s=now_s)
         self.controller_master = ControllerMasterNone(ctx=self.ctx, now_s=now_s)
         self.relais.relais_0_mischventil_automatik = False
         self.relais.relais_6_pumpe_gesperrt = True

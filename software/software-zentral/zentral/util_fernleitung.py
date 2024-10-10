@@ -53,7 +53,7 @@ class Hausreihe:
         """
         Bonus über alle Segmente bis zur Heizung
         """
-        hausreihe:Hausreihe|None = self
+        hausreihe: Hausreihe | None = self
         _bonus_J = 0.0
         while hausreihe is not None:
             _bonus_J += self._bonus_segment_J(now_s=now_s)
@@ -64,7 +64,7 @@ class Hausreihe:
         """
         Alle Leitungssegment bis zur Heizung als warm markieren
         """
-        hausreihe:Hausreihe|None = self
+        hausreihe: Hausreihe | None = self
         while hausreihe is not None:
             hausreihe._last_hot_s = now_s
             hausreihe = hausreihe.einspeisung
@@ -77,8 +77,8 @@ class Hausreihen(dict[str, Hausreihe]):
             grafana=grafana,
             einspeisung=None,
             wasser_kg=wasser_kg,
-        ) 
- 
+        )
+
     def calculate(self, now_s: float) -> EnergieHausreihe_J:
         return EnergieHausreihe_J({r: r.bonus_J(now_s=now_s) for r in self.values()})
 

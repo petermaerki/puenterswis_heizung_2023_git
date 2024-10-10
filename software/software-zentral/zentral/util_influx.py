@@ -1,11 +1,11 @@
 import asyncio
 import logging
 import time
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
-from hsm import hsm
-from influxdb_client import DeleteApi, WriteOptions
-from influxdb_client.client.influxdb_client import InfluxDBClient
+from hsm import hsm  # type: ignore[import]
+from influxdb_client import DeleteApi, WriteOptions  # type: ignore[import]
+from influxdb_client.client.influxdb_client import InfluxDBClient  # type: ignore[import]
 
 from zentral.config_base import Haus
 from zentral.config_secrets import InfluxSecrets
@@ -51,16 +51,22 @@ class InfluxRecords:
     See https://docs.influxdata.com/influxdb/cloud/reference/glossary/#unix-timestamp
     """
 
-    def __init__(self, haus: Haus = None, ctx: "Context" = None):
-        assert (haus is not None) != (ctx is not None)
-        etappe = ctx.config_etappe if haus is None else haus.config_haus.etappe
-        influx_tag = "zentral" if haus is None else haus.influx_tag
+    def __init__(self, haus: Haus | None = None, ctx: "Optional[Context]" = None):
+        if haus is not None:
+            assert ctx is None
+            etappe = haus.config_haus.etappe
+            influx_tag = haus.influx_tag
+        else:
+            assert ctx is not None
+            etappe = ctx.config_etappe
+            influx_tag = "zentral"
+
         self._dict_tags = {
             "position": influx_tag,  # "haus_08", "zentral"
             "etappe": etappe.tag,  # "puent"
         }
         if haus is not None:
-            self._dict_tags["haus"] = haus.config_haus.nummer
+            self._dict_tags["haus"] = str(haus.config_haus.nummer)
         self._records: List[Dict] = []
 
     def add_fields(self, fields: Dict[str, Union[float, int]]):
@@ -75,7 +81,7 @@ class InfluxRecords:
 
 
 class Influx:
-    def __init__(self):
+    def __init__(self) -> None:
         secrets = InfluxSecrets()
         self._secrets = secrets
         self._client = InfluxDBClient(url=secrets.url, token=secrets.token, org=secrets.org)

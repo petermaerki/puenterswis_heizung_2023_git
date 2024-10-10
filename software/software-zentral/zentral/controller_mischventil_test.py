@@ -45,7 +45,7 @@ class Plot:
         self.Tfv_set_C: list[float] = []
         self.mischventil_actuation_credit_prozent: list[float] = []
 
-    def point(
+    def point(  # pylint: disable=too-many-positional-arguments
         self,
         now_s: float,
         Tsz4_C: float,
@@ -154,7 +154,7 @@ async def run_scenario(testparam: Ttestparam, do_show_plot: bool) -> None:
 
         p = Plot()
         for now_s in range(30 * 60):
-            if True:  # Todo "Set wechsel"
+            if True:
                 if now_s == 1000:
                     ctx.hsm_zentral.controller_master.handler_last.mock_solltemperatur_Tfv_C = 30.0
             ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt = True

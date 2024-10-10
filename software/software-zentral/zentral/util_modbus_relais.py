@@ -13,8 +13,8 @@ class ModbusRelais:
         self._modbus_address = modbus_address
         self._modbus_label = f"Gpio(modbus={self._modbus_address})"
 
-    async def set(self, list_gpio: tuple[bool]) -> None:
-        assert isinstance(list_gpio, (list, tuple))
+    async def set(self, list_gpio: list[bool]) -> None:
+        assert isinstance(list_gpio, list)
         assert len(list_gpio) == self.RELAIS_COUNT
         response = await self._modbus.write_coils(
             slave=self._modbus_address,

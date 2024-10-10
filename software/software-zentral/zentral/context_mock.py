@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, List
+from typing import Any, List, cast
 
 from micropython import util_constants
 from micropython.portable_modbus_registers import EnumModbusRegisters, IregsAll
@@ -20,8 +20,8 @@ MOCK_DURATION_S = 0.1
 
 
 class ModbusMockClient:
-    def __init__(self, context: "ContextMock"):
-        assert isinstance(context, ContextMock)
+    def __init__(self, context: Context):
+        assert isinstance(context, Context)
         self._context = context
 
     def validate_modbus_slave_address(self, slave: int) -> None:
@@ -147,7 +147,8 @@ class ModbusCommunicationMock(ModbusCommunication):
         super().__init__(context=context)
 
     def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
-        return ModbusMockClient(self.context)
+        c = ModbusMockClient(self.context)
+        return cast(AsyncModbusSerialClient, c)
 
     async def connect(self):
         return None

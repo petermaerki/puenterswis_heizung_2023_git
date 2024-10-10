@@ -72,7 +72,7 @@ class Aktoren:
 
 
 class Context:
-    def __init__(self):
+    def __init__(self) -> None:
         self.hsm_ladung = HsmLadung(self)
         self.hsm_jahreszeit = HsmJahreszeit(self)
         self.hsm_pumpe = HsmPumpe(self)
