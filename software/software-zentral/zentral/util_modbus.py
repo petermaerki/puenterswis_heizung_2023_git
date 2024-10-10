@@ -45,7 +45,7 @@ def get_serial_port2(n: int):
     raise AttributeError("No Modbus USB found!")
 
 
-def get_modbus_client(n: int, baudrate: int, retries: int) -> AsyncModbusSerialClient:
+def get_modbus_client(n: int, baudrate: int) -> AsyncModbusSerialClient:
     """
     Return serial.Serial instance, ready to use for RS485.
 
@@ -58,8 +58,6 @@ def get_modbus_client(n: int, baudrate: int, retries: int) -> AsyncModbusSerialC
     assert isinstance(n, int)
     assert n in (0, 1)
     assert isinstance(baudrate, int)
-    assert isinstance(retries, int)
-    assert retries >= 0
     assert baudrate in (9600, 19200)
     port = get_serial_port2(n=n)
 
@@ -81,7 +79,7 @@ def get_modbus_client(n: int, baudrate: int, retries: int) -> AsyncModbusSerialC
         parity="N",
         stopbits=1,
         timeout=MODBUS_TIMEOUT_S,  # :param timeout: Timeout for a request, in seconds.
-        retries=retries,  # :param retries: Max number of retries per request.
+        retries=0,  # :param retries: Max number of retries per request.
         retry_on_empty=0,  # :param retry_on_empty: Retry on empty response.
         broadcast_enable=False,  # :param broadcast_enable: True to treat id 0 as broadcast address.
         reconnect_delay=0.3,  # :param reconnect_delay: Minimum delay in seconds.milliseconds before reconnecting.

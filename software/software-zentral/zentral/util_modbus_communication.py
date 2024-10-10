@@ -13,7 +13,7 @@ from zentral.util_modbus_dac import Dac
 from zentral.util_modbus_exception import exception_handler_and_exit
 from zentral.util_modbus_mischventil import Mischventil, MischventilRegisters
 from zentral.util_modbus_oekofen import Oekofen, OekofenRegisters
-from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbsDezentralHeizzentrale
+from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentral, PcbsDezentralHeizzentrale
 from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_modulation_soll import ListBrenner
@@ -61,8 +61,8 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self.context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600, retries=0))
-        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200, retries=10))
+        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
+        self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200))
         self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
         self._watchdog_modbus_oekofen = Watchdog(max_inactivity_s=MODBUS_OEKOFEN_MAX_INACTIVITY_S)
 
@@ -73,8 +73,8 @@ class ModbusCommunication:
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, ModbusAddressOeokofen.OEKOFEN)
 
-    def _get_modbus_client(self, n: int, baudrate: int, retries: int) -> AsyncModbusSerialClient:
-        return get_modbus_client(n=n, baudrate=baudrate, retries=retries)
+    def _get_modbus_client(self, n: int, baudrate: int) -> AsyncModbusSerialClient:
+        return get_modbus_client(n=n, baudrate=baudrate)
 
     async def connect(self):
         await self._modbus.connect()
@@ -107,7 +107,7 @@ class ModbusCommunication:
         retries = 10
         sleep_s = 2.0
 
-        async def read_pcb(pcb: PcbsDezentralHeizzentrale) -> None:
+        async def read_pcb(pcb: PcbDezentral) -> None:
             for retry in range(retries):
                 try:
                     await pcb.read(modbus=self._modbus)
@@ -240,8 +240,20 @@ class ModbusCommunication:
                     await modbus_oekofen_registers.set_regel_temp_C(oekofen=self.o, brenner_idx1=brenner.idx0 + 1, temp_C=regel_temp_soll_C)
 
     async def read_modbus_oekofen(self) -> OekofenRegisters:
-        with self._watchdog_modbus_oekofen.activity("oekofen"):
-            all_registers = await self.o.all_registers
+        retries = 10
+        sleep_s = 1.0
+
+        async def read_with_retries() -> list[int]:
+            with self._watchdog_modbus_oekofen.activity("oekofen"):
+                for retry in range(retries):
+                    try:
+                        return await self.o.all_registers
+                    except ModbusException as e:
+                        logger.warning(f"Retry {retry+1}({retries}): oekofen: {e}")
+                        await asyncio.sleep(sleep_s)
+            raise SystemExit("Failed to communicate with oekofen!")
+
+        all_registers = await read_with_retries()
         modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
         if ENABLE_OEKOFEN_LOGFILE:
             modbus_oekofen_registers.append_to_file()

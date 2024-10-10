@@ -254,7 +254,7 @@ class Oekofen:
         return self._flash_write_limiter.allowed_to_write_flash(now_s=time.monotonic())
 
     @property
-    async def all_registers(self) -> List[int]:
+    async def all_registers(self) -> list[int]:
         """
         Try to read as many bytes as possible.
         """
