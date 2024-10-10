@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import dataclasses
 from enum import IntEnum
 from typing import Dict, List, Union
 
 from zentral.constants import ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT, HsmZentralStartupMode
 from zentral.hsm_dezentral import HsmDezentral
+from zentral.util_fernleitung import Hausreihe, Hausreihen
 from zentral.util_sp_ladung_dezentral import SpTemperatur
 from zentral.util_uploadinterval import UploadInterval
 
@@ -18,22 +21,6 @@ class StatusHaus:
     def get_influx_fields(self) -> Dict[str, float]:
         return {}
 
-    # modbus_success_s: Median = dataclasses.field(default_factory=lambda: Median(0.0))
-    # modbus_failed_s: Median = dataclasses.field(default_factory=lambda: Median(0.1))
-
-    # def modbus_failed(self) -> None:
-    #     # self.modbus_failed_s.add()
-    #     self.modbus_history.failed()
-
-    # def modbus_success(self) -> None:
-    #     # self.modbus_success_s.add()
-    #     self.modbus_history.success()
-
-    # @property
-    # def modbus_ok(self) -> bool:
-    #     return self.modbus_history.ok
-    #     # return self.modbus_success_s.last_s > self.modbus_failed_s.last_s
-
 
 @dataclasses.dataclass(frozen=True, repr=True, order=True)
 class ConfigHaus:
@@ -42,6 +29,7 @@ class ConfigHaus:
     bewohner: str = dataclasses.field(hash=False, compare=False)
     etappe: "ConfigEtappe" = dataclasses.field(hash=False, compare=False)
     mbus_address: str = dataclasses.field(hash=False, compare=False)
+    hausreihe: Hausreihe = dataclasses.field(hash=False, compare=False)
 
     @property
     def haus_maerki(self) -> bool:
@@ -121,6 +109,7 @@ class Haus:
 class ConfigEtappe:
     tag: str
     name: str
+    hausreihen: Hausreihen
     dict_haeuser: Dict[int, Haus] = dataclasses.field(default_factory=dict, repr=False)
     haus_enum: IntEnum | None = None
     lowest_haus_nummer: int | None = None

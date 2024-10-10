@@ -177,8 +177,9 @@ class Influx:
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
         try:
             if hsm_dezentral.modbus_iregs_all is not None:
-                fields["relais_valve_open"] = int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
-                fields["relais_valve_open_float"] = hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open + influx_offset08
+                v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                fields["relais_valve_open"] = v
+                fields["relais_valve_open_float"] = v + influx_offset08
         except AttributeError:
             pass
 
@@ -229,6 +230,10 @@ class Influx:
             fields["target_valve_open_count"] = handler_last.target_valve_open_count + 0.1
             fields["effective_valve_open_count"] = valve_open_count + 0.2
             fields["sp_zentral_steigung"] = controller_master.handler_sp_zentral.grafana
+
+        def hausreihen():
+            for hausreihe, energie_J in ctx.config_etappe.hausreihen.calculate(now_s=time.monotonic()).items():
+                fields[f"hausreihe_{hausreihe.label}_fernleitung_energie_kWh"] = energie_J / 1000.0 / 3600.0
 
         def haeuser_ladung_minimum_prozent():
             minimum, avg = ctx.hsm_zentral.tuple_haeuser_ladung_minimum_prozent
@@ -303,6 +308,7 @@ class Influx:
 
         mbus_sum()
         actiontimer()
+        hausreihen()
         haeuser_ladung_minimum_prozent()
         oekofen_summary()
         mischventil_registers()

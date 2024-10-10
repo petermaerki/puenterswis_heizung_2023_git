@@ -143,11 +143,11 @@ class HandlerOekofen:
             brenner.set_max()
         self._update_relais()
 
-    def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation, action: BrennerAction) -> None:
+    def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation) -> None:
         """
         Only referenced by ScenarioOekofenBrennerModulation.
         """
-        self.modulation_soll.set_modulation(brenner_num=brenner_num, modulation=modulation, action=action)
+        self.modulation_soll.set_modulation(brenner_num=brenner_num, modulation=modulation)
         self._update_relais()
 
     def _update_relais(self) -> None:

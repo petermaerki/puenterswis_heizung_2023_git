@@ -457,7 +457,7 @@ class ScenarioOekofenBrennerModulation(ScenarioBase):
         """
         Predefined method name 'action': Will be called automatically.
         """
-        ctx.hsm_zentral.controller_master.handler_oekofen.modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation)
+        ctx.hsm_zentral.controller_master.handler_oekofen.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation)
 
 
 @dataclasses.dataclass

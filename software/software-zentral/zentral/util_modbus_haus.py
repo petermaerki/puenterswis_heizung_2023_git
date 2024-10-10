@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters
@@ -79,6 +80,9 @@ class ModbusHaus:
             haus=self._haus,
         ):
             await self.reboot_reset(haus=haus)
+
+        if modbus_iregs_all2.relais_gpio.relais_valve_open:
+            self._haus.config_haus.hausreihe.set_leitung_warm(now_s=time.monotonic())
 
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2, temperatur_aussen_C)
         haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))

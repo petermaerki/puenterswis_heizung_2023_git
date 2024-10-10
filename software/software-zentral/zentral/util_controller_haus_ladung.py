@@ -3,6 +3,8 @@ from __future__ import annotations
 import dataclasses
 import typing
 
+from zentral.util_fernleitung import EnergieHausreihe_J
+
 if typing.TYPE_CHECKING:
     from zentral.config_base import Haus
 
@@ -57,7 +59,7 @@ class HausLadung:
         return self.next_legionellen_kill_s < -2 * 24 * 3600.0
 
     @property
-    def ladung_individuell_prozent(self) -> None:
+    def ladung_individuell_prozent(self) -> float:
         return self.ladung_prozent * 100.0 / (self.verbrauch_avg_W / self.max_verbrauch_avg_W * (_INDIVIDUELL_MAX_PROZENT - _INDIVIDUELL_MIN_PROZENT) + _INDIVIDUELL_MIN_PROZENT)
 
 
@@ -69,5 +71,11 @@ class HaeuserLadung(list[HausLadung]):
     def sort_by_ladung_indiviuell(self) -> None:
         def f_key(haus_ladung: HausLadung) -> float:
             return haus_ladung.ladung_individuell_prozent
+
+        self.sort(key=f_key)
+
+    def sort_by_haeuserreihe(self, hausreihen: EnergieHausreihe_J) -> None:
+        def f_key(haus_ladung: HausLadung) -> tuple[float, float]:
+            return -hausreihen[haus_ladung.haus.config_haus.hausreihe], haus_ladung.ladung_individuell_prozent
 
         self.sort(key=f_key)

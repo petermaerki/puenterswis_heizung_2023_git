@@ -110,7 +110,7 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_ladung_indiviuell()
+        haeuser_to_choose_from.sort_by_haeuserreihe(hausreihen=self.ctx.config_etappe.hausreihen.calculate(now_s=now_s))
 
         selected_haus = haeuser_to_choose_from[0]
         selected_haus.set_valve(valve_open=True)
@@ -143,7 +143,7 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_ladung_indiviuell()
+        haeuser_to_choose_from.sort_by_haeuserreihe(hausreihen=self.ctx.config_etappe.hausreihen.calculate(now_s=now_s))
 
         selected_haus = haeuser_to_choose_from[-1]
         selected_haus.set_valve(valve_open=False)
