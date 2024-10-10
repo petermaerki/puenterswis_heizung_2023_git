@@ -188,6 +188,9 @@ class ModulationBrenner:
         return brenner_zustaende[self.idx0].fa_runtime_h
 
 
+class ZweiterBrennerSperrzeitAction(ActionBaseEnum):
+    ZUENDEN = 90
+
 class BrennerAction(ActionBaseEnum):
     ZUENDEN = 40
     LOESCHEN = 20
@@ -234,6 +237,7 @@ class ModulationSoll:
             )
         )
         self.actiontimer = ActionTimer()
+        self.actiontimer_zweiter_brenner_sperrzeit = ActionTimer()
 
     @property
     def short(self) -> str:
@@ -255,6 +259,7 @@ class ModulationSoll:
 
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
         self.actiontimer.influxdb_add_fields(fields=fields)
+        self.actiontimer_zweiter_brenner_sperrzeit.influxdb_add_fields(fields=fields)
         for brenner in self.zwei_brenner:
             brenner.actiontimer_error.influxdb_add_fields(fields=fields, prefix=f"brenner_{brenner.idx0+1}_")
 
@@ -291,6 +296,7 @@ class ModulationSoll:
         brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
         self.actiontimer.action = BrennerAction.ZUENDEN
+        self.actiontimer_zweiter_brenner_sperrzeit.action = ZweiterBrennerSperrzeitAction.ZUENDEN
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
 
     def set_modulation_min(self) -> None:
@@ -303,15 +309,11 @@ class ModulationSoll:
                 brenner.set_modulation(modulation=Modulation.MIN)
                 self._log_action(brenner=brenner, reason="Absenken auf MIN, da kein Haus Enerige benötigt.")
 
-    def _force(self, force: bool) -> None:
-        if force:
-            assert self.actiontimer.action is None
 
-    def modulation_erhoehen(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
+    def modulation_erhoehen(self, brenner_zustaende: BrennerZustaende) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
-        self._force(force=force)
 
         list_brenner = self.list_brenner(brenner_zustaende).on_but_not_max()
         try:
@@ -324,12 +326,17 @@ class ModulationSoll:
         self._log_action(brenner=brenner, reason="Erhoehen. Brenner moduliert bereits.")
         return True
 
-    def brenner_zuenden(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
+    def brenner_zuenden(self, brenner_zustaende: BrennerZustaende) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
-        self._force(force=force)
+        list_brenner = self.list_brenner(brenner_zustaende).on()
+        if len(list_brenner) >= 1:
+            # Es brennt bereits ein Brenner.
+            # Wir müssen die Sperrzeit für den zweiten Brenner abwarten
+            if not self.actiontimer_zweiter_brenner_sperrzeit.is_over:
+                return False
 
         list_brenner = self.list_brenner(brenner_zustaende).off()
         try:
@@ -340,15 +347,16 @@ class ModulationSoll:
         # Brenner einschalten
         brenner.zuenden()
         self.actiontimer.action = BrennerAction.ZUENDEN
+        self.actiontimer_zweiter_brenner_sperrzeit.action = ZweiterBrennerSperrzeitAction.ZUENDEN
         self._log_action(brenner=brenner, reason="Brenner einschalten.")
         return True
 
-    def modulation_reduzieren(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
+    def modulation_reduzieren(self, brenner_zustaende: BrennerZustaende) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
-        self._force(force=force)
+        
 
         list_brenner = self.list_brenner(brenner_zustaende).is_over_min()
         try:
@@ -362,12 +370,12 @@ class ModulationSoll:
         self._log_action(brenner=brenner, reason="Absenken. Brenner moduliert bereits.")
         return True
 
-    def brenner_loeschen(self, brenner_zustaende: BrennerZustaende, force=False) -> bool:
+    def brenner_loeschen(self, brenner_zustaende: BrennerZustaende) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
-        self._force(force=force)
+        
 
         list_brenner = self.list_brenner(brenner_zustaende).on()
         try:
