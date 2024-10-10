@@ -212,7 +212,7 @@ class OekofenRegisters:
         return FA_State.IGNITION <= self.fa_state(brenner_idx1=brenner_idx1) <= FA_State.RUN_ON_TIME
 
     def brennt(self, brenner_idx1: int) -> bool:
-        return self.fa_state(brenner_idx1=brenner_idx1) in (FA_State.HEATING_FULL_POWER, FA_State.RUN_ON_TIME)
+        return self.fa_state(brenner_idx1=brenner_idx1) == FA_State.HEATING_FULL_POWER
 
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")

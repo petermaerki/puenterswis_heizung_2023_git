@@ -11,6 +11,7 @@ import typing
 from zentral.handler_elektro_notheizung import HandlerElektroNotheizung
 from zentral.util_modulation_soll import BrennerAction, BrennerNum, BrennerZustaende, BrennerZustand, Modulation, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht, brenner_uebersicht_prozent
+from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerStoerung
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -94,17 +95,28 @@ class HandlerOekofen:
             # Während dem Zünden dürfen "Fehler" auftreten
             return
 
-        # Alle Brenner die nicht brennen, also z, B. zünden oder Störung,
-        # sollen mit dem Relais gesperrt sein.
-        # Kein Action Timeout auslösen!
+        # Alle Brenner die nicht brennen, sollen mit dem Relais gesperrt sein.
+        # Aber erst nach einen Timeout!
         for idx0, brenner_zustand in enumerate(self.brenner_zustaende):
-            if not brenner_zustand.brennt:
-                brenner = self.modulation_soll.zwei_brenner[idx0]
-                modulation_before = brenner.modulation
+            brenner = self.modulation_soll.zwei_brenner[idx0]
+            if brenner.is_off:
+                continue
+
+            if brenner_zustand.brennt:
+                scenario = SCENARIOS.find(cls_scenario=ScenarioOekofenBrennerStoerung)
+                scenario_active = (scenario is not None) and (brenner.idx0 == scenario.brenner_idx0)
+                if not scenario_active:
+                    brenner.cancel_error()
+                    continue
+
+            # Brenner brennt nicht, das Timeout starten
+            brenner.set_error_if_not_already_set()
+
+            if brenner.is_error_timer_over:
+                brenner.cancel_error()
+                logger.info(f"handle_brenner_mit_stoerung(): {brenner.label} loeschen()!")
                 brenner.loeschen()
-                modulation_after = brenner.modulation
-                if modulation_before != modulation_after:
-                    logger.info(f"handle_brenner_mit_stoerung(): {brenner.label}: brenner_zustand={brenner_zustand} modulation={modulation_before.name}->{modulation_after.name}")
+                continue
 
     def brenner_zuenden(self) -> bool:
         ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)

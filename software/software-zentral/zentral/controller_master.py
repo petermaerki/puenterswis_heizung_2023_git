@@ -130,7 +130,7 @@ class ControllerMaster:
             self.handler_last.target_valve_open_count = 0
 
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
-        self.handler_oekofen.modulation_soll.actiontimer.influxdb_add_fields(fields=fields)
+        self.handler_oekofen.modulation_soll.influxdb_add_fields(fields=fields)
         self.handler_pumpe._actiontimer_pumpe_aus_zu_kalt.influxdb_add_fields(fields=fields)
         self.handler_pumpe._actiontimer_pwm.influxdb_add_fields(fields=fields)
         self.handler_last.influxdb_add_fields(fields=fields)

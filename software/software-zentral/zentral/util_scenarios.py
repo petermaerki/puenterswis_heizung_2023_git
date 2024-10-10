@@ -9,7 +9,7 @@ import time
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Type, TypeVar
 
 from zentral.util_constants_haus import DS18Index, SpPosition, ensure_enum
-from zentral.util_modulation_soll import BrennerAction, BrennerNum, Modulation
+from zentral.util_modulation_soll import BrennerNum, Modulation
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -378,6 +378,8 @@ class ActionTimerEnum(enum.StrEnum):
     PUMPE_PWM = "pumpe_pwm"
     PUMPE_AUS_ZU_KALT = "pumpe_aus_zu_kalt"
     BRENNER_MODULATION_SOLL = "brenner_modulation_soll"
+    BRENNER_1_ERROR = "brenner_1_error"
+    BRENNER_2_ERROR = "brenner_2_error"
 
 
 @dataclasses.dataclass
@@ -398,6 +400,8 @@ class ScenarioActionTimerTimeOver(ScenarioBase):
             ActionTimerEnum.PUMPE_PWM: controller_master.handler_pumpe._actiontimer_pwm,
             ActionTimerEnum.PUMPE_AUS_ZU_KALT: controller_master.handler_pumpe._actiontimer_pumpe_aus_zu_kalt,
             ActionTimerEnum.BRENNER_MODULATION_SOLL: controller_master.handler_oekofen.modulation_soll.actiontimer,
+            ActionTimerEnum.BRENNER_1_ERROR: controller_master.handler_oekofen.modulation_soll.zwei_brenner[0].actiontimer_error,
+            ActionTimerEnum.BRENNER_2_ERROR: controller_master.handler_oekofen.modulation_soll.zwei_brenner[1].actiontimer_error,
         }[self.actiontimer]
         actiontimer.set_is_over()
 
@@ -452,6 +456,12 @@ class ScenarioOekofenBrennerModulation(ScenarioBase):
         Predefined method name 'action': Will be called automatically.
         """
         ctx.hsm_zentral.controller_master.handler_oekofen.modulation_soll.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation)
+
+
+@dataclasses.dataclass
+class ScenarioOekofenBrennerStoerung(ScenarioBase):
+    duration_s: float = 5 * 60.0
+    brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
 
 
 @dataclasses.dataclass

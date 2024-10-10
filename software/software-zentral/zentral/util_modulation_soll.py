@@ -30,6 +30,10 @@ _modbus_FAx_UW_TEMP_ON_C_max = 80.0
 _modbus_FAx_UW_TEMP_ON_C_min = 60.0
 
 
+class BrennerError(ActionBaseEnum):
+    ERROR = 25
+
+
 class BrennerNum(enum.IntEnum):
     BRENNER_1 = 0
     BRENNER_2 = 1
@@ -92,6 +96,7 @@ _MHC = _ModulationHelperCache()
 class ModulationBrenner:
     idx0: int
     modulation: Modulation
+    actiontimer_error = ActionTimer()
 
     @property
     def label(self) -> str:
@@ -99,6 +104,17 @@ class ModulationBrenner:
 
     def set_modulation(self, modulation: Modulation) -> None:
         self.modulation = modulation
+
+    def set_error_if_not_already_set(self) -> None:
+        if self.actiontimer_error.action is None:
+            self.actiontimer_error.action = BrennerError.ERROR
+
+    def cancel_error(self) -> None:
+        self.actiontimer_error.cancel()
+
+    @property
+    def is_error_timer_over(self) -> None:
+        return self.actiontimer_error.is_over
 
     def set_max(self) -> None:
         self.modulation = Modulation.MAX
@@ -236,6 +252,11 @@ class ModulationSoll:
 
             modulation = Modulation.MIN if brenner_zustand.zuendet_oder_brennt else Modulation.OFF
             brenner.set_modulation(modulation=modulation)
+
+    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
+        self.actiontimer.influxdb_add_fields(fields=fields)
+        for brenner in self.zwei_brenner:
+            brenner.actiontimer_error.influxdb_add_fields(fields=fields, prefix=f"brenner_{brenner.idx0+1}_")
 
     def list_brenner(self, brenner_zustaende: BrennerZustaende) -> ListBrenner:
         """

@@ -83,13 +83,13 @@ class ActionTimer:
         self._log(f"remaining_s() -> {result:0.1f}")
         return result
 
-    def influxdb_add_fields(self, fields: dict[str, float]) -> None:
+    def influxdb_add_fields(self, fields: dict[str, float], prefix="") -> None:
         if self._action is None:
             return
         remaining_s = self._remaining_s
         if remaining_s < -120.0:
             return
-        fields[f"actiontimer_{self._action.__class__.__name__}_{self._action.name}_min"] = remaining_s / 60.0
+        fields[f"actiontimer_{self._action.__class__.__name__}_{prefix}{self._action.name}_min"] = remaining_s / 60.0
 
     @property
     def is_over(self) -> bool:
@@ -97,7 +97,7 @@ class ActionTimer:
             return True
         result = self._remaining_s < 0.0
         if self._remaining_s > -20.0:
-           self._log(f"is_over() -> {result}")
+            self._log(f"is_over() -> {result}")
         return result
 
     def is_over_and_cancel(self) -> bool:
