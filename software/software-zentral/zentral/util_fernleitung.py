@@ -84,8 +84,10 @@ class Hausreihen(dict[str, Hausreihe]):
             wasser_kg=wasser_kg,
         )
 
-    def calculate(self, now_s: float) -> EnergieHausreihe_J:
-        return EnergieHausreihe_J({r: r.bonus_J(now_s=now_s) for r in self.values()})
+    def calculate(self, now_s: float, emergency_preventer_bonus: dict[Hausreihe, float] | None = None) -> EnergieHausreihe_J:
+        if emergency_preventer_bonus is None:
+            emergency_preventer_bonus = {}
+        return EnergieHausreihe_J({r: (emergency_preventer_bonus.get(r, 1.0) * r.bonus_J(now_s=now_s)) for r in self.values()})
 
 
 class EnergieHausreihe_J(dict[Hausreihe, float]):
