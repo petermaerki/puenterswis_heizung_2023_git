@@ -64,12 +64,12 @@ class ConfigHaus:
 @dataclasses.dataclass(repr=True, order=True)
 class Haus:
     config_haus: ConfigHaus = dataclasses.field(hash=True, compare=False)
-    # status_haus: StatusHaus = dataclasses.field(default_factory=lambda: StatusHaus(), hash=False, compare=False)
     status_haus_or_None: Union[StatusHaus, None] = dataclasses.field(default=None, hash=False, compare=False)
 
     def __post_init__(self):
         self.config_haus.etappe.append_haus(self)
         self.status_haus_or_None = StatusHaus(self)
+        self.config_haus.hausreihe.haeuser.append(self)
 
     def __hash__(self):
         return self.config_haus.nummer

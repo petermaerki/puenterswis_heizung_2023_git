@@ -67,6 +67,7 @@ class InfluxRecords:
         }
         if haus is not None:
             self._dict_tags["haus"] = str(haus.config_haus.nummer)
+            self._dict_tags["reihe"] = haus.config_haus.hausreihe.influx_reihe
         self._records: List[Dict] = []
 
     def add_fields(self, fields: Dict[str, Union[float, int]]):
@@ -241,7 +242,7 @@ class Influx:
             emergency_preventer_bonus = ctx.hsm_zentral.get_haeuser_ladung().calculate_emergency_preventer_bonus(ctx=ctx)
             energie_hausreihe_J = ctx.config_etappe.hausreihen.calculate(now_s=time.monotonic(), emergency_preventer_bonus=emergency_preventer_bonus)
             for hausreihe, energie_J in energie_hausreihe_J.items():
-                fields[f"hausreihe_{hausreihe.label}_fernleitung_energie_kWh"] = energie_J / 1000.0 / 3600.0
+                fields[f"hausreihe_{hausreihe.influx_reihe}_fernleitung_energie_kWh"] = energie_J / 1000.0 / 3600.0
 
         def haeuser_ladung_minimum_prozent():
             minimum, avg = ctx.hsm_zentral.tuple_haeuser_ladung_minimum_prozent

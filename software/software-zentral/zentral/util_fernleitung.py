@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
+import typing
+
+if typing.TYPE_CHECKING:
+    from zentral.config_base import Haus
 
 _E = 2.7182
 """
@@ -34,7 +38,7 @@ def test() -> None:
         print(f"Zeit {verstrichene_Zeit_s} s  Energie {energie_bonus_leitungssegment_J(wasser_kg=30.0, verstrichene_Zeit_s=verstrichene_Zeit_s)/1000.0/3600.0:0.1f} kWh")
 
 
-@dataclasses.dataclass(repr=True, order=True, unsafe_hash=True)
+@dataclasses.dataclass(repr=True, order=True)
 class Hausreihe:
     label: str
     """
@@ -47,6 +51,21 @@ class Hausreihe:
     einspeisung: Hausreihe | None
     wasser_kg: float
     _last_hot_s: float = 0.0
+    haeuser: list[Haus] = dataclasses.field(default_factory=list, hash=False)
+    influx_reihe: str = ""
+    """
+    puent_F1_18-22
+    <etappe>_<label><grafana>_<erstes_haus>-<letztes_haus>
+    """
+
+    def __hash__(self):
+        return ord(self.label)
+
+    def update_influx_reihe(self) -> None:
+        self.haeuser.sort()
+        haus_first = self.haeuser[0]
+        haus_last = self.haeuser[-1]
+        self.influx_reihe = f"{haus_first.config_haus.etappe.tag}_{self.label}{self.grafana}_{haus_first.config_haus.nummer}-{haus_last.config_haus.nummer}"
 
     def _bonus_segment_J(self, now_s: float) -> float:
         return energie_bonus_leitungssegment_J(wasser_kg=self.wasser_kg, verstrichene_Zeit_s=self._verstrichene_Zeit_s(now_s=now_s))
@@ -88,6 +107,10 @@ class Hausreihen(dict[str, Hausreihe]):
         if emergency_preventer_bonus is None:
             emergency_preventer_bonus = {}
         return EnergieHausreihe_J({r: (emergency_preventer_bonus.get(r, 1.0) * r.bonus_J(now_s=now_s)) for r in self.values()})
+
+    def update_influx_reihe(self) -> None:
+        for hr in self.values():
+            hr.update_influx_reihe()
 
 
 class EnergieHausreihe_J(dict[Hausreihe, float]):

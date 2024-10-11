@@ -32,6 +32,12 @@ def create_hausreihen_bochs() -> Hausreihen:
 
 
 def create_config_etappe(hostname: str) -> ConfigEtappe:
+    etappe = _create_config_etappe(hostname=hostname)
+    etappe.hausreihen.update_influx_reihe()
+    return etappe
+
+
+def _create_config_etappe(hostname: str) -> ConfigEtappe:
     assert hostname in ZEROES
 
     if hostname == ZERO_VIRGIN:
