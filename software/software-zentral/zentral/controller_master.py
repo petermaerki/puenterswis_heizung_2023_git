@@ -56,6 +56,11 @@ class ControllerMaster:
             # Manual Mode
             self.handler_oekofen.set_brenner_modulation_manual_max()
 
+        # Brenner aus: Last Target auf 0
+        if self.handler_oekofen.anzahl_brenner_on == 0:
+            # Last Target auf 0
+            self.handler_last.target_valve_open_count = 0
+
         # Falls alle valve zu sind, Modulation auf Minimum
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
         logger.debug(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
@@ -123,11 +128,6 @@ class ControllerMaster:
 
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             sp_zentral_zu_kalt()
-
-        # Brenner aus: Last Target auf 0
-        if self.handler_oekofen.anzahl_brenner_on == 0:
-            # Last Target auf 0
-            self.handler_last.target_valve_open_count = 0
 
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
         self.handler_oekofen.modulation_soll.influxdb_add_fields(fields=fields)

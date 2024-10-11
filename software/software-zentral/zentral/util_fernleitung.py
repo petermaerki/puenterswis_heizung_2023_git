@@ -8,6 +8,11 @@ Zeitkonstante einer typischen, isolierten Heizleitung
 """
 
 _KAPAZITAET_WASSER_J_kg_K = 4190
+_FACTOR_WASSER_METALL_RETOUR = 4.0
+"""
+Wir berechnen nur das Wasser auf dem Hinweg.
+Effektiv ist aber auch Metall und das Wasser auf dem Rückweg betroffen.
+"""
 
 
 def abklingen_1_0(verstrichene_Zeit_s: float) -> float:
@@ -21,7 +26,7 @@ def energie_bonus_leitungssegment_J(wasser_kg: float, verstrichene_Zeit_s: float
     kalt_C = 25.0
     energie_heiss_J = (heiss_C - kalt_C) * wasser_kg * _KAPAZITAET_WASSER_J_kg_K
     energie_J = energie_heiss_J * (abklingen_1_0(verstrichene_Zeit_s=verstrichene_Zeit_s) * 2.0 - 1.0)
-    return energie_J
+    return _FACTOR_WASSER_METALL_RETOUR * energie_J
 
 
 def test() -> None:
