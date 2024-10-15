@@ -234,14 +234,19 @@ class ModbusCommunication:
         if not OEKOFEN_CONTROL_ON:
             return
 
-        modbus_oekofen_registers = self.context.hsm_zentral.modbus_oekofen_registers
+        hsm_zentral = self.context.hsm_zentral
+        modbus_oekofen_registers = hsm_zentral.modbus_oekofen_registers
 
         for brenner in zwei_brenner:
-            if brenner.is_off:
-                continue
             assert modbus_oekofen_registers is not None
             uw_temp_on_C = modbus_oekofen_registers.uw_temp_on_C(brenner_idx1=brenner.idx0 + 1)
-            regel_temp_soll_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=uw_temp_on_C)
+            if hsm_zentral.is_error_or_drehschaltermanuell():
+                # Im Drehschalter Auto Manuell Mode: Die Brenner Modulation auf 100% setzen.
+                regel_temp_soll_C = 85.0
+            else:
+                if brenner.is_off:
+                    continue
+                regel_temp_soll_C = brenner.calculate_modbus_FAx_REGEL_TEMP_C(modbus_FAx_UW_TEMP_ON_C=uw_temp_on_C)
             regel_temp_ist_C = modbus_oekofen_registers.regel_temp_C(brenner_idx1=brenner.idx0 + 1)
             diff_C = abs(regel_temp_ist_C - regel_temp_soll_C)
             if abs(diff_C) > 0.2:

@@ -115,6 +115,11 @@ class HsmZentral(hsm.HsmMixin):
     def is_initializing(self) -> bool:
         return self.is_state(self.state_initializing)
 
+    def is_error_or_drehschaltermanuell(self) -> bool:
+        if self.is_state(self.state_error):
+            return True
+        return self.is_state(self.state_ok_drehschaltermanuell)
+
     @property
     def haeuser_all_valves_closed(self) -> bool:
         """
