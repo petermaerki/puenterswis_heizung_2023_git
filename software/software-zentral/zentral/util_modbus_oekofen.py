@@ -230,6 +230,9 @@ class OekofenRegisters:
         assert isinstance(v, int)
         return PlantMode(v)
 
+    def is_plant_mode_kaminfeger_AUS(self) -> bool:
+        return self.plant_mode() == PlantMode.OFF
+
     def uw_temp_on_C(self, brenner_idx1: int) -> float:
         return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_UW_TEMP_ON_C")
 

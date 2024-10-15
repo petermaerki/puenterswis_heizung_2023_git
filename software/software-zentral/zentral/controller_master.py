@@ -34,6 +34,7 @@ class ControllerMaster:
 
     def process(self, now_s: float) -> None:
         self.handler_last.update_valves(now_s=now_s)
+        self.handler_oekofen.update_brenner_relais()
 
         self._process(now_s=now_s)
 

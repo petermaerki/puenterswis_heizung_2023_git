@@ -67,18 +67,14 @@ class HandlerOekofen:
         Return True: Falls die Leistung erhöht werden konnte.
         Return False: Bereits auf maximum Leistung.
         """
-        ok = self.modulation_soll.modulation_erhoehen(brenner_zustaende=self.brenner_zustaende)
-        self._update_relais()
-        return ok
+        return self.modulation_soll.modulation_erhoehen(brenner_zustaende=self.brenner_zustaende)
 
     def modulation_reduzieren(self) -> bool:
         """
         Return True: Falls die Leistung reduziert werden konnte.
         Return False: Bereits auf minimaler Leistung.
         """
-        ok = self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
-        self._update_relais()
-        return ok
+        return self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
 
     def erster_brenner_zuenden(self) -> bool:
         if self.anzahl_brenner_on == 0:
@@ -91,6 +87,17 @@ class HandlerOekofen:
         return False
 
     def handle_brenner_mit_stoerung(self) -> None:
+        if self.ctx.hsm_zentral.modbus_oekofen_registers.is_plant_mode_kaminfeger_AUS():
+            # Wenn der Kaminfeger, die Heizung ausschaltet (PlantMode==OFF), müssen
+            # wir die Brenner löschen.
+
+            for brenner in self.modulation_soll.zwei_brenner:
+                if brenner.is_on:
+                    logger.info(f"handle_brenner_mit_stoerung(): PlantMode is OFF (Kaminfeger?): {brenner.label} ausschalten!")
+                    brenner.loeschen()
+
+            return
+
         if self.modulation_soll.actiontimer.action == BrennerAction.ZUENDEN:
             # Während dem Zünden dürfen "Fehler" auftreten
             return
@@ -115,18 +122,13 @@ class HandlerOekofen:
                 continue
 
     def brenner_zuenden(self) -> bool:
-        ok = self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
-        self._update_relais()
-        return ok
+        return self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
 
     def brenner_loeschen(self) -> bool:
-        ok = self.modulation_soll.brenner_loeschen(brenner_zustaende=self.brenner_zustaende)
-        self._update_relais()
-        return ok
+        return self.modulation_soll.brenner_loeschen(brenner_zustaende=self.brenner_zustaende)
 
     def set_modulation_min(self) -> None:
         self.modulation_soll.set_modulation_min()
-        self._update_relais()
 
     def set_brenner_modulation_manual_max(self) -> None:
         """
@@ -137,16 +139,14 @@ class HandlerOekofen:
         """
         for brenner in self.modulation_soll.zwei_brenner:
             brenner.set_max()
-        self._update_relais()
 
     def set_modulation(self, brenner_num: BrennerNum, modulation: Modulation) -> None:
         """
         Only referenced by ScenarioOekofenBrennerModulation.
         """
         self.modulation_soll.set_modulation(brenner_num=brenner_num, modulation=modulation)
-        self._update_relais()
 
-    def _update_relais(self) -> None:
+    def update_brenner_relais(self) -> None:
         relais = self.ctx.hsm_zentral.relais
         relais.relais_2_brenner1_sperren = self.modulation_soll.zwei_brenner[0].is_off
         relais.relais_4_brenner2_sperren = self.modulation_soll.zwei_brenner[1].is_off
