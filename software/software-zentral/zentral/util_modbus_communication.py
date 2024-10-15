@@ -17,7 +17,15 @@ from zentral.util_modbus_pcb_dezentral_heizzentrale import PcbDezentral, PcbsDez
 from zentral.util_modbus_relais import ModbusRelais
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_modulation_soll import ListBrenner
-from zentral.util_scenarios import SCENARIOS, ScenarioMischventilModbusNoResponseReceived, ScenarioMischventilModbusSystemExit, ScenarioOekofenRegister, ScenarioSetRelais1bis5, ScenarioZentralDrehschalterManuell
+from zentral.util_scenarios import (
+    SCENARIOS,
+    ScenarioMischventilModbusNoResponseReceived,
+    ScenarioMischventilModbusSystemExit,
+    ScenarioOekofenModbusNoResponseReceived,
+    ScenarioOekofenRegister,
+    ScenarioSetRelais1bis5,
+    ScenarioZentralDrehschalterManuell,
+)
 from zentral.util_watchdog import Watchdog
 
 if typing.TYPE_CHECKING:
@@ -252,7 +260,7 @@ class ModbusCommunication:
                     except ModbusException as e:
                         logger.warning(f"Retry {retry+1}({retries}): oekofen: {e}")
                         await asyncio.sleep(sleep_s)
-            raise SystemExit("Failed to communicate with oekofen!")
+            raise ModbusExceptionNoResponseReceived("Failed to communicate with oekofen!")
 
         all_registers = await read_with_retries()
         modbus_oekofen_registers = OekofenRegisters(registers=all_registers)
@@ -283,6 +291,11 @@ class ModbusCommunication:
             while True:
                 try:
                     await handle_scenarios()
+
+                    if SCENARIOS.is_present(ScenarioOekofenModbusNoResponseReceived):
+                        self.context.hsm_zentral.modbus_oekofen_registers = None
+                        await sleep()
+                        continue
 
                     modbus_oekofen_registers = await self.read_modbus_oekofen()
                     await self.context.influx.send_oekofen(ctx=self.context, modbus_oekofen_registers=modbus_oekofen_registers)

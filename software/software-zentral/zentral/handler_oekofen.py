@@ -11,7 +11,6 @@ import typing
 from zentral.handler_elektro_notheizung import HandlerElektroNotheizung
 from zentral.util_modulation_soll import BrennerAction, BrennerNum, BrennerZustaende, BrennerZustand, Modulation, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht, brenner_uebersicht_prozent
-from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerStoerung
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -30,6 +29,7 @@ class HandlerOekofen:
     def betrieb_notheizung(self) -> bool:
         if not self._initialized:
             _ = self.brenner_zustaende
+
         brenner1, brenner2 = self.brenner_uebersicht_prozent
         return max(brenner1, brenner2) <= EnumBrennerUebersicht.AUSGESCHALTET_DURCH_BENUTZER
 
@@ -103,11 +103,7 @@ class HandlerOekofen:
                 continue
 
             if brenner_zustand.brennt:
-                scenario = SCENARIOS.find(cls_scenario=ScenarioOekofenBrennerStoerung)
-                scenario_active = (scenario is not None) and (brenner.idx0 == scenario.brenner_idx0)
-                if not scenario_active:
-                    brenner.cancel_error()
-                    continue
+                continue
 
             # Brenner brennt nicht, das Timeout starten
             brenner.set_error_if_not_already_set()

@@ -135,7 +135,14 @@ class Scenarios:
         logger.debug(f"Scenario: Apply {scenario!r}")
         return True
 
-    def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[ScenarioBase]:
+    def iter_by_class(self, cls_scenario: Type[TScenario]) -> Iterator[TScenario]:
+        for scenario in self._scenarios:
+            if scenario.__class__ is cls_scenario:
+                logger.debug(f"Scenario: Apply {scenario!r}")
+                scenario.decrement()
+                yield scenario
+
+    def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[TScenario]:
         from zentral.config_base import Haus
 
         assert isinstance(haus, Haus)
@@ -468,6 +475,11 @@ class ScenarioOekofenBrennerModulation(ScenarioBase):
 class ScenarioOekofenBrennerStoerung(ScenarioBase):
     duration_s: float = 5 * 60.0
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
+
+
+@dataclasses.dataclass
+class ScenarioOekofenModbusNoResponseReceived(ScenarioBase):
+    duration_s: float = 120.0
 
 
 @dataclasses.dataclass

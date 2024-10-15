@@ -257,6 +257,13 @@ class Influx:
             for brenner in controller_master.handler_oekofen.modulation_soll.zwei_brenner:
                 fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
 
+            betrieb_notheizung = controller_master.handler_oekofen.betrieb_notheizung
+            if betrieb_notheizung:
+                betrieb_notheizung_prozent = 100
+                betrieb_notheizung_prozent += int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)  # Relais state
+                betrieb_notheizung_prozent += 1  # 1: Do not overlap in grafana with other values at 100%
+                fields["betrieb_notheizung_prozent"] = betrieb_notheizung_prozent
+
         def mischventil_registers():
             registers = ctx.hsm_zentral.modbus_mischventil_registers
             if registers is None:
