@@ -239,10 +239,8 @@ class Influx:
             fields["sp_zentral_steigung"] = controller_master.handler_sp_zentral.grafana
 
         def hausreihen():
-            emergency_preventer_bonus = ctx.hsm_zentral.get_haeuser_ladung().calculate_emergency_preventer_bonus(ctx=ctx)
-            energie_hausreihe_J = ctx.config_etappe.hausreihen.calculate(now_s=time.monotonic(), emergency_preventer_bonus=emergency_preventer_bonus)
-            for hausreihe, energie_J in energie_hausreihe_J.items():
-                fields[f"hausreihe_{hausreihe.influx_reihe}_fernleitung_energie_kWh"] = energie_J / 1000.0 / 3600.0
+            for hausreihe, energie_J in ctx.config_etappe.hausreihen.calculate(now_s=time.monotonic()).items():
+                fields[f"hausreihe_{hausreihe.label}_fernleitung_energie_kWh"] = energie_J / 1000.0 / 3600.0
 
         def haeuser_ladung_minimum_prozent():
             minimum, avg = ctx.hsm_zentral.tuple_haeuser_ladung_minimum_prozent

@@ -7,7 +7,6 @@ from zentral.util_fernleitung import EnergieHausreihe_J, Hausreihe
 
 if typing.TYPE_CHECKING:
     from zentral.config_base import Haus
-    from zentral.context import Context
 
 _LADUNG_DEZENTRAL_MAX_PROZENT = 80.0
 """
@@ -80,56 +79,6 @@ class HaeuserLadung(list[HausLadung]):
         self.sort(key=f_key)
 
     def sort_by_haeuserreihe(self, hausreihen: EnergieHausreihe_J) -> None:
-        def f_key(haus_ladung: HausLadung) -> tuple[float, float]:
-            return -hausreihen[haus_ladung.hausreihe], haus_ladung.ladung_individuell_prozent
-
-        self.sort(key=f_key)
-
-    _EMERGENCY_PREVENTER_KALT_C = 60.0
-    """
-    * >80% Das Haus wird nicht mehr berücksichtigt für einen Ladung
-    * <0% beginnt die Emergency Ladung
-
-    60.0% wurde gewählt, da noch ein gewisser Abstand zu 80% besteht.
-    Hier lohnt es sich, das Ventil zu öffnen um Nachzuladen
-    """
-
-    def calculate_emergency_preventer_bonus(self, ctx: "Context") -> dict[Hausreihe, float]:
-        """
-        Example:
-          Hausreihe D: Bonus 2.0
-          Hausreihe E: Bonus 1.0
-        """
-        # Zähle kalte Haeuser pro Hausreihe
-        hausreihen_kalte_haeuser = {hr: 0 for hr in ctx.config_etappe.hausreihen.values()}
-        for haus_ladung in self:
-            if haus_ladung.ladung_individuell_prozent < self._EMERGENCY_PREVENTER_KALT_C:
-                hausreihen_kalte_haeuser[haus_ladung.hausreihe] += 1
-
-        def bonus(kalte_haeuser: int) -> float:
-            """
-            Die ganze Reihe soll 'komplett' warm sein, so eine emergency fuer diese Hausreihe
-            fuer die nächsten Stunden verhindert und andere Hausreihen können 'in Ruhe' geheizt
-            werden.
-            """
-            if kalte_haeuser == 1:
-                return 4.0  # Grosser Bonus
-            if kalte_haeuser == 2:
-                return 2.0  # Kleiner Bonus
-            return 1.0  # Kein Bonus
-
-        return {hr: bonus(kalte_haeuser) for hr, kalte_haeuser in hausreihen_kalte_haeuser.items()}
-
-    def sort_by_haeuserreihe_emergency_preventer(self, ctx: "Context", now_s: float) -> None:
-        """
-        1. Kriterium: emergency_preventer_bonus
-           Hausreihen mit nur keinem oder zwei kalten Haeusern werden prifilegiert behandelt.
-        2. EnergieHausreihe_J
-        3. ladung_individuell_prozent
-        """
-        emergency_preventer_bonus = self.calculate_emergency_preventer_bonus(ctx=ctx)
-        hausreihen = ctx.config_etappe.hausreihen.calculate(now_s=now_s, emergency_preventer_bonus=emergency_preventer_bonus)
-
         def f_key(haus_ladung: HausLadung) -> tuple[float, float]:
             return -hausreihen[haus_ladung.hausreihe], haus_ladung.ladung_individuell_prozent
 

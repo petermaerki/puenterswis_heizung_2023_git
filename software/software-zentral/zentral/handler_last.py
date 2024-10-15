@@ -131,7 +131,7 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_haeuserreihe_emergency_preventer(ctx=self.ctx, now_s=now_s)
+        haeuser_to_choose_from.sort_by_ladung_indiviuell()
 
         selected_haus = haeuser_to_choose_from[0]
         selected_haus.set_valve(valve_open=True)
@@ -171,7 +171,7 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_haeuserreihe_emergency_preventer(ctx=self.ctx, now_s=now_s)
+        haeuser_to_choose_from.sort_by_ladung_indiviuell()
 
         selected_haus = haeuser_to_choose_from[-1]
         selected_haus.set_valve(valve_open=False)
