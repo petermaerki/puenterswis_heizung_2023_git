@@ -3,23 +3,24 @@ from __future__ import annotations
 import enum
 
 
-def ensure_enum(enum_type: enum.EnumType, name: str | enum.Enum) -> str:
+def ensure_enum(enum_type: enum.EnumType, name: str | enum.Enum) -> enum.Enum:
     """
     A enum value is expected.
     However, if a string was given, it will be converted into the enum name.
     If the string is not a valid enum name, a exception will show all valid values.
     """
-    if isinstance(name, enum_type):
-        assert isinstance(name, enum.Enum)
-        return name.name
-    assert isinstance(name, str)
-    try:
-        return enum_type[name]
-    except KeyError as e:
-        names = [i.name for i in enum_type]  # type: ignore
-        valid_values = sorted(names)
-        valid_values_text = " ".join(valid_values)
-        raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}") from e
+    if isinstance(name, str):
+        try:
+            return enum_type(name)
+        except KeyError as e:
+            names = [i.name for i in enum_type]  # type: ignore
+            valid_values = sorted(names)
+            valid_values_text = " ".join(valid_values)
+            raise KeyError(f"'{name}' is invalid: Use one of: {valid_values_text}") from e
+
+    assert isinstance(name, enum_type)
+    assert isinstance(name, enum.Enum)
+    return name
 
 
 class SpPosition(enum.StrEnum):

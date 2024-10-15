@@ -462,7 +462,7 @@ class ScenarioOekofenRegister(ScenarioBase):
 @dataclasses.dataclass
 class ScenarioOekofenBrennerModulation(ScenarioBase):
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
-    modulation: Modulation = Modulation.MEDIUM
+    modulation: Modulation = Modulation.MIN
 
     def action(self, ctx: "Context") -> None:
         """
