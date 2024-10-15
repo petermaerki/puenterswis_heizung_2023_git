@@ -95,6 +95,9 @@ class ControllerMaster:
 
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:
+                if self.handler_last.increase_valve_open_count(now_s=now_s):
+                    logger.info("sp_zentral_zu_warm: min_target_valve_open_count()")
+                    return
                 if self.handler_oekofen.modulation_reduzieren():
                     logger.info("sp_zentral_zu_warm: modulation_reduzieren()")
                     return
@@ -109,17 +112,20 @@ class ControllerMaster:
 
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
+                if self.handler_last.reduce_valve_open_count(now_s=now_s):
+                    logger.info("sp_zentral_zu_kalt: max_target_valve_open_count()")
+                    return
                 if self.handler_last.minus_1_valve(now_s=now_s):
-                    logger.info("sp_zentral_zu_warm: minus_1_valve()")
+                    logger.info("sp_zentral_zu_kalt: minus_1_valve()")
                     return
                 if self.handler_oekofen.modulation_erhoehen():
-                    logger.info("sp_zentral_zu_warm: modulation_erhoehen()")
+                    logger.info("sp_zentral_zu_kalt: modulation_erhoehen()")
                     return
                 if self.handler_last.legionellen_kill_cancel():
-                    logger.info("sp_zentral_zu_warm: legionellen_kill_cancel()")
+                    logger.info("sp_zentral_zu_kalt: legionellen_kill_cancel()")
                     return
                 if sp_ladung_zentral == SpLadung.LEVEL0:
-                    logger.info("sp_zentral_zu_warm: brenner_zuenden()")
+                    logger.info("sp_zentral_zu_kalt: brenner_zuenden()")
                     self.handler_oekofen.brenner_zuenden()
 
         if sp_ladung_zentral >= SpLadung.LEVEL3:

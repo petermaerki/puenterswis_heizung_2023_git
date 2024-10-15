@@ -70,7 +70,7 @@ class HausLadung:
 
 class HaeuserLadung(list[HausLadung]):
     @property
-    def valve_open_count(self) -> int:
+    def effective_valve_open_count(self) -> int:
         return len([h for h in self if h.valve_open])
 
     def sort_by_ladung_indiviuell(self) -> None:

@@ -233,9 +233,9 @@ class Influx:
             controller_master.influxdb_add_fields(fields=fields)
 
             handler_last = controller_master.handler_last
-            valve_open_count = ctx.hsm_zentral.get_haeuser_ladung().valve_open_count
+            effective_valve_open_count = ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
             fields["target_valve_open_count"] = handler_last.target_valve_open_count + 0.1
-            fields["effective_valve_open_count"] = valve_open_count + 0.2
+            fields["effective_valve_open_count"] = effective_valve_open_count + 0.2
             fields["sp_zentral_steigung"] = controller_master.handler_sp_zentral.grafana
 
         def hausreihen():

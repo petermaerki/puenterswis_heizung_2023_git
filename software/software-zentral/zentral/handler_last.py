@@ -49,23 +49,6 @@ class HandlerLast:
             if haus_ladung.ladung_individuell_prozent <= 0.0:
                 haus_ladung.set_valve(valve_open=True)
 
-        # Ventil öffnen/schliessen bis self.target_valve_open_count.
-        if True:
-            valve_open_count = haeuser_ladung.valve_open_count
-            if valve_open_count != self.target_valve_open_count:
-                logger.info(f"update_valves(): valve_open_count={valve_open_count} target_valve_open_count={self.target_valve_open_count}")
-
-        while True:
-            if valve_open_count > self.target_valve_open_count:
-                if self._minus_1_valve(now_s=now_s):
-                    valve_open_count -= 1
-                    continue
-            if valve_open_count < self.target_valve_open_count:
-                if self._plus_1_valve(now_s=now_s):
-                    valve_open_count += 1
-                    continue
-            break
-
     def legionellen_kill_start(self) -> bool:
         if self.legionellen_kill_in_progress:
             return False
@@ -89,14 +72,52 @@ class HandlerLast:
         self.legionellen_kill_in_progress = False
         return True
 
+    def reduce_valve_open_count(self, now_s: float) -> bool:
+        """
+        effective_valve_open_count reduzieren bis target_valve_open_count
+
+        return True: Falls ein Ventil geschlossen werden konnte
+        """
+        effective_valve_open_count = self.ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
+
+        success = False
+        while effective_valve_open_count > self.target_valve_open_count:
+            if self._minus_1_valve(now_s=now_s):
+                success = True
+                effective_valve_open_count -= 1
+
+        return success
+
+    def increase_valve_open_count(self, now_s: float) -> None:
+        """
+        effective_valve_open_count erhöhen bis target_valve_open_count
+
+        return True: Falls ein Ventil geöffnet werden konnte
+        """
+        effective_valve_open_count = self.ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
+
+        success = False
+        while effective_valve_open_count < self.target_valve_open_count:
+            if self._plus_1_valve(now_s=now_s):
+                success = True
+                effective_valve_open_count += 1
+
+        return success
+
     def plus_1_valve(self, now_s: float) -> bool:
         success = self._plus_1_valve(now_s=now_s)
         if success:
             self.target_valve_open_count += 1
-            self.actiontimer.action = LastAction.HAUS_PLUS
         return success
 
     def _plus_1_valve(self, now_s: float) -> bool:
+        """
+        Versuche ein valve zu öffnen.
+        return true:
+          falls dies möglich war
+          LastAction.HAUS_PLUS
+        KEINE Veränderung von target_valve_open_count
+        """
         haeuser_to_choose_from: HaeuserLadung = HaeuserLadung()
 
         haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
@@ -115,6 +136,7 @@ class HandlerLast:
         selected_haus = haeuser_to_choose_from[0]
         selected_haus.set_valve(valve_open=True)
         logger.info(f"_plus_1_valve {selected_haus.haus.influx_tag}")
+        self.actiontimer.action = LastAction.HAUS_PLUS
         return True
 
     def minus_1_valve(self, now_s: float) -> bool:
@@ -123,10 +145,16 @@ class HandlerLast:
         success = self._minus_1_valve(now_s=now_s)
         if success:
             self.target_valve_open_count -= 1
-            self.actiontimer.action = LastAction.HAUS_MINUS
         return success
 
     def _minus_1_valve(self, now_s: float) -> bool:
+        """
+        Versuche ein valve zu schliessen.
+        return true:
+          falls dies möglich war
+          LastAction.HAUS_MINUS
+        KEINE Veränderung von target_valve_open_count
+        """
         haeuser_to_choose_from: HaeuserLadung = HaeuserLadung()
 
         haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
@@ -148,4 +176,5 @@ class HandlerLast:
         selected_haus = haeuser_to_choose_from[-1]
         selected_haus.set_valve(valve_open=False)
         logger.info(f"_minus_1_valve {selected_haus.haus.influx_tag}")
+        self.actiontimer.action = LastAction.HAUS_MINUS
         return True
