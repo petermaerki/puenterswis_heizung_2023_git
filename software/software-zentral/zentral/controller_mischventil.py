@@ -1,8 +1,6 @@
 import logging
-import time
 import typing
 
-from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_mischventil_simple import ControllerMischventilSimple
 from zentral.util_scenarios import SCENARIOS, ScenarioZentralSolltemperatur
 
@@ -291,9 +289,3 @@ class ControllerMischventil(ControllerMischventilSimple):
         # assert -1 < stellwert_100 <= 101
         stellwert_V = stellwert_100 / 100.0 * (ControllerMischventil._STELLWERT_V_MAX - ControllerMischventil._STELLWERT_V_MIN) + ControllerMischventil._STELLWERT_V_MIN
         return stellwert_V
-
-
-def controller_mischventil_factory() -> ControllerMischventilABC:
-    if True:
-        return ControllerMischventil(time.monotonic())
-    return ControllerMischventilSimple(time.monotonic())

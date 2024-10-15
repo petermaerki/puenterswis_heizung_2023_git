@@ -14,15 +14,8 @@ stateDiagram-v2
     ok: ok
     state ok {
         ok_drehschalterauto: drehschalterauto
-        state ok_drehschalterauto {
-            ok_drehschalterauto_manuell: manuell
-            state ok_drehschalterauto_manuell
-            ok_drehschalterauto_manuell --> ok_drehschalterauto_manuell: Dummy
-
-            ok_drehschalterauto_regeln: regeln
-            state ok_drehschalterauto_regeln
-            [*] --> ok_drehschalterauto_regeln
-        }
+        state ok_drehschalterauto
+        ok_drehschalterauto --> ok_drehschalterauto: Dummy
 
         ok_drehschaltermanuell: drehschaltermanuell
         state ok_drehschaltermanuell

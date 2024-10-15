@@ -140,7 +140,7 @@ class Scenarios:
             if scenario.__class__ is cls_scenario:
                 logger.debug(f"Scenario: Apply {scenario!r}")
                 scenario.decrement()
-                yield scenario
+                yield scenario  # type: ignore[misc]
 
     def iter_by_class_haus(self, cls_scenario: Type[TScenario], haus: "Haus") -> Iterator[TScenario]:
         from zentral.config_base import Haus
@@ -151,7 +151,7 @@ class Scenarios:
                 if scenario.haus_nummer is haus.config_haus.nummer:
                     logger.debug(f"Scenario: Apply {scenario!r}")
                     scenario.decrement()
-                    yield scenario
+                    yield scenario  # type: ignore[misc]
 
 
 def ssh_repl_scenarios_history_add(f: io.TextIOBase, hausnummern: List[int]) -> None:

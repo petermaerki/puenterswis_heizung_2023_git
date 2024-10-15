@@ -9,7 +9,7 @@ from zentral.controller_base import ControllerMischventilABC
 from zentral.controller_master import ControllerMaster
 from zentral.controller_master_none import ControllerMasterNone
 from zentral.controller_master_valveopen import ControllerMasterValveOpenIterator
-from zentral.controller_mischventil import ControllerMischventil, controller_mischventil_factory
+from zentral.controller_mischventil import ControllerMischventil
 from zentral.controller_mischventil_simple import ControllerMischventilNone
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError, SignalHardwaretestBegin, SignalHardwaretestEnd, SignalZentralBase
 from zentral.util_controller_haus_ladung import HaeuserLadung
@@ -31,11 +31,6 @@ In 'state_error':
 After x s of absense of an 'SignalError', we will initialize again.
 """
 
-INIT_STATE_DREHSCHALTERAUTO_REGELN = True
-"""
-True: state_ok_drehschalterauto_regeln
-False: state_ok_drehschalterauto_manuell
-"""
 
 _UPTIME_MODBUS_SILENT_S = 20.0
 
@@ -110,7 +105,7 @@ class HsmZentral(hsm.HsmMixin):
         return time.monotonic() - self._programm_start_s
 
     def is_drehschalterauto_regeln(self) -> bool:
-        return self.is_state(self.state_ok_drehschalterauto_regeln)
+        return self.is_state(self.state_ok_drehschalterauto)
 
     def is_initializing(self) -> bool:
         return self.is_state(self.state_initializing)
@@ -320,14 +315,14 @@ class HsmZentral(hsm.HsmMixin):
             self._drehschalter_switch_state()
         raise hsm.DontChangeStateException()
 
+    def entry_ok(self, signal: SignalZentralBase):
+        self.grundzustand_manuell()
+
     @hsm.value(3)
     def state_ok(self, signal: SignalZentralBase):
         """ """
         self._handle_signal(signal=signal)
         raise hsm.DontChangeStateException()
-
-    def entry_ok_drehschaltermanuell(self, signal: SignalZentralBase):
-        self.grundzustand_manuell()
 
     @hsm.value(4)
     @hsm.init_state
@@ -337,6 +332,10 @@ class HsmZentral(hsm.HsmMixin):
             self._drehschalter_switch_state()
 
     def entry_ok_drehschalterauto(self, signal: SignalZentralBase):
+        def controller_mischventil_factory() -> ControllerMischventilABC:
+            return ControllerMischventil(time.monotonic())
+            # return ControllerMischventilSimple(time.monotonic())
+
         self.controller_mischventil = controller_mischventil_factory()
         self._set_controller_master_default()
 
@@ -345,15 +344,3 @@ class HsmZentral(hsm.HsmMixin):
         """ """
         if isinstance(signal, SignalDrehschalter):
             self._drehschalter_switch_state()
-
-    def entry_ok_drehschalterauto_manuell(self, signal: SignalZentralBase):
-        self.grundzustand_manuell()
-
-    @hsm.value(6)
-    def state_ok_drehschalterauto_manuell(self, signal: SignalZentralBase):
-        """ """
-
-    @hsm.value(7)
-    @hsm.init_state
-    def state_ok_drehschalterauto_regeln(self, signal: SignalZentralBase):
-        """ """

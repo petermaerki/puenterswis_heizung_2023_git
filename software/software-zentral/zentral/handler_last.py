@@ -88,7 +88,7 @@ class HandlerLast:
 
         return success
 
-    def increase_valve_open_count(self, now_s: float) -> None:
+    def increase_valve_open_count(self, now_s: float) -> bool:
         """
         effective_valve_open_count erhöhen bis target_valve_open_count
 

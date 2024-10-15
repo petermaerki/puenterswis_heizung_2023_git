@@ -103,7 +103,7 @@ class VerbrauchHaus:
         hsm_zentral = context.hsm_zentral
         valve_open = hsm_dezentral.dezentral_gpio.relais_valve_open
 
-        if not hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto_regeln):
+        if not hsm_zentral.is_state(hsm_zentral.state_ok_drehschalterauto):
             self.next_interval_time_s = None
             return
 
