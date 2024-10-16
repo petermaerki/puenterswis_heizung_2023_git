@@ -13,11 +13,11 @@ _OEKOFEN_GAIN_MODULATION_PROZENT_K = 4.0 - 0.3
 """
 Faktor zwischen Modulation prozent und Abweichung Kessel zu Solltemperatur, gemessen bei Testläufen
 """
-_OEKOFEN_MODULATION_BEI_NULL_ABWEICHUNG_PROZENT = 65.0
+_OEKOFEN_MODULATION_BEI_NULL_ABWEICHUNG_PROZENT = 55.0
 """
 Modulation bei Kessel gleich Solltemperatur
 """
-_OEKOFEN_KESSEL_UEBER_UW_ON_C = 2.8
+_OEKOFEN_KESSEL_UEBER_UW_ON_C = 1.4
 """
 Bei UW Regelbereich 10 ist die Kesseltemp typ so viel über der UW Freitabe temp
 """
@@ -58,8 +58,8 @@ class BrennerZustaende(tuple[BrennerZustand, BrennerZustand]):
 
 class Modulation(enum.IntEnum):
     OFF = 0
-    MIN = 30
-    MEDIUM = 65
+    MIN = 60
+    # MEDIUM = 65
     MAX = 100
 
     @property
