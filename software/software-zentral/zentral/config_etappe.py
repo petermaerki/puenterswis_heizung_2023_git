@@ -6,8 +6,6 @@ from zentral.config_base import ConfigEtappe, ConfigHaus, Haus
 from zentral.constants import ETAPPE_TAG_BOCHS, ETAPPE_TAG_PUENT, ETAPPE_TAG_VIRGIN
 from zentral.util_fernleitung import Hausreihen
 
-ONLY_13 = False
-
 
 def create_hausreihen_puent() -> Hausreihen:
     h = Hausreihen()
@@ -47,21 +45,6 @@ def _create_config_etappe(hostname: str) -> ConfigEtappe:
             config_haus=ConfigHaus(
                 nummer=99,
                 addresse="Zelglistrasse 99",
-                bewohner="Peter Märki und Sonja Rota",
-                etappe=config,
-                mbus_address="830036752D2C400D",
-                hausreihe=hausreihen["G"],
-            )
-        )
-        return config
-
-    if ONLY_13:
-        hausreihen = create_hausreihen_puent()
-        config = ConfigEtappe(tag=ETAPPE_TAG_VIRGIN, name="Virgin", hausreihen=hausreihen)
-        Haus(
-            config_haus=ConfigHaus(
-                nummer=13,
-                addresse="Zelglistrasse 49",
                 bewohner="Peter Märki und Sonja Rota",
                 etappe=config,
                 mbus_address="830036752D2C400D",

@@ -157,9 +157,6 @@ class Influx:
             add("a", pair_ds18.a)
             add("b", pair_ds18.b)
 
-        # if haus.config_haus.nummer == 13:
-        #     logger.info(fields)
-
         ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
         if ladung_minimum is not None:
             if not ladung_minimum.ladung_bodenheizung.is_sommer:
