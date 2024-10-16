@@ -162,7 +162,8 @@ class HsmZentral(hsm.HsmMixin):
             if modbus_iregs_all is None:
                 continue
             ladung_minimum = modbus_iregs_all.ladung_minimum(temperatur_aussen_C=temperatur_aussen_C)
-            assert ladung_minimum is not None
+            if ladung_minimum is None:
+                continue
             list_prozent.append(ladung_minimum.ladung_prozent)
 
         if len(list_prozent) == 0:
