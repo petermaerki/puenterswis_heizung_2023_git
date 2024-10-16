@@ -5,7 +5,7 @@ import typing
 from pymodbus import ModbusException
 from pymodbus.client import AsyncModbusSerialClient
 
-from zentral.constants import ENABLE_OEKOFEN_LOGFILE, OEKOFEN_CONTROL_ON, ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
+from zentral.constants import ENABLE_OEKOFEN_LOGFILE, OEKOFEN_MODBUS_CONTROL_ON, OEKOFEN_RELAIS_CONTROL_ON, ModbusAddressHaeuser, ModbusAddressOeokofen, ModbusExceptionNoResponseReceived, Waveshare_4RS232
 from zentral.hsm_zentral_signal import SignalDrehschalter, SignalError
 from zentral.util_influx import InfluxRecords
 from zentral.util_modbus import get_modbus_client
@@ -198,11 +198,11 @@ class ModbusCommunication:
                     await self.r.set(
                         list_gpio=[
                             relais_0_mischventil_automatik,
-                            relais.relais_1_elektro_notheizung if OEKOFEN_CONTROL_ON else False,
-                            relais.relais_2_brenner1_sperren if OEKOFEN_CONTROL_ON else False,
-                            relais.relais_3_brenner1_anforderung if OEKOFEN_CONTROL_ON else False,
-                            relais.relais_4_brenner2_sperren if OEKOFEN_CONTROL_ON else False,
-                            relais.relais_5_brenner2_anforderung if OEKOFEN_CONTROL_ON else False,
+                            relais.relais_1_elektro_notheizung if OEKOFEN_RELAIS_CONTROL_ON else False,
+                            relais.relais_2_brenner1_sperren if OEKOFEN_RELAIS_CONTROL_ON else False,
+                            relais.relais_3_brenner1_anforderung if OEKOFEN_RELAIS_CONTROL_ON else False,
+                            relais.relais_4_brenner2_sperren if OEKOFEN_RELAIS_CONTROL_ON else False,
+                            relais.relais_5_brenner2_anforderung if OEKOFEN_RELAIS_CONTROL_ON else False,
                             relais_6_pumpe_gesperrt,
                             relais.relais_7_automatik,
                         ]
@@ -231,7 +231,7 @@ class ModbusCommunication:
         Berechne die Regeltemperatur für die gewünschte Modulation.
         Der Wert wird nur geschrieben, falls er abweicht. Dies schont das Flash.
         """
-        if not OEKOFEN_CONTROL_ON:
+        if not OEKOFEN_MODBUS_CONTROL_ON:
             return
 
         hsm_zentral = self.context.hsm_zentral

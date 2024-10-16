@@ -10,9 +10,14 @@ logger = logging.getLogger(__name__)
 
 DEVELOPMENT = True
 
-OEKOFEN_CONTROL_ON = True
+OEKOFEN_RELAIS_CONTROL_ON = True
 """
 In der Testphase, relais nicht schalten
+"""
+
+OEKOFEN_MODBUS_CONTROL_ON = True
+"""
+In der Testphase, modbus nur lesen aber nicht schreiben
 """
 
 ENABLE_OEKOFEN_LOGFILE = True
