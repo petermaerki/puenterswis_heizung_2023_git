@@ -82,9 +82,10 @@ class HandlerLast:
 
         success = False
         while effective_valve_open_count > self.target_valve_open_count:
-            if self._minus_1_valve(now_s=now_s):
-                success = True
-                effective_valve_open_count -= 1
+            if not self._minus_1_valve(now_s=now_s):
+                break
+            success = True
+            effective_valve_open_count -= 1
 
         return success
 
@@ -98,9 +99,10 @@ class HandlerLast:
 
         success = False
         while effective_valve_open_count < self.target_valve_open_count:
-            if self._plus_1_valve(now_s=now_s):
-                success = True
-                effective_valve_open_count += 1
+            if not self._plus_1_valve(now_s=now_s):
+                break
+            success = True
+            effective_valve_open_count += 1
 
         return success
 
