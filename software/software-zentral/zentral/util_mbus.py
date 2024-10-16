@@ -250,12 +250,12 @@ class MBus:
 
     async def read_mulical303_or_None(self, address: str, relais_valve_open: bool) -> MBusMeasurement | None:
         try:
-            return await self.read_mulical303(address=address, relais_valve_open=relais_valve_open)
-        except meterbus.exceptions.MBusFrameDecodeError as e:
-            logger.debug(f"Failed to read mbus address {address}: {e}")
+            return await self._read_mulical303(address=address, relais_valve_open=relais_valve_open)
+        except meterbus.exceptions.MBusError as e:
+            logger.debug(f"Failed to read mbus address {address}: {e!r}")
             return None
 
-    async def read_mulical303(self, address: str, relais_valve_open: bool) -> MBusMeasurement:
+    async def _read_mulical303(self, address: str, relais_valve_open: bool) -> MBusMeasurement:
         assert isinstance(address, str)
         assert isinstance(relais_valve_open, bool)
         secondary_address = address + "2D2C400D"
@@ -267,6 +267,7 @@ class MBus:
         await asyncio.sleep(0.08)
         with self.duration("A"):
             data = meterbus.recv_frame(self.serial, 1)
+        # The following line often throws a MBusFrameDecodeError
         frame = meterbus.load(data=data)
 
         await asyncio.sleep(0.2)
@@ -275,9 +276,11 @@ class MBus:
 
         with self.duration("B"):
             data = meterbus.recv_frame(self.serial)
-        assert isinstance(frame, meterbus.TelegramACK)
+        if not isinstance(frame, meterbus.TelegramACK):
+            raise meterbus.exceptions.MBusError(f"Expected 'meterbus.TelegramACK' but got '{type(frame)}.")
         frame = meterbus.load(data=data)
-        assert isinstance(frame, meterbus.TelegramLong)
+        if not isinstance(frame, meterbus.TelegramLong):
+            raise meterbus.exceptions.MBusError(f"Expected 'meterbus.TelegramLong' but got '{type(frame)}.")
         # print(frame.to_JSON())
 
         records = frame.interpreted["body"]["records"]
@@ -353,7 +356,7 @@ async def main():
     secondary_address = "83003675"
 
     mbus = MBus(port="/dev/ttyACM2")
-    measurement = await mbus.read_mulical303(address=secondary_address, relais_valve_open=True)
+    measurement = await mbus.read_mulical303_or_None(address=secondary_address, relais_valve_open=True)
     print(measurement.influx_fields("dezentral_mbus_"))
 
 

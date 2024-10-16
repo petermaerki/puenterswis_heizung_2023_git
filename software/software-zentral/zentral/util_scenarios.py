@@ -366,6 +366,7 @@ class LogModule(enum.StrEnum):
     controller_mischventil = "zentral.controller_mischventil"
     controller_mischventil_simple = "zentral.controller_mischventil_simple"
     zentral_controller_oekofen = "zentral.controller_oekofen"
+    util_mbus = "zentral.util_mbus.py"
     util_scenarios = "zentral.util_scenarios"
     pymodbus_logging = "pymodbus.logging"
     asyncssd = "asyncssh"
