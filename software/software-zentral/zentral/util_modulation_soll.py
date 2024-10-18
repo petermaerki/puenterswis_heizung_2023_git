@@ -58,7 +58,7 @@ class BrennerZustaende(tuple[BrennerZustand, BrennerZustand]):
 
 class Modulation(enum.IntEnum):
     OFF = 0
-    MIN = 65
+    MIN = 60
     # MEDIUM = 65
     MAX = 100
 
