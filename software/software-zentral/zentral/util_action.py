@@ -29,7 +29,7 @@ class ActionTimer:
         self._action: ActionBaseEnum | None = None
 
     def _log(self, msg: str) -> None:
-        logger.info(f"{self.action_name_full} {msg}")
+        logger.debug(f"{self.action_name_full} {msg}")
 
     @property
     def _now_s(self) -> float:

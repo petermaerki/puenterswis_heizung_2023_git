@@ -229,6 +229,54 @@ class ListBrenner(list[ModulationBrenner]):
         raise ValueError(f"Does not exist: {brenner_num}")
 
 
+class BurnoutAction(ActionBaseEnum):
+    BURN = 300
+    BURNOUT = 30
+
+
+class BurnOut:
+    """
+    Alle `BURN` min soll der Brenner während `BURNOUT` min auf 100% brennen,
+    um allen Russ auszustossen (Burnout).
+    """
+
+    def __init__(self):
+        self.actiontimer = ActionTimer()
+        self.actiontimer.action = BurnoutAction.BURN
+
+    @property
+    def is_burning_out(self) -> bool:
+        return self.actiontimer.action is BurnoutAction.BURNOUT
+
+    def update_100prozent(self) -> None:
+        """
+        Falls der Brenner schon auf 100% brennt, so ist
+        noch kein Burnout nötig.
+        """
+        if self.actiontimer.action is BurnoutAction.BURN:
+            # This will reset the time
+            self.actiontimer.action = BurnoutAction.BURN
+
+    def do_start_burnout(self) -> bool:
+        if self.actiontimer.action is BurnoutAction.BURNOUT:
+            return False
+
+        if self.actiontimer.is_over:
+            logger.info("Start Burnout")
+            self.actiontimer.action = BurnoutAction.BURNOUT
+            return True
+
+        return False
+
+    def update_end_burnout(self) -> None:
+        if self.actiontimer.action is BurnoutAction.BURN:
+            return
+
+        if self.actiontimer.is_over:
+            logger.info("End Burnout")
+            self.actiontimer.action = BurnoutAction.BURN
+
+
 class ModulationSoll:
     def __init__(self, modulation0: Modulation = Modulation.OFF, modulation1: Modulation = Modulation.OFF) -> None:
         self.zwei_brenner = ListBrenner(
@@ -239,6 +287,7 @@ class ModulationSoll:
         )
         self.actiontimer = ActionTimer()
         self.actiontimer_zweiter_brenner_sperrzeit = ActionTimer()
+        self.burnout = BurnOut()
 
     @property
     def short(self) -> str:
@@ -261,6 +310,7 @@ class ModulationSoll:
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
         self.actiontimer.influxdb_add_fields(fields=fields)
         self.actiontimer_zweiter_brenner_sperrzeit.influxdb_add_fields(fields=fields)
+        self.burnout.actiontimer.influxdb_add_fields(fields=fields)
         for brenner in self.zwei_brenner:
             brenner.actiontimer_error.influxdb_add_fields(fields=fields, prefix=f"brenner_{brenner.idx0+1}_")
 
@@ -305,6 +355,9 @@ class ModulationSoll:
         Falls kein Haus Energie benötigt, also alle ventile geschlossen sind,
         so reduzieren wir sofort alle Brenner, sofern eingeschaltet, auf min.
         """
+        if self.burnout.is_burning_out:
+            return
+
         for brenner in self.zwei_brenner:
             if brenner.modulation > Modulation.MIN:
                 brenner.set_modulation(modulation=Modulation.MIN)
@@ -356,6 +409,9 @@ class ModulationSoll:
             # We have to wait for the previous action to be finished
             return False
 
+        if self.burnout.is_burning_out:
+            return
+
         list_brenner = self.list_brenner(brenner_zustaende).is_over_min()
         try:
             brenner = list_brenner.pop(-1)
@@ -386,3 +442,15 @@ class ModulationSoll:
         self.actiontimer.action = BrennerAction.LOESCHEN
         self._log_action(brenner=brenner, reason="Brenner ausschalten.")
         return True
+
+    def update_burnout(self) -> None:
+        for brenner in self.zwei_brenner:
+            if brenner.is_max:
+                self.burnout.update_100prozent()
+
+        if self.burnout.do_start_burnout():
+            for brenner in self.zwei_brenner:
+                if brenner.is_on:
+                    brenner.set_max()
+
+        self.burnout.update_end_burnout()
