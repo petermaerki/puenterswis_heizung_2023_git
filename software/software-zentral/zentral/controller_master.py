@@ -61,6 +61,8 @@ class ControllerMaster:
         if self.handler_oekofen.anzahl_brenner_on == 0:
             # Last Target auf 0
             self.handler_last.target_valve_open_count = 0
+            # Valve schliessen falls möglich
+            self.handler_last.reduce_valve_open_count(now_s=now_s)
 
         # Falls alle valve zu sind, Modulation auf Minimum
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
@@ -97,7 +99,7 @@ class ControllerMaster:
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:
                 if self.handler_last.increase_valve_open_count(now_s=now_s):
-                    logger.info("sp_zentral_zu_warm: min_target_valve_open_count()")
+                    logger.info("sp_zentral_zu_warm: increase_valve_open_count()")
                     return
                 if self.handler_oekofen.modulation_reduzieren():
                     logger.info("sp_zentral_zu_warm: modulation_reduzieren()")
@@ -114,7 +116,7 @@ class ControllerMaster:
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
                 if self.handler_last.reduce_valve_open_count(now_s=now_s):
-                    logger.info("sp_zentral_zu_kalt: max_target_valve_open_count()")
+                    logger.info("sp_zentral_zu_kalt: reduce_valve_open_count()")
                     return
                 if self.handler_last.minus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_kalt: minus_1_valve()")
