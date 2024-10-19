@@ -146,7 +146,7 @@ class HandlerLast:
         for haus_ladung in haeuser_ladung:
             if haus_ladung.valve_open:
                 continue
-            if haus_ladung.ladung_individuell_prozent >= 80.0:
+            if haus_ladung.ladung_individuell_prozent >= 80.0 and not haus_ladung.legionellen_kill_urgent:
                 continue
             haeuser_to_choose_from.append(haus_ladung)
 
