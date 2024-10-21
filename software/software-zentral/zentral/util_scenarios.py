@@ -224,7 +224,7 @@ class ScenarioHaeuserValveOpen(ScenarioBase):
 
 @dataclasses.dataclass
 class ScenarioMasterValveOpenIterator(ScenarioBase):
-    duration_haus_s: float = 120.0
+    duration_haus_s: float = 180.0
     haeuser_count: int = 999
 
     def action(self, ctx: "Context") -> None:
@@ -391,6 +391,7 @@ class ActionTimerEnum(enum.StrEnum):
     PUMPE_AUS_ZU_KALT = "pumpe_aus_zu_kalt"
     BRENNER_MODULATION_SOLL = "brenner_modulation_soll"
     ZWEITER_BRENNER_SPERRZEIT = "zweiter_brenner_sperrzeit"
+    BRENNER_BURNOUT = "brenner_burnout"
     BRENNER_1_ERROR = "brenner_1_error"
     BRENNER_2_ERROR = "brenner_2_error"
 
@@ -413,6 +414,7 @@ class ScenarioActionTimerTimeOver(ScenarioBase):
             ActionTimerEnum.PUMPE_PWM: controller_master.handler_pumpe._actiontimer_pwm,
             ActionTimerEnum.PUMPE_AUS_ZU_KALT: controller_master.handler_pumpe._actiontimer_pumpe_aus_zu_kalt,
             ActionTimerEnum.BRENNER_MODULATION_SOLL: controller_master.handler_oekofen.modulation_soll.actiontimer,
+            ActionTimerEnum.BRENNER_BURNOUT: controller_master.handler_oekofen.modulation_soll.burnout.actiontimer,
             ActionTimerEnum.ZWEITER_BRENNER_SPERRZEIT: controller_master.handler_oekofen.modulation_soll.actiontimer_zweiter_brenner_sperrzeit,
             ActionTimerEnum.BRENNER_1_ERROR: controller_master.handler_oekofen.modulation_soll.zwei_brenner[0].actiontimer_error,
             ActionTimerEnum.BRENNER_2_ERROR: controller_master.handler_oekofen.modulation_soll.zwei_brenner[1].actiontimer_error,

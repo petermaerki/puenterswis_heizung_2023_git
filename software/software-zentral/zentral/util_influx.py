@@ -267,6 +267,7 @@ class Influx:
                 return
             fields["mischventil_power_W"] = registers.heating_power_W - registers.cooling_power_W
             fields["mischventil_fluss_m3_h"] = 3600.0 * registers.fluss_m3_s
+            fields["mischventil_energy_Wh"] = (registers.heating_energie_J - registers.cooling_energie_J) / 3600.0
 
         def mischventil_automatik():
             def overwrite(key: str, relais: bool, overwrite: tuple[bool, bool]) -> None:
