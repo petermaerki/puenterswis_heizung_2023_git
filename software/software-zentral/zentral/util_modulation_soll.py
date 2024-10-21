@@ -108,6 +108,10 @@ class ModulationBrenner:
     def set_error_if_not_already_set(self) -> None:
         if self.actiontimer_error.action is None:
             self.actiontimer_error.action = BrennerError.ERROR
+        # Todo, Hans korrekt machen: Folgende Zeilen Peter Notbehelf: Falls ein früher gesetzter schon lange abgelaufen ist: cancel und neu machen
+        if self.actiontimer_error._remaining_s < -300.0:
+            self.actiontimer_error.cancel()
+            self.actiontimer_error.action = BrennerError.ERROR
 
     def cancel_error(self) -> None:
         self.actiontimer_error.cancel()
