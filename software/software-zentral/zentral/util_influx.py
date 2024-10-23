@@ -251,8 +251,10 @@ class Influx:
             fields["brenner_1_uebersicht_prozent"] = val1 + 0.0
             fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
 
-            for brenner in controller_master.handler_oekofen.modulation_soll.zwei_brenner:
-                fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
+            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+            if state.value == 5:
+                for brenner in controller_master.handler_oekofen.modulation_soll.zwei_brenner:
+                    fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
 
             betrieb_notheizung = controller_master.handler_oekofen.betrieb_notheizung
             if betrieb_notheizung:
