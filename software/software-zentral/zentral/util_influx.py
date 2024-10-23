@@ -179,13 +179,16 @@ class Influx:
             # Do not flood grafana with 100 percent values.
             # The legend will now just contain the sensors with errors!
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
-        try:
-            if hsm_dezentral.modbus_iregs_all is not None:
-                v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
-                fields["relais_valve_open"] = v
-                fields["relais_valve_open_float"] = v + influx_offset08
-        except AttributeError:
-            pass
+
+        # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+        if state.value == 5:
+            try:
+                if hsm_dezentral.modbus_iregs_all is not None:
+                    v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                    fields["relais_valve_open"] = v
+                    fields["relais_valve_open_float"] = v + influx_offset08
+            except AttributeError:
+                pass
 
         if True:
             haus_ladung = hsm_dezentral.haus_ladung
@@ -283,11 +286,13 @@ class Influx:
                 relais=ctx.hsm_zentral.relais.relais_0_mischventil_automatik,
                 overwrite=ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite,
             )
-            fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
-            fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
-            fields["relais_3_brenner1_anforderung"] = int(ctx.hsm_zentral.relais.relais_3_brenner1_anforderung)
-            fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
-            fields["relais_5_brenner2_anforderung"] = int(ctx.hsm_zentral.relais.relais_5_brenner2_anforderung)
+            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+            if state.value == 5:
+                fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
+                fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
+                fields["relais_3_brenner1_anforderung"] = int(ctx.hsm_zentral.relais.relais_3_brenner1_anforderung)
+                fields["relais_4_brenner2_sperren"] = int(ctx.hsm_zentral.relais.relais_4_brenner2_sperren)
+                fields["relais_5_brenner2_anforderung"] = int(ctx.hsm_zentral.relais.relais_5_brenner2_anforderung)
             overwrite(
                 key="relais_6_pumpe_gesperrt",
                 relais=ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt,
@@ -297,7 +302,9 @@ class Influx:
 
         def mischventil_stellwert_100():
             key = "mischventil_stellwert_100"
-            fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
+            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+            if state.value == 5:
+                fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
             manuell, mischventil_stellwert_100 = ctx.hsm_zentral.mischventil_stellwert_100_overwrite
             if manuell:
                 fields[key + "_overwrite"] = mischventil_stellwert_100
@@ -306,11 +313,15 @@ class Influx:
             credit_100 = ctx.hsm_zentral.controller_mischventil.get_credit_100()
             if credit_100 is None:
                 return
-            fields["mischventil_credit_100"] = credit_100
+            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+            if state.value == 5:
+                fields["mischventil_credit_100"] = credit_100
 
         def pumpe():
             key = "hsm_zentral_pumpe_ein"
-            fields[key] = int(not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
+            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+            if state.value == 5:
+                fields[key] = int(not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
             manuell, relais_6_pumpe_gesperrt = ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite
             if manuell:
                 fields[key + "_overwrite"] = int(not relais_6_pumpe_gesperrt)
@@ -321,15 +332,17 @@ class Influx:
             # fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
         mbus_sum()
-        actiontimer()
-        hausreihen()
+        # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
+        if state.value == 5:
+            actiontimer()
+            hausreihen()
+            mischventil_automatik()
+            mischventil_stellwert_100()
+            mischventil_credit()
+            pumpe()
+        mischventil_registers()
         haeuser_ladung_minimum_prozent()
         oekofen_summary()
-        mischventil_registers()
-        mischventil_automatik()
-        mischventil_stellwert_100()
-        mischventil_credit()
-        pumpe()
         ladung_zentral()
         await self.write_records(records=r)
 
