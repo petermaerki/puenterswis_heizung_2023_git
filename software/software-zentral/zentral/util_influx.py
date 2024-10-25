@@ -181,14 +181,14 @@ class Influx:
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
 
         # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-        if state.value == 5:
-            try:
-                if hsm_dezentral.modbus_iregs_all is not None:
-                    v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
-                    fields["relais_valve_open"] = v
-                    fields["relais_valve_open_float"] = v + influx_offset08
-            except AttributeError:
-                pass
+        # if state.value == 5: geht nicht ist anderer State!!!
+        try:
+            if hsm_dezentral.modbus_iregs_all is not None:
+                v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                fields["relais_valve_open"] = v
+                fields["relais_valve_open_float"] = v + influx_offset08
+        except AttributeError:
+            pass
 
         if True:
             haus_ladung = hsm_dezentral.haus_ladung
