@@ -1,6 +1,8 @@
 # Modbus 
 Als Kunde kann ich per Modbus RTU mit dem Oekofen Touch kommunizieren.
-Innen an der Brennerabdeckung, an der Rückwand vom Touch gibt es einen Anschluss. Den passenden Stecker habe ich selber organisiert:
+Innen an der Brennerabdeckung, an der Rückwand vom Touch gibt es einen Anschluss. 
+
+Den passenden Stecker habe ich selber organisiert:
 Wuert WR-TBL Series 3043 - 3.81 mm Artikel 691304300004
 
 Die Pinbelegung und Steckertyp sind von Oekofen nicht dokumentiert.
@@ -8,7 +10,7 @@ Die Beschriftung von Oekofen, A und B, ist schlecht. Korrekt wären D+ und D-.
 (A und B werden je nach Hersteller verschieden gebraucht.  Details unter: https://en.wikipedia.org/wiki/RS-485) 
 
 
-Ich habe die Belegung durch ausprobieren gefunden, siehe Beschrifung auf Bild.
+Ich habe die Belegung durch ausprobieren gefunden, siehe Beschriftung auf Bild.
 
 ![](./images/modbus.png)
 
@@ -16,7 +18,7 @@ Ich habe die Belegung durch ausprobieren gefunden, siehe Beschrifung auf Bild.
 - Adresse nicht wählbar: 1
 - Oekofen Touch ist Slave.
 - Kommunikation gemäss 20240826a_Modbus_Kaskade_2.05.pdf, nicht wählbar weil ich eine Kaskade habe.
-- Wenn ich Werte Schreibe, so wird das Flasch abgenutzt. Vermutlich sind ca. 100k Schreibzyklen möglich. Hier deutet ein Satz im Dokument 20240826a_Modbus_Kaskade_2.05.pdf hin: "Important Note: Write cycles under 2h will reduce the life time of the internal flash memory."
+- Wenn ich Werte schreibe, so wird das Flash abgenutzt. Vermutlich sind ca. 100k Schreibzyklen möglich. Hier deutet ein Satz im Dokument 20240826a_Modbus_Kaskade_2.05.pdf hin: "Important Note: Write cycles under 2h will reduce the life time of the internal flash memory."
 
 Diese Limitierung ist sehr unschön. Wenn ich per Modbus etwas schreibe, so soll das doch nicht permanent gespeichert werden (und schon gar nicht das Flash abnützen.)
 

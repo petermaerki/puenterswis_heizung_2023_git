@@ -47,3 +47,5 @@ Ich beobachte weiter. Ja, so scheint es zu sein. Nach ca. 4 Stunden Brenndauer i
 Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinefalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden.
 
 Neue Einstellung ![Bild](./images/20241025_22_35.png)
+
+Das ist alles nicht tragisch, kostet mich als Kunde trotzdem etliche Stunden. Und wenn ich nicht gesucht hätte, so wäre die Flamme über die Jahre noch viele, viele male ausgegangen.

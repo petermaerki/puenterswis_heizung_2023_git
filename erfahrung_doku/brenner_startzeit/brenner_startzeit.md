@@ -2,6 +2,7 @@
 Puent
 
 12:57 Anforderung an PE1, FA1_TEMP_C ist 24.7C
+
 13:47 PE1 ist warm, die UW Pumpe beginnt zu pumpen.
 
 Vom Moment der Anforderung bis die Pumpe UW anläuft sind 50 Minuten vergangen. Das ist lang.
