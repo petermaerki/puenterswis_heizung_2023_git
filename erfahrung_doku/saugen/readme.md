@@ -1,4 +1,10 @@
-# Immer noch Problem Flammsensor
+# Saugen
+
+Saugen bedeutet: die Schnecke im Pellets Bunker dreht sich, die Saugturbine saugt die Pellets über die Schläuche in den Tagesbehälter am Brenner.
+
+Seit Wochen haben wir Probleme mit der FlammÜberwachung. Selber probieren, Telefon, Servicetechnker...und wir sind noch immer dran.
+
+
 Meldung: "... FlammÜberwachung [5037]"
 
 2024-10-25 13:01 Puent
@@ -40,7 +46,7 @@ Ich hätte erwartet, dass nach meiner Vorgabe gesogen wird.
 Einige Minuten später finde ich PE1 Saugintervall Ist 103 min. Scheint herunter zu zählen. Vermutlich wenn er 0 ist, so saugt er.
 Allenfalls ist dieser Zähler nicht korrekt weil ich die Einstellung während dem Brand gemacht habe.
 Vermutung: wenn Zähler abgelaufen, so saugt er und nimmt den Wert welchen ich vorgegeben habe und schreibt ihn in den Zähler.
-Der Angezeigte Wert wäre dann so etwas wie Verbleibende Einschubzeit.
+Der Angezeigte Wert wäre dann so etwas wie verbleibende Einschubzeit.
 
 Ich beobachte weiter. Ja, so scheint es zu sein. Nach ca. 4 Stunden Brenndauer ist der Zähler auf 0 und er saugt.
 
