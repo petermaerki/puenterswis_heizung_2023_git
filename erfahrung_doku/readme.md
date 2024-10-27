@@ -5,7 +5,7 @@
 Wir haben zwei Sidlungen. Jede Siedlung hat eine separate Heizzentrale. Hier wurde 2024 die Pelletsheizung ersetzt. 
 Dezentral, in den Häusern, ist in jedem Haus ein Wärmespeicher. Von diesem wird Heizwärme und Brauchwasser bezogen.
 
-|Siedlung|Puent|Bochs| |
+||Puent|Bochs| |
 |---|---|---|---|
 |Häuser pro Etappe|15|11|Häuser|
 |Speicher dezentral, je Haus|0.69|0.69|m<sup>3</sup>|

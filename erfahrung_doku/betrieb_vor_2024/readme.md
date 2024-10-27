@@ -2,6 +2,10 @@
 
 Ich habe Messwerte gesammelt von Juli 2023 bis August 2024. Temperatursensoren an einigen dezentralen Speicherung und an der Fernleitung.
 
+Eine grösse ist die Brennzyklen. Jedes zünden und löschen eines Brenners verursacht Rauch und Verluste.
+
+Anhand der nachfolgenden Beispiele habe ich die Brennzyklen abgeschätzt.
+
  Jahreszeit             |Sommer  |Herbst  |Winter
 ------------------------|--------|--------|--------
 Brennzyklen pro Tag     |0.7     |3       |2

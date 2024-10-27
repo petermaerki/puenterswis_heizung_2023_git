@@ -14,7 +14,7 @@ Das ist ärgerlich, wollte ich die Brenner doch oft und über lange Zeit auf min
 <img src="./images/20241015_161430.jpg" width="400"/>
 <img src="./images/20241015_161915.jpg" width="400"/>
 
-## Modulation 30%
+## Modulation 100%
 Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwischen aus) beobachte ich:
 - Die Brennertüre hat einen darüberliegenden, helleren Belag
 - Es stinkt nicht so

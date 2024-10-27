@@ -26,11 +26,14 @@ Ein kleines Beispiel: Alles läuft stabil, jetzt saugt der Brenner für 2 Minute
 Die Umwälzpumpe UW fördert das Wasser vom Kessel zum Speicher. 
 
 Menu Pellematic 1, Umwälzpumpe
+
 <img src="./images/menu_uw.png" width="400" />
 
 Wie ich das verstehe:
 
 <img src="./images/uw.png" width="400" />
+
+Dies aber nur wenn die Freigabehysterese stark negativ ist. 
 
 Beispiel: Modulation 100%:
 - Bei mir habe ich im Rücklauf typischerweise Wasser von 40C
