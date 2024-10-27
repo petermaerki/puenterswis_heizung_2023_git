@@ -9,10 +9,16 @@ Nach etwa einer Woche auf nonstop 30% Modulation beobachte ich:
 Mir scheint die Verbrennung auf 30% sei nicht optimal.
 Das ist ärgerlich, wollte ich die Brenner doch oft und über lange Zeit auf minimaler Modulation laufen lassen.
 
-![](./images/20241015_155122.jpg)
+<img src="./images/20241015_155122.jpg" width="200" />
+
+<!-- ![](./images/20241015_155122.jpg) -->
+
 ![](./images/20241015_155149.jpg)
 ![](./images/20241015_161430.jpg)
 ![](./images/20241015_161915.jpg)
+
+
+
 
 ## Modulation 30%
 Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwischen aus) beobachte ich:
