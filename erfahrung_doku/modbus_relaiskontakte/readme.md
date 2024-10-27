@@ -12,7 +12,7 @@ Die Beschriftung von Oekofen, A und B, ist schlecht. Korrekt wären D+ und D-.
 
 Ich habe die Belegung durch ausprobieren gefunden, siehe Beschriftung auf Bild.
 
-![](./images/modbus.png)
+<img src="./images/modbus.png)
 
 - Baudrate nicht wählbar: 19200 baud.
 - Adresse nicht wählbar: 1
@@ -28,10 +28,10 @@ Mit diesem Interface bin ich sehr unzufrieden.
 In jedem Brenner ist ein Elektronikmodul namens "Kesselsteuerung". Hier kann ich mit einem Relaiskontaken einwirken.
 Meine Beschaltung
 
-![](./images/relais.png)
-![](./images/20240907_092534469.jpg)
-![](./images/20240828_071158658b.jpg)
-![](./images/20240828_071148758.jpg)
+<img src="./images/relais.png" width="400" />
+<img src="./images/20240907_092534469.jpg" width="400" />
+<img src="./images/20240828_071158658b.jpg" width="400" />
+<img src="./images/20240828_071148758.jpg" width="400" />
 
 Ich kann den Brenner zum Brennen zwingen wenn ich BR schliesse. Ich kann den Brenner sperren wenn ich AK schliesse.
 Jeden einzeln.
@@ -40,19 +40,19 @@ Ich bin sehr froh, die Brenner so steuern zu können.
 
 Ich habe beobachtet: Wenn ich die Anlage Ausschalte am Touch, Betriebsart Aus, also etwas das was jeder Kaminfeger macht.
 
-![](./images/20240925a_zuendet_obwohl_aus.png)
+<img src="./images/20240925a_zuendet_obwohl_aus.png" width="400" />
 
 Und der Pufferspeicher auch keine Wärme braucht: PE1 Anforderung Aus.
 
-![](./images/20240925b_zuendet_obwohl_aus.png)
+<img src="./images/20240925b_zuendet_obwohl_aus.png" width="400" />
 
 Jedoch der Kontakt BR von Kessel 1 geschlossen ist, so brennt der Brenner 1.
 Das Verhalten finde ich schon sehr fragwürdig!
 
 Das Brennen verhindern kann man mit dem Touch nur, indem man jeden einzelnen Brenner Sperrt. Üble Sache!
 
-![](./images/20240925c_zuendet_obwohl_aus.png)
+<img src="./images/20240925c_zuendet_obwohl_aus.png" width="400" />
 
 
 Auf dem Touch werden Symbole angezeigt, je nach Relaiskontakt. Das ist hilfreich zu wissen (da nicht in Doku Oekofen).
-![](./images/20240929_103201649.jpg)
+<img src="./images/20240929_103201649.jpg" width="400" />

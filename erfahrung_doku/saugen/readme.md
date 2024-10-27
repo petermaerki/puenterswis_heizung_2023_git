@@ -2,8 +2,7 @@
 
 Saugen bedeutet: die Schnecke im Pellets Bunker dreht sich, die Saugturbine saugt die Pellets über die Schläuche in den Tagesbehälter am Brenner.
 
-Seit Wochen haben wir Probleme mit der FlammÜberwachung. Selber probieren, Telefon, Servicetechnker...und wir sind noch immer dran.
-
+Seit Wochen haben wir Probleme mit der FlammÜberwachung.
 
 Meldung: "... FlammÜberwachung [5037]"
 
@@ -13,7 +12,7 @@ Saugen um 7:24
 Leistung bricht ein um 12:26, das war
 Modulation 100% über 302 Minuten.
 
-![Puent](./images/puent_pe2_saugturbine.png)
+<img src="./images/puent_pe2_saugturbine.png" width="400" />
 
 Ich würde annehmen, bei einem "Saugintervall" von 220 min hätte PE2 bereits früher saugen müssen.
 Komisch.
@@ -38,8 +37,8 @@ Ich ändere das Saugintervall von alt 220 min auf neu 90 min.
 
 Ich finde folgende Einstellungen:
 
-PE1 ![Bild](./images/PE1.png)
-PE2 ![Bild](./images/PE2.png)
+PE1 <img src="./images/PE1.png" width="400" />
+PE2 <img src="./images/PE2.png" width="400" />
 Ein Saugintervall Ist und kein Soll. Das ist nicht selbsteklärend :(
 Ich hätte erwartet, dass nach meiner Vorgabe gesogen wird.
 
@@ -50,8 +49,8 @@ Der Angezeigte Wert wäre dann so etwas wie verbleibende Einschubzeit.
 
 Ich beobachte weiter. Ja, so scheint es zu sein. Nach ca. 4 Stunden Brenndauer ist der Zähler auf 0 und er saugt.
 
-Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinefalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden.
+Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinenfalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden.
 
-Neue Einstellung ![Bild](./images/20241025_22_35.png)
+Neue Einstellung <img src="./images/20241025_22_35.png" width="400" />
 
-Das ist alles nicht tragisch, kostet mich als Kunde trotzdem etliche Stunden. Und wenn ich nicht gesucht hätte, so wäre die Flamme über die Jahre noch viele, viele male ausgegangen.
+Das ist alles nicht tragisch, kostet mich als Kunde trotzdem etliche Stunden.

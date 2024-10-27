@@ -13,7 +13,7 @@ Eine wichtige Grösse ist die Kesseltemperatur. Siehe Bild z.B. "PE1 Kesseltempe
 Der Sollwert hängt von vielem ab. Mit vielem meine ich, es ist eine Verknüpfgung von diversen Grössen. Die Verknüpfung ist in den Unterlagen nicht klar beschrieben und ich habe sie auch im Detail nicht verstanden. Auf die in Soll angezeigte Temperatur wird auf jeden fall mit der Modulation geregelt.
 
 
-![Puent](./images/hauptmenu_werte.png)
+<img src="./images/hauptmenu_werte.png" width="400" />
 
 In meinem Fall habe ich es so hin gekriegt, dass bei "Soll"  jene Temperatur erscheint, welche ich im Menu Pellematic 1, Einstellung, "Regeltemperatur" einstelle. (Modbus Reg 22 temp set)
 
@@ -26,11 +26,11 @@ Ein kleines Beispiel: Alles läuft stabil, jetzt saugt der Brenner für 2 Minute
 Die Umwälzpumpe UW fördert das Wasser vom Kessel zum Speicher. 
 
 Menu Pellematic 1, Umwälzpumpe
-![Puent](./images/menu_uw.png)
+<img src="./images/menu_uw.png" width="400" />
 
 Wie ich das verstehe:
 
-![Puent](./images/uw.png)
+<img src="./images/uw.png" width="400" />
 
 Beispiel: Modulation 100%:
 - Bei mir habe ich im Rücklauf typischerweise Wasser von 40C
@@ -70,9 +70,15 @@ Mit Modbus kann ich z.B. die "PE1 Kesseltemperatur Soll" einstellen. Also z.B. P
 
 Was mir bleibt: ich kann zwischen 30% und 100% Modulation hin und her schalten. Wenn ich das nicht zu oft mache...
 
-Der Hochglanzprospekt welcher mit Sätzen wie "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung
-entsprechend bis zu 30% der Nennleistung an." lockt stimmt mich nachdenklich. In meinem Fall stimmt er ganz und gar nicht. 
-Sehr gerne hätte ich, dass sich die Heizleistung dem Bedarf anpasst. Am liebsten durch eine clevere Speicher-Bewirtschaftung oder indem dass ich als Benutzer die Möglichkeit habe die Modulation selber vor zu geben. Beides geht nicht.
+In den Verkaufsunterlagen finde ich Sätze wie "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung
+entsprechend bis zu 30% der Nennleistung an." 
+
+<img src="./images/prospekt_modulation.png" width="100" />
+<img src="./images/prospekt_brennwert.png" width="100" />
+
+
+In meinem Fall stimmt das aus meiner Sicht nicht.
+Sehr gerne hätte ich, dass sich die Heizleistung automatisch dem Bedarf anpasst. Am liebsten durch eine clevere Speicher-Bewirtschaftung oder indem dass ich als Benutzer die Möglichkeit habe die Modulation selber vor zu geben. Beides geht nicht.
 
 So, das war mein Frust.
 

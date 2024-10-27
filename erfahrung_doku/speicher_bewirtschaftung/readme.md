@@ -1,5 +1,5 @@
 # Speicher-Bewirtschaftung
-Mit Touch V.4.04
+Touch V.4.04
 
 Ich verstehe vieles nicht wirklich. Auch bei Xten mal durchlesen der Unterlagen verstehe ich das Konzept nicht richtig. Unterschiedliche Bezeichnungen für dieselben Sachen helfen auch nicht weiter. Was ich hier wieder gebe, ist nach bestem Wissen und Gewissen und durch Ausprobieren ermittelt worden.
 
@@ -7,7 +7,7 @@ Wir haben zwei Brenner "in Kaskade" mit einem Pufferspeicher.
 Für die Speicherbewirtschaftung von Oekofen sind bei uns nur die Temperatursensoren TPO X7 und TPM X8 wichtig.
 
 
-![Puent](./images/hydraulik.png)
+<img src="./images/hydraulik.png" width="400" />
 
 Bei unserer Anwendung liefern die Brenner heisses Wasser mit fix 75C. 
 Je nach Modulation und je nach Anzahl Brenner kommt mehr oder weniger heisses Wasser. Siehe auch separates Kapitel Modulation.
@@ -15,11 +15,11 @@ Je nach Modulation und je nach Anzahl Brenner kommt mehr oder weniger heisses Wa
 Menu Puffer1
 - Daueranforderung Puffertemp min Ein: unterschreitet TPO 65 C, so geht Anforderung auf Ein
 - Daueranforderung Purrertemp in Aus: überschreitet TPM 65C, so geht Anforderung auf Aus
-![Puent](./images/puffer1.png)
+<img src="./images/puffer1.png" width="400" />
 
 Menu Status, Puffer1, hier sehe ich ob es eine Anforderung gibt
 
-![Puent](./images/anforderung.png)
+<img src="./images/anforderung.png" width="400" />
 
 
 ## Schalten der Brenner
@@ -27,12 +27,12 @@ Bei einer Anforderung startet der erste Brenner. Bleibt die Anforderung länger
 als "Sperrzeit Kessel 2" bestehen, so startet der zweite Brenner.
 
 Menu Systemregelung Kaskade
-![Puent](./images/kaskade.png)
+<img src="./images/kaskade.png" width="400" />
 
 
 Meine Vermutung wie die Schaltschwellen wirken
 
-![Puent](./images/schaltschwellen.png)
+<img src="./images/schaltschwellen.png" width="400" />
 
 Wir haben zwei Brenner, 1 und 2 und einen Brenner der als erster Startet und einer der als zweiter Startet. Hier wurden in den Unterlagen und in der Bedienung beide Male 1 und 2 verwendet.
 Liebe Entwickler, hier würde ich mir wünschen:
@@ -80,7 +80,7 @@ Liebe Entwickler: ich denke hier wäre viel Potential.
 
 Mir war früher nicht bewusst, wie sauber so ein Speicher schichtet. Deshalb gehe ich nochmals darauf ein.
 
-![Puent](./images/speicher.png)
+<img src="./images/speicher.png" width="400" />
 
 Ich habe Rücklaufwasser von 40C. Ein leerer Speicher hat daher überall Wasser mit 40C. Fülle ich den Speicher mit 75C Wasser, so schiebt sich ein heisser Wasserzylinder von oben nach unten. Weil ich nur 4 Temperatursensoren habe (hat nichts mit Oekofen zu tun, diese Sensoren sind von mir), kann ich erkennen wenn das 75C Wasser beim Sensor vorbei kommt.
 
@@ -94,7 +94,7 @@ Meine Messung mit "nur" vier Sensoren führt zu einer groben Quantisierung.
 Hier die Temperaturen über die Zeit:
 
 
-![Puent](./images/tsz_temperaturen.png)
+<img src="./images/tsz_temperaturen.png" width="400" />
 
 Je nach Vergangenheit sind die Phasengrenzen schärfer oder weniger scharf.
 
