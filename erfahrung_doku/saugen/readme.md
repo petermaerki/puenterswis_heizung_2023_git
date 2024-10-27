@@ -39,6 +39,7 @@ Ich finde folgende Einstellungen:
 
 PE1 <img src="./images/PE1.png" width="400" />
 PE2 <img src="./images/PE2.png" width="400" />
+
 Ein Saugintervall Ist und kein Soll. Das ist nicht selbsteklärend :(
 Ich hätte erwartet, dass nach meiner Vorgabe gesogen wird.
 
@@ -51,6 +52,8 @@ Ich beobachte weiter. Ja, so scheint es zu sein. Nach ca. 4 Stunden Brenndauer i
 
 Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinenfalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden.
 
-Neue Einstellung <img src="./images/20241025_22_35.png" width="400" />
+Neue Einstellung 
+
+<img src="./images/20241025_22_35.png" width="400" />
 
 Das ist alles nicht tragisch, kostet mich als Kunde trotzdem etliche Stunden.

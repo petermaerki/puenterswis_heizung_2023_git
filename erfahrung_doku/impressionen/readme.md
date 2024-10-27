@@ -32,7 +32,7 @@ Brennteller neu
 <img src="./images/20240901_180650.jpg" width="400" />
 <img src="./images/20240901_180716.jpg" width="400" />
 
-Brand
+Erster Brand (initial etwas viel Pellets auf dem Brennteller)
 
 <img src="./images/20240923_094151138.jpg" width="400" />
 <img src="./images/20240923_100241590.jpg" width="400" />
