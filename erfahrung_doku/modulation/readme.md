@@ -10,14 +10,14 @@ Menu Hauptmenu: unten angezeigte Werte in Touch.
 Eine wichtige Grösse ist die Kesseltemperatur. Siehe Bild z.B. "PE1 Kesseltemperatur".
 - "Ist" ist der gemessene Wert, "Soll" ist der Sollwert. 
 
-Der Sollwert hängt von vielem ab. Mit vielem meine ich, es ist eine Verknüpfgung von diversen Grössen. Die Verknüpfung ist in den Unterlagen nicht klar beschrieben und ich habe sie auch im Detail nicht verstanden. Auf die in Soll angezeigte Temperatur wird auf jeden fall mit der Modulation geregelt.
+Der Sollwert hängt von vielem ab. Mit vielem meine ich, es ist eine Verknüpfgung von diversen Grössen. Die Verknüpfung ist in den Unterlagen nicht klar beschrieben und ich habe sie auch im Detail nicht verstanden. Auf die in Soll angezeigte Temperatur wird auf jeden Fall mit der Modulation geregelt.
 
 
 <img src="./images/hauptmenu_werte.png" width="400" />
 
 In meinem Fall habe ich es so hin gekriegt, dass bei "Soll"  jene Temperatur erscheint, welche ich im Menu Pellematic 1, Einstellung, "Regeltemperatur" einstelle. (Modbus Reg 22 temp set)
 
-"PE1 Kesseltemperatur Ist" wird mit der Modulation auf "PE1 Kesseltemperatur Soll" geregelt. PID Regler, Parameter mir unbekannt. 
+"PE1 Kesseltemperatur Ist" wird mit der Modulation auf "PE1 Kesseltemperatur Soll" geregelt. PID Regler, Parameter sind mir unbekannt. 
 
 Was auch immer da Regelt, es scheint mir etwas fragwürdig. Ich habe mich viel mit Regelungstechnik befasst. Was ich da so sehe deutet nicht auf eine robuste Sache hin.
 Ein kleines Beispiel: Alles läuft stabil, jetzt saugt der Brenner für 2 Minuten. Es geht weiter mit einer völlig anderen Modulation. Integralanteil einfach mal so gelöscht?
@@ -38,7 +38,7 @@ Dies aber nur wenn die Freigabehysterese stark negativ ist.
 Beispiel: Modulation 100%:
 - Bei mir habe ich im Rücklauf typischerweise Wasser von 40C
 - PE1 Kesseltemperatur Soll 85 C
-- UW Freigabetemperatur 74 C
+- UW Freigabetemperatur 74 C (roter Kreis in obiger Grafik, nicht bei 60 sondern bei 74 C)
 
 Es stellt sich ein:
 - "PE1 Kesseltemperatur Ist" 75.5C.
@@ -73,15 +73,16 @@ Mit Modbus kann ich z.B. die "PE1 Kesseltemperatur Soll" einstellen. Also z.B. P
 
 Was mir bleibt: ich kann zwischen 30% und 100% Modulation hin und her schalten. Wenn ich das nicht zu oft mache...
 
-In den Verkaufsunterlagen finde ich Sätze wie "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung
-entsprechend bis zu 30% der Nennleistung an." 
+In den Verkaufsunterlagen finde ich Sätze wie "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung entsprechend bis zu 30% der Nennleistung an." 
 
 <img src="./images/prospekt_modulation.png" width="100" />
 <img src="./images/prospekt_brennwert.png" width="100" />
 
 
-In meinem Fall stimmt das aus meiner Sicht nicht.
-Sehr gerne hätte ich, dass sich die Heizleistung automatisch dem Bedarf anpasst. Am liebsten durch eine clevere Speicher-Bewirtschaftung oder indem dass ich als Benutzer die Möglichkeit habe die Modulation selber vor zu geben. Beides geht nicht.
+In meinem Fall stimmt das aus meiner Sicht nicht. Kessel zu und weg schalten vermutlich ja, modulieren nein. Ein reduzieren der Brennleistung erfolgt allenfalls dann, wenn der Rücklauf zu den Brennern heiss wird. Das kann gemacht werden. Dann sind die Speicher aber bereits voll und der Wirkungsgrad ist deshalb bereits schlecht. 
+
+
+Sehr gerne hätte ich, dass sich die Heizleistung automatisch dem Bedarf anpasst. Am liebsten durch eine clevere Speicher-Bewirtschaftung oder indem dass ich als Benutzer die Möglichkeit habe, die Modulation selber vor zu geben. Beides geht nicht.
 
 So, das war mein Frust.
 

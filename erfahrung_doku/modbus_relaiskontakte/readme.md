@@ -50,7 +50,7 @@ Und der Pufferspeicher auch keine Wärme braucht: PE1 Anforderung Aus.
 Jedoch der Kontakt BR von Kessel 1 geschlossen ist, so brennt der Brenner 1.
 Das Verhalten finde ich schon sehr fragwürdig!
 
-Das Brennen verhindern, falls BR geschlossen ist, kann man mit dem Touch nur, indem man jeden einzelnen Brenner Sperrt. Üble Sache!
+Das Brennen verhindern, falls BR geschlossen ist, kann man mit dem Touch nur, indem man jeden einzelnen Brenner sperrt. Üble Sache!
 
 <img src="./images/20240925c_zuendet_obwohl_aus.png" width="400" />
 

@@ -2,7 +2,7 @@
 
 Ich habe Messwerte gesammelt von Juli 2023 bis August 2024. Temperatursensoren an einigen dezentralen Speicherung und an der Fernleitung.
 
-Eine grösse ist die Brennzyklen. Jedes zünden und löschen eines Brenners verursacht Rauch und Verluste.
+Eine wichtige Grösse sind die Brennzyklen. Jedes Zünden und Löschen eines Brenners verursacht Rauch und Verluste.
 
 Anhand der nachfolgenden Beispiele habe ich die Brennzyklen abgeschätzt.
 
@@ -35,7 +35,7 @@ Puent 2023-10-23 bis 2023-10-30
 
 ## Beispiel Winter
 
-Bei Dauerbrand machte die alte Heizung alle 4 Stunden eine "Entaschung". Dies ist als einbruch der fernleitung_hot zu erkennen. Es ist kein Brennerstart, rachte aber dennoch mehr.
+Bei Dauerbrand machte die alte Heizung alle 4 Stunden eine "Entaschung". Dies ist als Einbruch der Fernleitung_hot zu erkennen. Es ist kein Brennerstart, rauchte aber dennoch mehr.
 
 Puent 2024-01-01 bis 2024-01-07
  - Etwa 15 Brennzyklen: 2 Brennzyklus pro Tag

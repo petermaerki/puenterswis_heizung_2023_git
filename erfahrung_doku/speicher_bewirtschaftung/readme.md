@@ -34,14 +34,14 @@ Meine Vermutung wie die Schaltschwellen wirken
 
 <img src="./images/schaltschwellen.png" width="400" />
 
-Wir haben zwei Brenner, 1 und 2 und einen Brenner der als erster Startet und einer der als zweiter Startet. Hier wurden in den Unterlagen und in der Bedienung beide Male 1 und 2 verwendet.
+Wir haben zwei Brenner, 1 und 2 und einen Brenner der als erster startet und einer der als zweiter startet. Hier wurden in den Unterlagen und in der Bedienung beide Male 1 und 2 verwendet.
 Liebe Entwickler, hier würde ich mir wünschen:
 - Physikalische Brenner wie sie vor mir stehen: Pe1 und Pe2
 - Reihenfolge der Brenner wie sie gezündet werden: PeA und PeB
 
 Mit einer solchen Unterscheidung der Namen wäre vieles einfacher zu verstehen. 
 
-Damit die Brenner gleichmässig altern, alterniert die Reihenfolge wie die Brenner gezündet werden. z.B. PeA = Pe1 und PeB = Pe2, später wäre es PeA = Pe1 und PeB = Pe2.
+Damit die Brenner gleichmässig altern, alterniert die Reihenfolge wie die Brenner gezündet werden. z.B. PeA = Pe1 und PeB = Pe2, später wäre es PeA = Pe2 und PeB = Pe1.
 
 Im Moment haben wir Herbst und es läuft nur ein Brenner. Wie das mit zwei Brennern klappt werde ich erst noch sehen.
 

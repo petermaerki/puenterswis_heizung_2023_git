@@ -39,11 +39,11 @@ Das neue System bringt viele Vorteile.
 - Durch den zusätzlichen zentralen Pufferspeicher können die Brennzyklen reduziert werden.
 - Die Steuerung funktioniert. Die Temperaturen aller Speicher, zentral und dezentral werden gemessen. Die Brenner, die Fernleitungspumpe und die Ventile dezentral gesteuert. Weniger Brennzylen, allgmein tiefere Temperaturen und damit einhergehend weniger Verluste: super.
 - Wir haben eine Notheizung mit Strom. Das gibt Sicherheit.
-- Zwei Brenner, zwei saugsysteme, zwei Schnecken im Pellets-Bunker. Redundant. Das gibt Sicherheit.
+- Zwei Brenner, zwei Saugsysteme, zwei Schnecken im Pellets-Bunker. Redundant. Das gibt Sicherheit.
 - Die Brenner sind einfach. Ofentüre auf und man sieht das Feuer. 
 - Der Brennteller ist elegant. Pellets werden von unten in der Mitte rauf geschoben, kontinuierlicher Prozess. Sieht sauber aus.
 - Brennwerttechnik. Die Kamine sind kalt. Vermutlich haben wir einen guten Wirkungsgrad.
-- Das saugen der Pellets durch Schläuche. Brenner frei im Raum aufgestellt. 
+- Das Saugen der Pellets durch Schläuche. Brenner frei im Raum aufgestellt. 
 
 
 Die Steuerung bietet einen "Manuellen" und einen "Automatischen" Betrieb. Der Manuelle läuft ganz ohne Software. Robust dafür nicht so sparsam.
@@ -56,7 +56,7 @@ Betrieb alt und neu
 
 Brenner Oekofen
 
-- [Speicher bewirtschaftung im Modus Manuell](./speicher_bewirtschaftung/readme.md) 
+- [Speicher Bewirtschaftung im Modus Manuell](./speicher_bewirtschaftung/readme.md) 
 - [Brenner Startzeit](./brenner_startzeit/readme.md) 
 - [Asche und Rauch](./asche_rauch/readme.md) 
 - [Modulation der Brenner](./modulation/readme.md) 
