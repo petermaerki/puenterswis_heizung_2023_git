@@ -43,54 +43,21 @@ class HandlerLast:
         for haus_ladung in haeuser_ladung:
             if haus_ladung.ladung_individuell_prozent >= 100.0:
                 if self.legionellen_kill_in_progress:
-                    if haus_ladung.legionellen_kill_soon:
+                    if haus_ladung.legionellen_kill_required:
+                        # Abschaltkriterium gilt nicht bei Legionellen kill.
                         continue
                 haus_ladung.set_valve(valve_open=False)
             if haus_ladung.ladung_individuell_prozent <= 0.0:
                 haus_ladung.set_valve(valve_open=True)
 
-        soon, _urgent = self._is_haus_legionellen_kill_and_valve_open
-        if not soon:
-            self.legionellen_kill_in_progress = False
-
-    @property
-    def _is_haus_legionellen_kill_and_valve_open(self) -> tuple[bool, bool]:
-        """
-        return soon, urgent
-        """
-        soon, urgent = False, False
-        for haus_ladung in self.ctx.hsm_zentral.get_haeuser_ladung():
-            if haus_ladung.valve_open:
-                x = haus_ladung.legionellen_kill_soon
-                if x:
-                    soon = True
-                x = haus_ladung.legionellen_kill_urgent
-                if x:
-                    urgent = True
-        return soon, urgent
-
-    def legionellen_kill_start(self) -> bool:
-        if self.legionellen_kill_in_progress:
+        def get_legionellen_kill_in_progress() -> bool:
+            for haus_ladung in haeuser_ladung:
+                if haus_ladung.valve_open:
+                    if haus_ladung.legionellen_kill_required:
+                        return True
             return False
 
-        soon, _urgent = self._is_haus_legionellen_kill_and_valve_open
-        if soon:
-            self.legionellen_kill_in_progress = True
-            return True
-
-        return False
-
-    def legionellen_kill_start_if_urgent(self) -> None:
-        _soon, urgent = self._is_haus_legionellen_kill_and_valve_open
-        if urgent:
-            self.legionellen_kill_in_progress = True
-
-    def legionellen_kill_cancel(self) -> bool:
-        if not self.legionellen_kill_in_progress:
-            return False
-
-        self.legionellen_kill_in_progress = False
-        return True
+        self.legionellen_kill_in_progress = get_legionellen_kill_in_progress()
 
     def reduce_valve_open_count(self, now_s: float) -> bool:
         """
@@ -146,7 +113,12 @@ class HandlerLast:
         for haus_ladung in haeuser_ladung:
             if haus_ladung.valve_open:
                 continue
-            if haus_ladung.ladung_individuell_prozent >= 80.0 and not haus_ladung.legionellen_kill_urgent:
+
+            if haus_ladung.legionellen_kill_required:
+                haeuser_to_choose_from = HaeuserLadung(haus_ladung)
+                break
+
+            if haus_ladung.ladung_individuell_prozent >= 80.0:
                 continue
             haeuser_to_choose_from.append(haus_ladung)
 
@@ -185,9 +157,8 @@ class HandlerLast:
                 continue
             if haus_ladung.ladung_individuell_prozent <= 30.0:
                 continue
-            if self.legionellen_kill_in_progress:
-                if haus_ladung.legionellen_kill_soon:
-                    continue
+            if haus_ladung.legionellen_kill_required:
+                continue
             haeuser_to_choose_from.append(haus_ladung)
 
         if len(haeuser_to_choose_from) == 0:

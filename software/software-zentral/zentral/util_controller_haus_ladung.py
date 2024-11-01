@@ -55,12 +55,8 @@ class HausLadung:
         return self.haus.config_haus.hausreihe
 
     @property
-    def legionellen_kill_soon(self) -> bool:
-        return self.next_legionellen_kill_s < 1 * 24 * 3600.0
-
-    @property
-    def legionellen_kill_urgent(self) -> bool:
-        return self.next_legionellen_kill_s < -2 * 24 * 3600.0
+    def legionellen_kill_required(self) -> bool:
+        return self.next_legionellen_kill_s < 0.0
 
     @property
     def ladung_individuell_prozent(self) -> float:

@@ -89,10 +89,6 @@ class ControllerMaster:
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
 
-        # Legionellen urgent
-        if pcbs._sp_ladung_zentral.ladung_prozent > 50.0:
-            self.handler_last.legionellen_kill_start_if_urgent()
-
         if self._action_in_progress():
             logger.info("_action_in_progress()")
             return
@@ -108,9 +104,6 @@ class ControllerMaster:
                 if self.handler_last.plus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_warm: plus_1_valve()")
                     return
-                if self.handler_last.legionellen_kill_start():
-                    logger.info("sp_zentral_zu_warm: legionellen_kill_start()")
-                    return
                 logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
                 self.handler_oekofen.zweiter_brenner_loeschen()
 
@@ -124,9 +117,6 @@ class ControllerMaster:
                     return
                 if self.handler_oekofen.modulation_erhoehen():
                     logger.info("sp_zentral_zu_kalt: modulation_erhoehen()")
-                    return
-                if self.handler_last.legionellen_kill_cancel():
-                    logger.info("sp_zentral_zu_kalt: legionellen_kill_cancel()")
                     return
                 if sp_ladung_zentral == SpLadung.LEVEL0:
                     logger.info("sp_zentral_zu_kalt: brenner_zuenden()")
