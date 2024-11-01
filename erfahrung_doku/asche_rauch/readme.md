@@ -14,6 +14,13 @@ Das ist ärgerlich, wollte ich die Brenner doch oft und über lange Zeit auf min
 <img src="./images/20241015_161430.jpg" width="400"/>
 <img src="./images/20241015_161915.jpg" width="400"/>
 
+
+Beim Schornstein sieht man nur weisse Schwaden. Bei feuchtem, kalten Wetter sind die Schwaden lang, sonst kurz.
+
+Foto: Modulation 30%, Sonne,  blauer Himmel, 14 °C.
+
+<img src="./images/20241101_120034585.jpg" width="400" />
+
 ## Modulation 100%
 Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwischen aus) beobachte ich:
 - Die Brennertüre hat einen darüberliegenden, helleren Belag
@@ -27,3 +34,5 @@ Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwisc
 
 
 Wäre spannend zu wissen wie die Abgaswerte bei verschiedener Modulation ist. Die Frage ist: soll ich auf 100% modulieren, vermutlich sauberer verbrennen dafür mehr Brenner-Starts verursachen oder lieber 30% modulieren, schlechter verbrennen dafür weniger Brenner-Starts verursachen. 
+
+<img src="./images/20241101_120034585.jpg" width="400" />
