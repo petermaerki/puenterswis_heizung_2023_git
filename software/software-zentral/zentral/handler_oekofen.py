@@ -107,12 +107,16 @@ class HandlerOekofen:
         for idx0, brenner_zustand in enumerate(self.brenner_zustaende):
             brenner = self.modulation_soll.zwei_brenner[idx0]
             if brenner.is_off:
+                # Brenner brennt nicht
+                brenner.cancel_error()
                 continue
 
             if brenner_zustand.brennt:
+                # Brenner brennt normal
+                brenner.cancel_error()
                 continue
 
-            # Brenner brennt nicht, das Timeout starten
+            # Brenner in Stoerung, das Timeout starten
             brenner.set_error_if_not_already_set()
 
             if brenner.is_error_timer_over:
