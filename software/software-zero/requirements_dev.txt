@@ -6,3 +6,4 @@ pylint
 isort
 pytest
 pytest-asyncio
+matplotlib

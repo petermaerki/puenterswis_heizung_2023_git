@@ -405,12 +405,15 @@ class ModulationSoll:
         return True
 
     def modulation_reduzieren(self, brenner_zustaende: BrennerZustaende) -> bool:
+        """
+        return True: if success
+        """
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
 
         if self.burnout.is_burning_out:
-            return
+            return False
 
         list_brenner = self.list_brenner(brenner_zustaende).is_over_min()
         try:

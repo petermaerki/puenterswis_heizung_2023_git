@@ -81,7 +81,7 @@ class Plot:
         ax2.set_ylabel("Valve, credit [%]", color=color)
         ax2.plot(self.now_s, self.valve_100, color="blue", linestyle="--", label="valve_prozent")
         ax2.plot(self.now_s, self.mischventil_actuation_credit_prozent, linestyle="--", color=color, label="credit_prozent")
-        ax2.set_ylim([-5, 105])
+        ax2.set_ylim((-5.0, 105.0))
         ax2.tick_params(axis="y", labelcolor=color)
         ax2.legend(loc="lower right")
 

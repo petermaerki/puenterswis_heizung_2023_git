@@ -12,11 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class ControllerMischventilABC(ABC):
-    def __init__(self, now_s: float) -> None:
-        ...
+    def __init__(self, now_s: float) -> None: ...
 
-    def process(self, ctx: "Context", now_s: float) -> None:
-        ...
+    def process(self, ctx: "Context", now_s: float) -> None: ...
 
     def get_credit_100(self) -> float | None:
         """

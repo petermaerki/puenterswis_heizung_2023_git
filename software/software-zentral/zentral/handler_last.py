@@ -115,7 +115,7 @@ class HandlerLast:
                 continue
 
             if haus_ladung.legionellen_kill_required:
-                haeuser_to_choose_from = HaeuserLadung(haus_ladung)
+                haeuser_to_choose_from = HaeuserLadung([haus_ladung])
                 break
 
             if haus_ladung.ladung_individuell_prozent >= 80.0:
