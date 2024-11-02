@@ -348,7 +348,9 @@ class Influx:
 
     async def send_oekofen(self, ctx: "Context", modbus_oekofen_registers: OekofenRegisters) -> None:
         r = InfluxRecords(ctx=ctx)
-        r.add_fields(fields=modbus_oekofen_registers.get_influx_fields("temp_oekofen_"))
+        prefix = "temp_oekofen_"
+        r.add_fields(fields=modbus_oekofen_registers.get_influx_fields(prefix))
+        r.add_fields(fields={prefix + "FA_STARTS": modbus_oekofen_registers.fa_starts()})
         await self.write_records(records=r)
 
 

@@ -216,6 +216,12 @@ class OekofenRegisters:
         assert isinstance(v, int)
         return v
 
+    def fa_starts(self) -> float:
+        """
+        Die Summe beider Brenner Starts
+        """
+        return sum([self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_STARTS") for brenner_idx1 in (1, 2)])
+
     def verfuegbar(self, brenner_idx1: int) -> bool:
         return (self.plant_mode() is PlantMode.AUTO) and (self.fa_mode(brenner_idx1=brenner_idx1) is FA_Mode.AUTO)
 
