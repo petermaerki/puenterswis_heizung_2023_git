@@ -34,5 +34,3 @@ Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwisc
 
 
 Wäre spannend zu wissen wie die Abgaswerte bei verschiedener Modulation ist. Die Frage ist: soll ich auf 100% modulieren, vermutlich sauberer verbrennen dafür mehr Brenner-Starts verursachen oder lieber 30% modulieren, schlechter verbrennen dafür weniger Brenner-Starts verursachen. 
-
-<img src="./images/20241101_120034585.jpg" width="400" />

@@ -2,7 +2,7 @@
 
 ## Ausgangslage
 
-Wir haben zwei Sidlungen. Jede Siedlung hat eine separate Heizzentrale. Hier wurde 2024 die Pelletsheizung ersetzt. 
+Wir haben zwei Siedlungen. Jede Siedlung hat eine separate Heizzentrale. Hier wurde 2024 die Pelletsheizung ersetzt. 
 Dezentral, in den Häusern, ist in jedem Haus ein Wärmespeicher. Von diesem wird Heizwärme und Brauchwasser bezogen.
 
 ||Puent|Bochs| |

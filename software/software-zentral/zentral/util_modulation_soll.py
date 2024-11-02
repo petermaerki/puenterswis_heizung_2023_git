@@ -230,7 +230,7 @@ class ListBrenner(list[ModulationBrenner]):
 
 
 class BurnoutAction(ActionBaseEnum):
-    BURN = 300
+    BURN = 8 * 60
     BURNOUT = 30
 
 
