@@ -104,7 +104,7 @@ class HsmZentral(hsm.HsmMixin):
     def uptime_s(self) -> float:
         return time.monotonic() - self._programm_start_s
 
-    def is_drehschalterauto_regeln(self) -> bool:
+    def is_state_drehschalterauto(self) -> bool:
         return self.is_state(self.state_ok_drehschalterauto)
 
     def is_initializing(self) -> bool:

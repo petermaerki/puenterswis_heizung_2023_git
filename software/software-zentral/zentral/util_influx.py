@@ -168,27 +168,26 @@ class Influx:
         r.add_fields(fields=fields)
         await self.write_records(records=r)
 
-    async def send_hsm_dezental(self, haus: Haus, state: hsm.HsmState) -> None:
+    async def send_hsm_dezental(self, ctx: "Context", haus: Haus) -> None:
         r = InfluxRecords(haus=haus)
         hsm_dezentral = haus.status_haus.hsm_dezentral
         influx_offset08 = haus.config_haus.influx_offset05
         fields = {}
-        fields["hsm_state_value"] = state.value + influx_offset08
+        fields["hsm_state_value"] = haus.status_haus.hsm_dezentral.get_state().value + influx_offset08
         fields["next_legionellen_kill_d"] = hsm_dezentral.next_legionellen_kill_s / 24.0 / 3600.0
         if hsm_dezentral.modbus_history.percent < 100:
             # Do not flood grafana with 100 percent values.
             # The legend will now just contain the sensors with errors!
             fields["modbus_ok_percent"] = hsm_dezentral.modbus_history.percent
 
-        # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-        # if state.value == 5: geht nicht ist anderer State!!!
-        try:
-            if hsm_dezentral.modbus_iregs_all is not None:
-                v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
-                fields["relais_valve_open"] = v
-                fields["relais_valve_open_float"] = v + influx_offset08
-        except AttributeError:
-            pass
+        if ctx.hsm_zentral.is_state_drehschalterauto():
+            try:
+                if hsm_dezentral.modbus_iregs_all is not None:
+                    v = haus.config_haus.hausreihe.grafana * int(hsm_dezentral.modbus_iregs_all.relais_gpio.relais_valve_open)
+                    fields["relais_valve_open"] = v
+                    fields["relais_valve_open_float"] = v + influx_offset08
+            except AttributeError:
+                pass
 
         if True:
             haus_ladung = hsm_dezentral.haus_ladung
@@ -203,10 +202,10 @@ class Influx:
         r.add_fields(fields=mbus_measurement.influx_fields("mbus_dezentral_"))
         await self.write_records(records=r)
 
-    async def send_hsm_zentral(self, ctx: "Context", state: hsm.HsmState) -> None:
+    async def send_hsm_zentral(self, ctx: "Context") -> None:
         r = InfluxRecords(ctx=ctx)
         fields = {
-            "hsm_zentral_state_value": state.value,
+            "hsm_zentral_state_value": ctx.hsm_zentral.get_state().value,
         }
         r.add_fields(fields=fields)
 
@@ -254,8 +253,7 @@ class Influx:
             fields["brenner_1_uebersicht_prozent"] = val1 + 0.0
             fields["brenner_2_uebersicht_prozent"] = val2 + 0.3
 
-            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-            if state.value == 5:
+            if ctx.hsm_zentral.is_state_drehschalterauto():
                 for brenner in controller_master.handler_oekofen.modulation_soll.zwei_brenner:
                     fields[f"_brenner_{brenner.idx0+1}_modulation_soll_prozent"] = float(brenner.modulation.prozent) + brenner.idx0 * 0.3
 
@@ -286,8 +284,7 @@ class Influx:
                 relais=ctx.hsm_zentral.relais.relais_0_mischventil_automatik,
                 overwrite=ctx.hsm_zentral.relais.relais_0_mischventil_automatik_overwrite,
             )
-            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-            if state.value == 5:
+            if ctx.hsm_zentral.is_state_drehschalterauto():
                 fields["relais_1_elektro_notheizung"] = int(ctx.hsm_zentral.relais.relais_1_elektro_notheizung)
                 fields["relais_2_brenner1_sperren"] = int(ctx.hsm_zentral.relais.relais_2_brenner1_sperren)
                 fields["relais_3_brenner1_anforderung"] = int(ctx.hsm_zentral.relais.relais_3_brenner1_anforderung)
@@ -302,8 +299,7 @@ class Influx:
 
         def mischventil_stellwert_100():
             key = "mischventil_stellwert_100"
-            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-            if state.value == 5:
+            if ctx.hsm_zentral.is_state_drehschalterauto():
                 fields[key] = ctx.hsm_zentral.mischventil_stellwert_100
             manuell, mischventil_stellwert_100 = ctx.hsm_zentral.mischventil_stellwert_100_overwrite
             if manuell:
@@ -313,14 +309,12 @@ class Influx:
             credit_100 = ctx.hsm_zentral.controller_mischventil.get_credit_100()
             if credit_100 is None:
                 return
-            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-            if state.value == 5:
+            if ctx.hsm_zentral.is_state_drehschalterauto():
                 fields["mischventil_credit_100"] = credit_100
 
         def pumpe():
             key = "hsm_zentral_pumpe_ein"
-            # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-            if state.value == 5:
+            if ctx.hsm_zentral.is_state_drehschalterauto():
                 fields[key] = int(not ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt)
             manuell, relais_6_pumpe_gesperrt = ctx.hsm_zentral.relais.relais_6_pumpe_gesperrt_overwrite
             if manuell:
@@ -332,8 +326,7 @@ class Influx:
             # fields["sp_ladung_zentral_level_prozent"] = pcbs.sp_ladung_zentral.lower_level_prozent
 
         mbus_sum()
-        # Todo Hans soll sauber machen, nur falls state_ok_drehschaltermanuell, sonst micht in grafana
-        if state.value == 5:
+        if ctx.hsm_zentral.is_state_drehschalterauto():
             actiontimer()
             hausreihen()
             mischventil_automatik()
@@ -355,10 +348,11 @@ class Influx:
 
 
 class HsmDezentralInfluxLogger(hsm.HsmLoggerProtocol):
-    def __init__(self, influx: Influx, haus: Haus):
+    def __init__(self, influx: Influx, ctx: "Context", haus: Haus):
         assert isinstance(influx, Influx)
         assert isinstance(haus, Haus)
         self._influx = influx
+        self._ctx = ctx
         self._haus = haus
 
     def fn_log_debug(self, msg: str) -> None:
@@ -378,8 +372,8 @@ class HsmDezentralInfluxLogger(hsm.HsmLoggerProtocol):
             return
 
         async def asyncfunc():
-            await self._influx.send_hsm_dezental(haus=self._haus, state=before)
-            await self._influx.send_hsm_dezental(haus=self._haus, state=after)
+            # await self._influx.send_hsm_dezental(haus=self._haus, state=before)
+            await self._influx.send_hsm_dezental(ctx=self._ctx, haus=self._haus)
 
         asyncio.ensure_future(asyncfunc())
 
@@ -407,7 +401,7 @@ class HsmZentralInfluxLogger(hsm.HsmLoggerProtocol):
             return
 
         async def asyncfunc():
-            await self._influx.send_hsm_zentral(ctx=self._ctx, state=before)
-            await self._influx.send_hsm_zentral(ctx=self._ctx, state=after)
+            # await self._influx.send_hsm_zentral(ctx=self._ctx, state=before)
+            await self._influx.send_hsm_zentral(ctx=self._ctx)
 
         asyncio.ensure_future(asyncfunc())

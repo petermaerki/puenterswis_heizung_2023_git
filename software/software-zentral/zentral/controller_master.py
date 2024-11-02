@@ -54,7 +54,7 @@ class ControllerMaster:
         betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
         self.handler_oekofen.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
 
-        if not ctx.hsm_zentral.is_drehschalterauto_regeln():
+        if not ctx.hsm_zentral.is_state_drehschalterauto():
             # Manual Mode
             self.handler_oekofen.set_brenner_modulation_manual_max()
 

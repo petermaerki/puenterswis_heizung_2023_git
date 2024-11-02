@@ -75,7 +75,7 @@ class Context:
 
         # Add influx logger
         for haus in self.config_etappe.haeuser:
-            influx_logger = HsmDezentralInfluxLogger(influx=self.influx, haus=haus)
+            influx_logger = HsmDezentralInfluxLogger(influx=self.influx, ctx=self, haus=haus)
             haus.status_haus.hsm_dezentral.add_logger(hsm_logger=influx_logger)
 
         # Start the statemachine.
@@ -109,10 +109,7 @@ class Context:
         async with exception_handler_and_exit(ctx=self, task_name="hsm", exit_code=45):
             while True:
                 for haus in self.config_etappe.haeuser:
-                    await self.influx.send_hsm_dezental(
-                        haus=haus,
-                        state=haus.status_haus.hsm_dezentral.get_state(),
-                    )
+                    await self.influx.send_hsm_dezental(ctx=self, haus=haus)
 
                 def update() -> None:
                     """
@@ -130,7 +127,7 @@ class Context:
 
                 update()
 
-                await self.influx.send_hsm_zentral(ctx=self, state=self.hsm_zentral.get_state())
+                await self.influx.send_hsm_zentral(ctx=self)
 
                 await sleep(duration_s=ASYNCIO_TASK_HSM_DEZENTRAL_S)
 
