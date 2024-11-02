@@ -25,6 +25,10 @@ Die Wärmespeicher in den Häsuern haben ein Register (Wärmetauscher mit einem 
 
 Der alte Pellets Brenner rauchte oft. Nach vielen Jahren Qualm haben wir uns entschieden, die Brenner zu ersetzen.
 
+Aktuelle Messwerte auf Grafana
+
+http://www.maerki.com:3000
+
 ## Neu, 2024
 
 Wir haben, je Heizzentrale, den alten Pelletbrenner durch zwei neue Oekofen Pellet Brenner ersetzt. Zudem haben wir neu in der Heizzentrale einen Pufferspeicher.
