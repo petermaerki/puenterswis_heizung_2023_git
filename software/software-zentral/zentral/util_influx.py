@@ -9,7 +9,7 @@ from influxdb_client.client.influxdb_client import InfluxDBClient  # type: ignor
 
 from zentral.config_base import Haus
 from zentral.config_secrets import InfluxSecrets
-from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN
+from zentral.constants import DEVELOPMENT, ETAPPE_TAG_VIRGIN, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_constants_haus import SpPosition
 from zentral.util_ds18_pairs import DS18
 from zentral.util_mbus import MBusMeasurement
@@ -233,7 +233,8 @@ class Influx:
 
             handler_last = controller_master.handler_last
             effective_valve_open_count = ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
-            fields["target_valve_open_count"] = handler_last.target_valve_open_count + 0.1
+            if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+                fields["target_valve_open_count"] = handler_last.target_valve_open_count + 0.1
             fields["effective_valve_open_count"] = effective_valve_open_count + 0.2
             fields["sp_zentral_steigung"] = controller_master.handler_sp_zentral.grafana
 

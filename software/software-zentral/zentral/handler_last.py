@@ -1,6 +1,7 @@
 import logging
 import typing
 
+from zentral.constants import TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_action import ActionBaseEnum, ActionTimer
 from zentral.util_controller_haus_ladung import HaeuserLadung
 
@@ -95,8 +96,9 @@ class HandlerLast:
 
     def plus_1_valve(self, now_s: float) -> bool:
         success = self._plus_1_valve(now_s=now_s)
-        if success:
-            self.target_valve_open_count += 1
+        if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+            if success:
+                self.target_valve_open_count += 1
         return success
 
     def _plus_1_valve(self, now_s: float) -> bool:
@@ -134,11 +136,13 @@ class HandlerLast:
         return True
 
     def minus_1_valve(self, now_s: float) -> bool:
-        if self.target_valve_open_count == 0:
-            return False
+        if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+            if self.target_valve_open_count == 0:
+                return False
         success = self._minus_1_valve(now_s=now_s)
-        if success:
-            self.target_valve_open_count -= 1
+        if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+            if success:
+                self.target_valve_open_count -= 1
         return success
 
     def _minus_1_valve(self, now_s: float) -> bool:

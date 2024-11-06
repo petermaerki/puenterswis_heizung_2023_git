@@ -38,8 +38,20 @@ class HandlerSpZentral:
         duration_s = now_s - self._last_change_s
         assert duration_s >= 0.0
         if duration_s > 3 * 60.0:
-            self.sinkt = False
+            """Steigt oder Sinkt soll nach einer Zeit wieder aufhoeren"""
             self.steigt = False
+            self.sinkt = False
+
+
+        if duration_s > 30 * 60.0:
+            """Steigt oder Sinkt soll periodisch kommen auch wenn die Ladung auf dem gleichen Wert bleibt"""
+            if self.last_ladung_prozent > 55.0:
+                self.steigt = True
+                self.sinkt = False
+            else:
+                self.steigt = False
+                self.sinkt = True
+            self._last_change_s = now_s
 
     @property
     def grafana(self) -> int:

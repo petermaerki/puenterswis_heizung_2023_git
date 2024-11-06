@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 DEVELOPMENT = True
 
+TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT = True
+
 OEKOFEN_RELAIS_CONTROL_ON = True
 """
 In der Testphase, relais nicht schalten

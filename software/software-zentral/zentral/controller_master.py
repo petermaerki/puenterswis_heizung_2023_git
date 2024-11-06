@@ -8,6 +8,7 @@ Sperrt Brenner
 import logging
 import typing
 
+from zentral.constants import TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.handler_last import HandlerLast
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
@@ -95,9 +96,10 @@ class ControllerMaster:
 
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:
-                if self.handler_last.increase_valve_open_count(now_s=now_s):
-                    logger.info("sp_zentral_zu_warm: increase_valve_open_count()")
-                    return
+                if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+                    if self.handler_last.increase_valve_open_count(now_s=now_s):
+                        logger.info("sp_zentral_zu_warm: increase_valve_open_count()")
+                        return
                 if self.handler_oekofen.modulation_reduzieren():
                     logger.info("sp_zentral_zu_warm: modulation_reduzieren()")
                     return
@@ -109,9 +111,10 @@ class ControllerMaster:
 
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
-                if self.handler_last.reduce_valve_open_count(now_s=now_s):
-                    logger.info("sp_zentral_zu_kalt: reduce_valve_open_count()")
-                    return
+                if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
+                    if self.handler_last.reduce_valve_open_count(now_s=now_s):
+                        logger.info("sp_zentral_zu_kalt: reduce_valve_open_count()")
+                        return
                 if self.handler_last.minus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_kalt: minus_1_valve()")
                     return
