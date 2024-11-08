@@ -1,5 +1,6 @@
 import dataclasses
 import logging
+import typing
 
 from micropython.portable_modbus_registers import IREGS_ALL, EnumModbusRegisters, GpioBits
 from pymodbus import ModbusException
@@ -10,6 +11,9 @@ from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_sp_ladung_zentral import SpLadung, SpLadungZentral
 from zentral.util_uploadinterval import UploadInterval
+
+if typing.TYPE_CHECKING:
+    from zentral.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +51,6 @@ class PcbDezentral:
         None if last request failed.
         """
 
-        self.interval_grafana = UploadInterval(interval_s=1 * 60)
-
         self._dict_label_2_pair: dict[str, DsPair] = {}
         for pair in self.list_ds_pair:
             self._dict_label_2_pair[pair.label] = pair
@@ -76,28 +78,6 @@ class PcbDezentral:
             raise e from e
 
         self.modbus_iregs_all2 = ModbusIregsAll2(rsp.registers)
-
-        if self.interval_grafana.time_over:
-            fields: dict[str, float] = {}
-
-            prefix_temperature = "zentral_temperature_"
-            prefix_error = "zentral_error_"
-
-            hsm_zentral = modbus.context.hsm_zentral
-            if hsm_zentral.is_state_drehschalterauto():
-                if not hsm_zentral.relais.relais_6_pumpe_gesperrt:
-                    fields[prefix_temperature + "solltemperatur_Tfv_C"] = hsm_zentral.controller_master.handler_last.solltemperatur_Tfv_C
-
-            for ds_pair in self.list_ds_pair:
-                pair_ds18 = self.modbus_iregs_all2.get_ds18_pair(ds_pair.sp_position)
-                if pair_ds18.temperature_C is not None:
-                    fields[prefix_temperature + ds_pair.label] = pair_ds18.temperature_C
-                if pair_ds18.error_C is not None:
-                    fields[prefix_error + ds_pair.label] = pair_ds18.error_C
-
-            r = InfluxRecords(ctx=modbus.context)
-            r.add_fields(fields=fields)
-            await modbus.context.influx.write_records(records=r)
 
     async def write_gpio(self, modbus: ModbusWrapper, gpio: GpioBits) -> None:
         _rsp = await modbus.write_registers(
@@ -130,6 +110,7 @@ _DS6_DS7 = SpPosition.OBEN
 class PcbsDezentralHeizzentrale:
     def __init__(self, is_bochs: bool) -> None:
         self.dict_mock_temperatures_C: dict[str, float] | None = None
+        self.interval_grafana = UploadInterval(interval_s=1 * 60)
         """
         if None: read temperatures via modbus
         Otherwise: mocked temperatures
@@ -247,3 +228,38 @@ class PcbsDezentralHeizzentrale:
     @property
     def sp_ladung_zentral(self) -> SpLadung:
         return self._sp_ladung_zentral.ladung
+
+    async def send_influxdb(self, context: "Context") -> None:
+        if not self.interval_grafana.time_over:
+            return
+
+        hsm_zentral = context.hsm_zentral
+        anzahl_brenner_on = context.hsm_zentral.controller_master.handler_oekofen.anzahl_brenner_on
+        pumpe_on = not hsm_zentral.relais.relais_6_pumpe_gesperrt
+
+        fields: dict[str, float] = {}
+        for pcb in self.pcbs:
+            prefix_temperature = "zentral_temperature_"
+            prefix_error = "zentral_error_"
+
+            if hsm_zentral.is_state_drehschalterauto():
+                if pumpe_on:
+                    fields[prefix_temperature + "solltemperatur_Tfv_C"] = hsm_zentral.controller_master.handler_last.solltemperatur_Tfv_C
+
+            for ds_pair in pcb.list_ds_pair:
+                pair_ds18 = pcb.modbus_iregs_all2.get_ds18_pair(ds_pair.sp_position)
+                if pair_ds18.temperature_C is not None:
+                    fields[prefix_temperature + ds_pair.label] = pair_ds18.temperature_C
+                if pair_ds18.error_C is not None:
+                    fields[prefix_error + ds_pair.label] = pair_ds18.error_C
+
+        if anzahl_brenner_on > 0:
+            fields[prefix_temperature + "Tbr_brand_C"] = self.Tbr_C
+
+        if pumpe_on:
+            fields[prefix_temperature + "Tfv_pumpe_C"] = self.Tfv_C
+            fields[prefix_temperature + "Tfr_pumpe_C"] = self.Tfr_C
+
+        r = InfluxRecords(ctx=context)
+        r.add_fields(fields=fields)
+        await context.influx.write_records(records=r)

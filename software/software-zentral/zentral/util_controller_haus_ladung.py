@@ -47,8 +47,15 @@ class HausLadung:
         assert isinstance(self.next_legionellen_kill_s, float)
         assert self.verbrauch_avg_W >= -1e-6
 
-    def set_valve(self, valve_open: bool) -> None:
-        self.haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
+    def set_valve(self, valve_open: bool) -> bool:
+        """
+        return True: If value changed
+        """
+        dezentral_gpio = self.haus.status_haus.hsm_dezentral.dezentral_gpio
+        changed = dezentral_gpio.relais_valve_open != valve_open
+        if changed:
+            dezentral_gpio.relais_valve_open = valve_open
+        return changed
 
     @property
     def hausreihe(self) -> Hausreihe:

@@ -129,6 +129,8 @@ class ModbusCommunication:
         for pcb in self.pcbs_dezentral_heizzentrale.pcbs:
             await read_pcb(pcb)
 
+        await self.pcbs_dezentral_heizzentrale.send_influxdb(context=self.context)
+
     async def _handle_modbus_haeuser(self):
         if True:
             await self.read_modbus_pcbs_dezentral_heizzentrale()

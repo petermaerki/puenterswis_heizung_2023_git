@@ -36,6 +36,14 @@ True: Adaptiv
 False: Vorlauf 68.0 / 75.0 C
 """
 
+ABSCHALTGRENZE_INDIVIDUELL = True
+"""
+True: Abschaltgrenze reduziert damit die Häuser nicht voll geladen werden und die Tfr tiefer ist.
+False: 'abschaltgrenze_prozent' = 100.0
+Es soll dann ein valve geschlossen werden, falls ein anderes Haus noch nicht geöffnet ist aber eine deutlich tiefere Ladung hat.
+Die Ladung der ladenden Häuser sind dadurch alle in einem Band: ABSCHALTGRENZE_BAND_PROZENT
+"""
+
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
 assert (DIRECTORY_ZENTRAL / "zentral").is_dir()

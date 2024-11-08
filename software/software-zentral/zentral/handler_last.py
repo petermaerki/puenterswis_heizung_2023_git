@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from zentral.constants import ENABLE_TFV_ADAPTIV, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
+from zentral.constants import ABSCHALTGRENZE_INDIVIDUELL, ENABLE_TFV_ADAPTIV, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_action import ActionBaseEnum, ActionTimer
 from zentral.util_controller_haus_ladung import HaeuserLadung
 
@@ -102,15 +102,39 @@ class HandlerLast:
 
         self.legionellen_kill_in_progress = get_legionellen_kill_in_progress()
 
+        def get_abschaltgrenze_prozent() -> float:
+            if not ABSCHALTGRENZE_INDIVIDUELL:
+                return 100.0
+
+            def minimale_ladung_not_valve_open() -> float:
+                list_ladung_individuell_prozent_not_valve_open: list[float] = []
+                for haus_ladung in haeuser_ladung:
+                    if not haus_ladung.valve_open:
+                        list_ladung_individuell_prozent_not_valve_open.append(haus_ladung.ladung_individuell_prozent)
+                if len(list_ladung_individuell_prozent_not_valve_open) == 0:
+                    return 100.0
+                return min(list_ladung_individuell_prozent_not_valve_open)
+
+            ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
+            abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
+            return min(abschaltgrenze_prozent, 100.0)
+
+        abschaltgrenze_prozent = get_abschaltgrenze_prozent()
+
         for haus_ladung in haeuser_ladung:
-            if haus_ladung.ladung_individuell_prozent >= 100.0:
+            if haus_ladung.ladung_individuell_prozent >= abschaltgrenze_prozent:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
                         # Abschaltkriterium gilt nicht bei Legionellen kill.
                         continue
-                haus_ladung.set_valve(valve_open=False)
+                changed = haus_ladung.set_valve(valve_open=False)
+                if changed:
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent} >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent}")
+
             if haus_ladung.ladung_individuell_prozent <= 0.0:
-                haus_ladung.set_valve(valve_open=True)
+                changed = haus_ladung.set_valve(valve_open=True)
+                if changed:
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent} <= 0.0")
 
     def reduce_valve_open_count(self, now_s: float) -> bool:
         """
