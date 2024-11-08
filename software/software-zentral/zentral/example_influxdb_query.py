@@ -1,10 +1,9 @@
-import asyncio
 import logging
 
+from influxdb_client.client.influxdb_client import \
+    InfluxDBClient  # type: ignore[import]
+
 from zentral.config_secrets import InfluxSecrets
-from zentral.util_influx import Influx
-from influxdb_client import QueryApi  # type: ignore[import]
-from influxdb_client.client.influxdb_client import InfluxDBClient  # type: ignore[import]
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 def main():
     secrets = InfluxSecrets()
-    read_token = "xxxx"
+    read_token = ""
+    # Copy the token from
+    # * 'https://github.com/hmaerki/webserver_hosteurope_grafana/blob/main/README_maerki-2024-01-09a.md'
+    # * Bucket/Access: ALL/Read
     client = InfluxDBClient(url=secrets.url, token=read_token, org=secrets.org)
     query_api = client.query_api()
 

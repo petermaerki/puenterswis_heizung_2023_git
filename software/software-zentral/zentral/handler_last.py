@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from zentral.constants import TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
+from zentral.constants import ENABLE_TFV_ADAPTIV, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_action import ActionBaseEnum, ActionTimer
 from zentral.util_controller_haus_ladung import HaeuserLadung
 
@@ -16,6 +16,12 @@ class LastAction(ActionBaseEnum):
     HAUS_MINUS = 5
 
 
+TFV_NORMAL_C = 68.0
+TFV_LEGIONELLEN_KILL_C = 75.0
+TPV_TEMPERATURHUB_C = 15.0
+TPV_MIN_C = 40.0
+
+
 class HandlerLast:
     def __init__(self, ctx: "Context", now_s: float):
         assert isinstance(now_s, float)
@@ -23,6 +29,7 @@ class HandlerLast:
         self.now_s = now_s
         self.actiontimer = ActionTimer()
         self.mock_solltemperatur_Tfv_C: float | None = None
+        self.boost_Tfv: bool = False
         self.legionellen_kill_in_progress: bool = False
         self.target_valve_open_count: int = 0
 
@@ -30,9 +37,53 @@ class HandlerLast:
     def solltemperatur_Tfv_C(self) -> float:
         if self.mock_solltemperatur_Tfv_C is not None:
             return self.mock_solltemperatur_Tfv_C
+
+        if ENABLE_TFV_ADAPTIV:
+            return self._solltemperatur_adaptiv_Tfv_C
+
         if self.legionellen_kill_in_progress:
-            return 75.0
-        return 68.0
+            return TFV_LEGIONELLEN_KILL_C
+        return TFV_NORMAL_C
+
+    @property
+    def _solltemperatur_adaptiv_Tfv_C(self) -> float:
+        assert ENABLE_TFV_ADAPTIV
+        list_sp_temperatur_mitte_C: list[float] = []
+        list_ladung_individuell_prozent: list[float] = []
+
+        def loop_haeuser_with_valve_open():
+            haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
+            for haus_ladung in haeuser_ladung:
+                if not haus_ladung.valve_open:
+                    continue
+                sp_temperatur_mitte_C = haus_ladung.haus.status_haus.hsm_dezentral.modbus_iregs_all.sp_temperatur.mitte_C
+                list_sp_temperatur_mitte_C.append(sp_temperatur_mitte_C)
+                list_ladung_individuell_prozent.append(haus_ladung.ladung_individuell_prozent)
+
+        loop_haeuser_with_valve_open()
+
+        if len(list_ladung_individuell_prozent) == 0:
+            return 0.0
+
+        min_ladung_individuell_prozent = min(list_ladung_individuell_prozent)
+
+        if True:
+            if min_ladung_individuell_prozent > 0.0:
+                self.boost_Tfv = False
+            if min_ladung_individuell_prozent < -10.0:
+                self.boost_Tfv = True
+
+            if self.boost_Tfv:
+                return TFV_LEGIONELLEN_KILL_C
+
+        # boost_Tfv_C = TPV_MIN_C - min_ladung_individuell_prozent / 5.0 * TFV_LEGIONELLEN_KILL_C
+        # """Boost Temperature steigt bei negativer ladung schnell an"""
+
+        adaptiv_soll_Tfv_C = max(list_sp_temperatur_mitte_C) + TPV_TEMPERATURHUB_C
+        # adaptiv_soll_Tfv_C = max(adaptiv_soll_Tfv_C, boost_Tfv_C)
+        adaptiv_soll_Tfv_C = max(40.0, adaptiv_soll_Tfv_C)
+        adaptiv_soll_Tfv_C = min(75.0, adaptiv_soll_Tfv_C)
+        return adaptiv_soll_Tfv_C
 
     def influxdb_add_fields(self, fields: dict[str, float]) -> None:
         self.actiontimer.influxdb_add_fields(fields=fields)

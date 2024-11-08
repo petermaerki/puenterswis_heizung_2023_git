@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 DEVELOPMENT = True
 
 TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT = True
+"""
+Testhalber Logik mit Valve open count ausschalten
+"""
 
 OEKOFEN_RELAIS_CONTROL_ON = True
 """
@@ -25,6 +28,12 @@ In der Testphase, modbus nur lesen aber nicht schreiben
 ENABLE_OEKOFEN_LOGFILE = True
 """
 Write a lot to the sdcard.
+"""
+
+ENABLE_TFV_ADAPTIV = False
+"""
+True: Adaptiv
+False: Vorlauf 68.0 / 75.0 C
 """
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent

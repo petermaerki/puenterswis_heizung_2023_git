@@ -27,7 +27,7 @@ class DsPair:
     sp_position: SpPosition
     label: str
     """
-    Tkr_C, Tbv1_C, ...
+    Tbr_C, Tbv1_C, ...
     """
 
 
@@ -139,7 +139,7 @@ class PcbsDezentralHeizzentrale:
         self._pcb10 = PcbDezentral(
             modbus_slave_addr=10,
             list_ds_pair=[
-                DsPair(_DS0_DS1, "Tkr_C"),
+                DsPair(_DS0_DS1, "Tbr_C"),
                 DsPair(_DS2_DS3, "Tbv1_C"),
                 DsPair(_DS4_DS5, "Tbv2_C"),
                 DsPair(_DS6_DS7, "Tbv_C"),

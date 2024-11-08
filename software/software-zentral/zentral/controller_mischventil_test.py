@@ -123,7 +123,7 @@ class Ttestparam:
             "Tsz4_C": 65.0,
             "Tfr_C": 25.0,
             "Tfv_C": 25.0,
-            "Tkr_C": 25.0,
+            "Tbr_C": 25.0,
             "Tbv1_C": 25.0,
             "Tbv2_C": 25.0,
             "Tbv_C": 25.0,

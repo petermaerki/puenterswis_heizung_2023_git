@@ -29,6 +29,7 @@ class ControllerMaster:
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
         self.handler_last = HandlerLast(ctx=ctx, now_s=now_s)
         self.handler_sp_zentral = HandlerSpZentral()
+        self.interval_timer_log = 0
 
     def done(self) -> bool:
         return False
@@ -40,11 +41,11 @@ class ControllerMaster:
 
         self._process(now_s=now_s)
 
-    def _action_in_progress(self) -> bool:
-        if self.handler_oekofen.modulation_soll.actiontimer.is_over:
-            if self.handler_last.actiontimer.is_over:
-                return False
-        return True
+    def _action_in_progress(self) -> str | None:
+        for timer in (self.handler_oekofen.modulation_soll.actiontimer, self.handler_last.actiontimer):
+            if not timer.is_over:
+                return timer.action_name_full
+        return None
 
     def _process(self, now_s: float) -> None:
         ctx = self.ctx
@@ -90,8 +91,14 @@ class ControllerMaster:
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
 
-        if self._action_in_progress():
-            logger.info("_action_in_progress()")
+        action_in_progress_name = self._action_in_progress()
+        if action_in_progress_name is None:
+            self.interval_timer_log = 0
+        else:
+            self.interval_timer_log -= 1
+            if self.interval_timer_log < 0:
+                self.interval_timer_log = 20
+                logger.info(f"_action_in_progress(): {action_in_progress_name}")
             return
 
         def sp_zentral_zu_warm():
