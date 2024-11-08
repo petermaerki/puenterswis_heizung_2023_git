@@ -92,15 +92,6 @@ class HandlerLast:
         # Haus zu warm: Ventil schliessen.
         # Haus zu kalt: Ventil öffnen.
         haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
-        for haus_ladung in haeuser_ladung:
-            if haus_ladung.ladung_individuell_prozent >= 100.0:
-                if self.legionellen_kill_in_progress:
-                    if haus_ladung.legionellen_kill_required:
-                        # Abschaltkriterium gilt nicht bei Legionellen kill.
-                        continue
-                haus_ladung.set_valve(valve_open=False)
-            if haus_ladung.ladung_individuell_prozent <= 0.0:
-                haus_ladung.set_valve(valve_open=True)
 
         def get_legionellen_kill_in_progress() -> bool:
             for haus_ladung in haeuser_ladung:
@@ -110,6 +101,16 @@ class HandlerLast:
             return False
 
         self.legionellen_kill_in_progress = get_legionellen_kill_in_progress()
+
+        for haus_ladung in haeuser_ladung:
+            if haus_ladung.ladung_individuell_prozent >= 100.0:
+                if self.legionellen_kill_in_progress:
+                    if haus_ladung.legionellen_kill_required:
+                        # Abschaltkriterium gilt nicht bei Legionellen kill.
+                        continue
+                haus_ladung.set_valve(valve_open=False)
+            if haus_ladung.ladung_individuell_prozent <= 0.0:
+                haus_ladung.set_valve(valve_open=True)
 
     def reduce_valve_open_count(self, now_s: float) -> bool:
         """
