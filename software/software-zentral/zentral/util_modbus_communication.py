@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 MODBUS_HAEUSER_SLEEP_S = 1.0
 MODBUS_OEKOFEN_SLEEP_S = 60
 
-MODBUS_ZENTRAL_MAX_INACTIVITY_S = 10.0
+MODBUS_HAEUSER_MAX_INACTIVITY_S = 10.0
 MODBUS_OEKOFEN_MAX_INACTIVITY_S = 2.0 * MODBUS_OEKOFEN_SLEEP_S
 
 
@@ -69,14 +69,14 @@ class Drehschalter:
 class ModbusCommunication:
     def __init__(self, context: "Context"):
         self.context = context
-        self._modbus = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
+        self._modbus_haeuser = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_HAEUSER, baudrate=9600))
         self._modbus_oekofen = ModbusWrapper(context=context, modbus_client=self._get_modbus_client(n=Waveshare_4RS232.MODBUS_OEKOFEN, baudrate=19200))
-        self._watchdog_modbus_zentral = Watchdog(max_inactivity_s=MODBUS_ZENTRAL_MAX_INACTIVITY_S)
+        self._watchdog_modbus_haeuser = Watchdog(max_inactivity_s=MODBUS_HAEUSER_MAX_INACTIVITY_S)
         self._watchdog_modbus_oekofen = Watchdog(max_inactivity_s=MODBUS_OEKOFEN_MAX_INACTIVITY_S)
 
-        self.m = Mischventil(self._modbus, ModbusAddressHaeuser.BELIMO)
-        self.r = ModbusRelais(self._modbus, ModbusAddressHaeuser.RELAIS)
-        self.a = Dac(self._modbus, ModbusAddressHaeuser.DAC)
+        self.m = Mischventil(self._modbus_haeuser, ModbusAddressHaeuser.BELIMO)
+        self.r = ModbusRelais(self._modbus_haeuser, ModbusAddressHaeuser.RELAIS)
+        self.a = Dac(self._modbus_haeuser, ModbusAddressHaeuser.DAC)
         self.pcbs_dezentral_heizzentrale: PcbsDezentralHeizzentrale = PcbsDezentralHeizzentrale(is_bochs=context.config_etappe.is_bochs)
         self.drehschalter = Drehschalter()
         self.o = Oekofen(self._modbus_oekofen, ModbusAddressOeokofen.OEKOFEN)
@@ -85,11 +85,11 @@ class ModbusCommunication:
         return get_modbus_client(n=n, baudrate=baudrate)
 
     async def connect(self):
-        await self._modbus.connect()
+        await self._modbus_haeuser.connect()
         await self._modbus_oekofen.connect()
 
     async def close(self):
-        await self._modbus.close()
+        await self._modbus_haeuser.close()
         await self._modbus_oekofen.close()
 
     async def modbus_haeuser_loop(self) -> None:
@@ -97,7 +97,7 @@ class ModbusCommunication:
 
         temperatur_aussen_C = self.context.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
         for haus in self.context.config_etappe.haeuser:
-            modbus_haus = ModbusHaus(modbus=self._modbus, haus=haus)
+            modbus_haus = ModbusHaus(modbus=self._modbus_haeuser, haus=haus)
             success = await modbus_haus.handle_haus(haus, self.context.influx, temperatur_aussen_C)
             if success:
                 await modbus_haus.handle_haus_gpio(haus)
@@ -118,7 +118,7 @@ class ModbusCommunication:
         async def read_pcb(pcb: PcbDezentral) -> None:
             for retry in range(retries):
                 try:
-                    await pcb.read(modbus=self._modbus)
+                    await pcb.read(modbus=self._modbus_haeuser)
                     return
                 except ModbusException as e:
                     logger.warning(f"Retry {retry+1}({retries}): {pcb.modbus_label}: {e}")
@@ -149,14 +149,14 @@ class ModbusCommunication:
 
                     logger.info(f"{time.monotonic():06.1f}s {output_100:0.1f}% Tfv_C={self.pcbs_dezentral_heizzentrale.Tfv_C:0.1f}")
 
-                with self._watchdog_modbus_zentral.activity("dac"):
+                with self._watchdog_modbus_haeuser.activity("dac"):
                     await self.a.set_dac_100(output_100=output_100)
             except ModbusException as e:
                 logger.warning(f"Dac: {e}")
 
         if True:
             try:
-                await self.pcbs_dezentral_heizzentrale.update_ventilator(modbus=self._modbus)
+                await self.pcbs_dezentral_heizzentrale.update_ventilator(modbus=self._modbus_haeuser)
             except ModbusException as e:
                 logger.warning(f"pcb11-ventilator: {e}")
 
@@ -166,7 +166,7 @@ class ModbusCommunication:
             try:
                 if SCENARIOS.is_present(ScenarioMischventilModbusNoResponseReceived):
                     raise ModbusExceptionNoResponseReceived(ScenarioMischventilModbusNoResponseReceived.__name__)
-                with self._watchdog_modbus_zentral.activity("mischventil"):
+                with self._watchdog_modbus_haeuser.activity("mischventil"):
                     all_registers = await self.m.all_registers
                 self.context.hsm_zentral.modbus_mischventil_registers = MischventilRegisters(registers=all_registers)
                 logger.debug(f"mischventil: {all_registers=}")
@@ -221,7 +221,7 @@ class ModbusCommunication:
     async def task_modbus_haeuser(self) -> None:
         async with exception_handler_and_exit(ctx=self.context, task_name="modbus", exit_code=42):
             while True:
-                msg = self._watchdog_modbus_zentral.has_expired()
+                msg = self._watchdog_modbus_haeuser.has_expired()
                 if msg is not None:
                     self.context.hsm_zentral.dispatch(SignalError(why=msg))
                 await self._handle_modbus_haeuser()

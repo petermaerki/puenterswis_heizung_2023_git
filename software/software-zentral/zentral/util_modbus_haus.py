@@ -9,6 +9,7 @@ from zentral import hsm_dezentral_signal
 from zentral.constants import DEZENTRAL_VERSION_SW_FIXED_RELAIS_VALVE_OPEN, ModbusExceptionNoResponseReceived
 from zentral.hsm_dezentral_signal import SignalModbusSuccess
 from zentral.util_influx import Influx
+from zentral.util_modbus_communication import MODBUS_HAEUSER_MAX_INACTIVITY_S
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_scenarios import SCENARIOS, ScenarioHaeuserValveOpen, ScenarioHausModbusNoResponseReceived, ScenarioHausPicoRebootReset, ScenarioHausValveOpenCloseOthers
@@ -82,7 +83,10 @@ class ModbusHaus:
             await self.reboot_reset(haus=haus)
 
         if modbus_iregs_all2.relais_gpio.relais_valve_open:
-            self._haus.config_haus.hausreihe.set_leitung_warm(now_s=time.monotonic())
+            if modbus_iregs_all2.uptime_s > 5 * MODBUS_HAEUSER_MAX_INACTIVITY_S:
+                # When a dezentral pico reboots: The valve will be open.
+                # We ignore this!
+                self._haus.config_haus.hausreihe.set_leitung_warm(now_s=time.monotonic())
 
         await grafana.send_modbus_iregs_all(haus, modbus_iregs_all2, temperatur_aussen_C)
         haus.status_haus.hsm_dezentral.dispatch(SignalModbusSuccess(modbus_iregs_all=modbus_iregs_all2))
