@@ -30,6 +30,7 @@ class Tick:
     modulation_reduzieren: bool = False
     brenner_zuenden: bool = False
     brenner_loeschen: bool = False
+    zweiter_brenner_sperrzeit_over: bool = False
     comment: str | None = None
 
     def __post_init__(self):
@@ -50,6 +51,8 @@ class Tick:
             s += "b+"
         if self.brenner_loeschen:
             s += "b-"
+        if self.zweiter_brenner_sperrzeit_over:
+            s += "z+"
         if self.comment is not None:
             s += f" {self.comment}"
         return s
@@ -86,9 +89,11 @@ _TESTPARAMS = [
             Tick(brenner_zuenden=True, comment="Erster Brenner zuenden."),
             *5 * [Tick(modulation_erhoehen=True, comment="Modulation des ersten Brenners erhöhen bis 100%")],
             *5 * [Tick(modulation_reduzieren=True, comment="Modulation des ersten Brenners absenken")],
+            Tick(brenner_zuenden=True, comment="Zweiten Brenner zuenden. Geht nicht, da Sperrzeit"),
+            Tick(zweiter_brenner_sperrzeit_over=True, comment="Sperrzeit ablaufen lassen."),
             *3 * [Tick(brenner_zuenden=True, comment="Zweiten Brenner zuenden.")],
             *5 * [Tick(modulation_erhoehen=True, comment="Modulation beider Brenner erhöhen bis 100%")],
-            *5 * [Tick(modulation_reduzieren=True, comment="Modulation beider Brenner reduzieren auf 30%")],
+            *5 * [Tick(modulation_reduzieren=True, comment="Modulation beider Brenner reduzieren auf 40%")],
             *6 * [Tick(modulation_erhoehen=True, comment="Modulation beider Brenner erhöhen bis 100%")],
             *6 * [Tick(brenner_loeschen=True, comment="Alle Brenner loeschen.")],
         ],
@@ -118,6 +123,8 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
                 modulation_soll.brenner_zuenden(brenner_zustaende=bz)
             if tick.brenner_loeschen:
                 modulation_soll.brenner_loeschen(brenner_zustaende=bz)
+            if tick.zweiter_brenner_sperrzeit_over:
+                modulation_soll.actiontimer_zweiter_brenner_sperrzeit.cancel()
             f.write(f"{modulation_soll.short}  \u2190  {tick.short}\n")
 
     assert_git_unchanged(testparam.filename_txt)
@@ -132,8 +139,8 @@ def test_modulation_soll(testparam: Ttestparam):
     "modulation_prozent,modbus_FAx_UW_TEMP_ON_C,expected_modbus_FAx_REGEL_TEMP_C",
     (
         (Modulation.MAX, 76.0, 85.0),
-        (Modulation.MEDIUM, 76.0, 78.8),
-        (Modulation.MIN, 76.0, 69.34),
+        # (Modulation.MEDIUM, 76.0, 78.8),
+        (Modulation.MIN, 76.0, 73.34),
     ),
 )
 def test_modulation_calculate(modulation_prozent: Modulation, modbus_FAx_UW_TEMP_ON_C: float, expected_modbus_FAx_REGEL_TEMP_C: float):
@@ -147,8 +154,8 @@ def test_modulation_erhoehen() -> None:
     m = m.erhoeht
     assert m is Modulation.MIN
     m = m.erhoeht
-    assert m is Modulation.MEDIUM
-    m = m.erhoeht
+    # assert m is Modulation.MEDIUM
+    # m = m.erhoeht
     assert m is Modulation.MAX
     m = m.erhoeht
     assert m is Modulation.MAX
@@ -157,8 +164,8 @@ def test_modulation_erhoehen() -> None:
 def test_modulation_absenken() -> None:
     m = Modulation.MAX
     m = m.abgesenkt
-    assert m is Modulation.MEDIUM
-    m = m.abgesenkt
+    # assert m is Modulation.MEDIUM
+    # m = m.abgesenkt
     assert m is Modulation.MIN
     m = m.abgesenkt
     assert m is Modulation.OFF

@@ -62,6 +62,9 @@ class Hausreihe:
         return ord(self.label)
 
     def update_influx_reihe(self) -> None:
+        if len(self.haeuser) == 0:
+            # Could happen in case of unit test
+            return
         self.haeuser.sort()
         haus_first = self.haeuser[0]
         haus_last = self.haeuser[-1]

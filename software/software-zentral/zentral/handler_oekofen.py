@@ -76,16 +76,6 @@ class HandlerOekofen:
         """
         return self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
 
-    def erster_brenner_zuenden(self) -> bool:
-        if self.anzahl_brenner_on == 0:
-            return self.brenner_zuenden()
-        return False
-
-    def zweiter_brenner_loeschen(self) -> bool:
-        if self.anzahl_brenner_on == 2:
-            return self.brenner_loeschen()
-        return False
-
     def handle_brenner_mit_stoerung(self) -> None:
         assert self.ctx.hsm_zentral.modbus_oekofen_registers is not None
         if self.ctx.hsm_zentral.modbus_oekofen_registers.is_plant_mode_kaminfeger_AUS():
@@ -125,6 +115,16 @@ class HandlerOekofen:
                 logger.info(f"handle_brenner_mit_stoerung(): {brenner.label} loeschen()!")
                 brenner.loeschen()
                 continue
+
+    def erster_brenner_zuenden(self) -> bool:
+        if self.anzahl_brenner_on == 0:
+            return self.brenner_zuenden()
+        return False
+
+    def zweiter_brenner_loeschen(self) -> bool:
+        if self.anzahl_brenner_on == 2:
+            return self.brenner_loeschen()
+        return False
 
     def brenner_zuenden(self) -> bool:
         return self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
