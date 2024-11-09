@@ -30,7 +30,7 @@ ENABLE_OEKOFEN_LOGFILE = True
 Write a lot to the sdcard.
 """
 
-ENABLE_TFV_ADAPTIV = False
+ENABLE_TFV_ADAPTIV = True
 """
 True: Adaptiv
 False: Vorlauf 68.0 / 75.0 C
