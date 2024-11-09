@@ -29,7 +29,6 @@ class ControllerMaster:
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
         self.handler_last = HandlerLast(ctx=ctx, now_s=now_s)
         self.handler_sp_zentral = HandlerSpZentral()
-        self.interval_timer_log = 0
 
     def done(self) -> bool:
         return False
@@ -40,12 +39,6 @@ class ControllerMaster:
         self.handler_oekofen.modulation_soll.update_burnout()
 
         self._process(now_s=now_s)
-
-    def _action_in_progress(self) -> str | None:
-        for timer in (self.handler_oekofen.modulation_soll.actiontimer, self.handler_last.actiontimer):
-            if not timer.is_over:
-                return timer.action_name_full
-        return None
 
     def _process(self, now_s: float) -> None:
         ctx = self.ctx
@@ -85,20 +78,13 @@ class ControllerMaster:
 
         # Brenner loeschen
         if sp_ladung_zentral == SpLadung.LEVEL4:
-            self.handler_oekofen.brenner_loeschen()
+            self.handler_oekofen.brenner_sofort_loeschen()
 
         # Erster Brenner zünden
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
 
-        action_in_progress_name = self._action_in_progress()
-        if action_in_progress_name is None:
-            self.interval_timer_log = 0
-        else:
-            self.interval_timer_log -= 1
-            if self.interval_timer_log < 0:
-                self.interval_timer_log = 20
-                logger.info(f"_action_in_progress(): {action_in_progress_name}")
+        if not self.handler_last.actiontimer.is_over:
             return
 
         def sp_zentral_zu_warm():
@@ -113,8 +99,8 @@ class ControllerMaster:
                 if self.handler_last.plus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_warm: plus_1_valve()")
                     return
-                logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
-                self.handler_oekofen.zweiter_brenner_loeschen()
+                if self.handler_oekofen.zweiter_brenner_loeschen():
+                    logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
 
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
@@ -129,8 +115,8 @@ class ControllerMaster:
                     logger.info("sp_zentral_zu_kalt: modulation_erhoehen()")
                     return
                 if sp_ladung_zentral == SpLadung.LEVEL0:
-                    logger.info("sp_zentral_zu_kalt: brenner_zuenden()")
-                    self.handler_oekofen.brenner_zuenden()
+                    if self.handler_oekofen.brenner_zuenden():
+                        logger.info("sp_zentral_zu_kalt: brenner_zuenden()")
 
         if sp_ladung_zentral >= SpLadung.LEVEL3:
             if self.handler_oekofen.anzahl_brenner_on >= 1:

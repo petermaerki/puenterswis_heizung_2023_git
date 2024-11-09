@@ -65,15 +65,21 @@ class HandlerOekofen:
     def modulation_erhoehen(self) -> bool:
         """
         Return True: Falls die Leistung erhöht werden konnte.
-        Return False: Bereits auf maximum Leistung.
+        Return False: Bereits auf maximum Leistung oder action läuft noch.
         """
+        if not self.modulation_soll.actiontimer.is_over:
+            return False
+
         return self.modulation_soll.modulation_erhoehen(brenner_zustaende=self.brenner_zustaende)
 
     def modulation_reduzieren(self) -> bool:
         """
         Return True: Falls die Leistung reduziert werden konnte.
-        Return False: Bereits auf minimaler Leistung.
+        Return False: Bereits auf minimaler Leistung oder action läuft noch.
         """
+        if not self.modulation_soll.actiontimer.is_over:
+            return False
+
         return self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
 
     def handle_brenner_mit_stoerung(self) -> None:
@@ -122,15 +128,25 @@ class HandlerOekofen:
         return False
 
     def zweiter_brenner_loeschen(self) -> bool:
+        if not self.modulation_soll.actiontimer.is_over:
+            return False
+
         if self.anzahl_brenner_on == 2:
             return self.brenner_loeschen()
+
         return False
 
     def brenner_zuenden(self) -> bool:
+        if not self.modulation_soll.actiontimer.is_over:
+            return False
+
         return self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
 
     def brenner_loeschen(self) -> bool:
         return self.modulation_soll.brenner_loeschen(brenner_zustaende=self.brenner_zustaende)
+
+    def brenner_sofort_loeschen(self) -> bool:
+        return self.modulation_soll.brenner_sofort_loeschen(brenner_zustaende=self.brenner_zustaende)
 
     def set_modulation_min(self) -> None:
         self.modulation_soll.set_modulation_min()

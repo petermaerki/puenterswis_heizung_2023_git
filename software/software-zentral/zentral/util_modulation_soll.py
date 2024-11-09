@@ -463,6 +463,9 @@ class ModulationSoll:
             # We have to wait for the previous action to be finished
             return False
 
+        return self.brenner_sofort_loeschen(brenner_zustaende=brenner_zustaende)
+
+    def brenner_sofort_loeschen(self, brenner_zustaende: BrennerZustaende) -> bool:
         list_brenner = self.list_brenner(brenner_zustaende).on()
         try:
             # Wir nehmen den Brenner zuerst, der die höhere Betriebsdauer hat.
