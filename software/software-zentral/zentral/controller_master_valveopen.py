@@ -34,9 +34,16 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
         self.log_lines.append(line)
 
     def done(self) -> bool:
-        return self.actual_haus_idx0 >= self.scenario.haeuser_count
+        if self.actual_haus_idx0 >= self.scenario.haeuser_count:
+            return True
+        if self.actual_haus_idx0 >= len(self.ctx.config_etappe.haeuser):
+            return True
+        return False
 
     def process(self, now_s: float) -> None:
+        if self.done():
+            return
+
         self.handler_pumpe.run_forced()
 
         if time.monotonic() > self.actual_haus_end_s:
@@ -48,13 +55,10 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
                     assert mbus_measurement is not None
                     self._log(f"All valves open: {haus.influx_tag}: flow_v1_m3h={mbus_measurement.flow_v1_m3h:0.5f}")
             else:
-                try:
-                    haus = self.ctx.config_etappe.haeuser[self.actual_haus_idx0]
-                    mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
-                    assert mbus_measurement is not None
-                    self._log(f"One valve open: {haus.influx_tag}: flow_v1_m3h={mbus_measurement.flow_v1_m3h:0.5f}")
-                except ImportError:
-                    pass
+                haus = self.ctx.config_etappe.haeuser[self.actual_haus_idx0]
+                mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
+                assert mbus_measurement is not None
+                self._log(f"One valve open: {haus.influx_tag}: flow_v1_m3h={mbus_measurement.flow_v1_m3h:0.5f}")
 
             self.actual_haus_idx0 += 1
             self.actual_haus_end_s += self.scenario.duration_haus_s
@@ -69,5 +73,3 @@ class ControllerMasterValveOpenIterator(ControllerMaster):
         for haus_idx0, haus in enumerate(self.ctx.config_etappe.haeuser):
             valve_open = haus_idx0 == self.actual_haus_idx0
             haus.status_haus.hsm_dezentral.dezentral_gpio.relais_valve_open = valve_open
-
-        return
