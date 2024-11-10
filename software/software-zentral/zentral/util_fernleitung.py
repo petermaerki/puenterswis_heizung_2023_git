@@ -5,6 +5,7 @@ import typing
 
 if typing.TYPE_CHECKING:
     from zentral.config_base import Haus
+    from zentral.util_controller_haus_ladung import HausLadung
 
 _E = 2.7182
 """
@@ -16,6 +17,11 @@ _FACTOR_WASSER_METALL_RETOUR = 4.0
 """
 Wir berechnen nur das Wasser auf dem Hinweg.
 Effektiv ist aber auch Metall und das Wasser auf dem Rückweg betroffen.
+"""
+
+FAKTOR_HAUSREIHE_PROZENT_J = 20.0 / (15.0 * 3600 * 1000)
+"""
+20%/15kWh
 """
 
 
@@ -83,7 +89,7 @@ class Hausreihe:
         hausreihe: Hausreihe | None = self
         _bonus_J = 0.0
         while hausreihe is not None:
-            _bonus_J += self._bonus_segment_J(now_s=now_s)
+            _bonus_J += hausreihe._bonus_segment_J(now_s=now_s)
             hausreihe = hausreihe.einspeisung
         return _bonus_J
 
@@ -115,7 +121,11 @@ class Hausreihen(dict[str, Hausreihe]):
 
 
 class EnergieHausreihe_J(dict[Hausreihe, float]):
-    pass
+    def korrektur_prozent(self, haus_ladung: "HausLadung") -> float:
+        """
+        Umrechnung EnergieHausreihe_J in hausreihe_korrektur_prozent
+        """
+        return self[haus_ladung.hausreihe] * FAKTOR_HAUSREIHE_PROZENT_J
 
 
 if __name__ == "__main__":

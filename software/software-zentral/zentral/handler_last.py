@@ -1,9 +1,9 @@
 import logging
 import typing
 
-from zentral.constants import ABSCHALTGRENZE_INDIVIDUELL, ENABLE_TFV_ADAPTIV, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
+from zentral.constants import ABSCHALTGRENZE_INDIVIDUELL, ENABLE_TFV_ADAPTIV, SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_action import ActionBaseEnum, ActionTimer
-from zentral.util_controller_haus_ladung import HaeuserLadung
+from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
 
 if typing.TYPE_CHECKING:
     from zentral.context import Context
@@ -129,12 +129,12 @@ class HandlerLast:
                         continue
                 changed = haus_ladung.set_valve(valve_open=False)
                 if changed:
-                    logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent} >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent}")
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
 
             if haus_ladung.ladung_individuell_prozent <= 0.0:
                 changed = haus_ladung.set_valve(valve_open=True)
                 if changed:
-                    logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent} <= 0.0")
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% <= 0.0")
 
     def reduce_valve_open_count(self, now_s: float) -> bool:
         """
@@ -203,11 +203,12 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_ladung_indiviuell()
-
-        selected_haus = haeuser_to_choose_from[0]
+        selected_haus = self._select_haus(
+            haeuser_to_choose_from=haeuser_to_choose_from,
+            now_s=now_s,
+            plus1_valve=True,
+        )
         selected_haus.set_valve(valve_open=True)
-        logger.info(f"_plus_1_valve {selected_haus.haus.influx_tag}")
         self.actiontimer.action = LastAction.HAUS_PLUS
         return True
 
@@ -244,10 +245,35 @@ class HandlerLast:
         if len(haeuser_to_choose_from) == 0:
             return False
 
-        haeuser_to_choose_from.sort_by_ladung_indiviuell()
-
-        selected_haus = haeuser_to_choose_from[-1]
+        selected_haus = self._select_haus(
+            haeuser_to_choose_from=haeuser_to_choose_from,
+            now_s=now_s,
+            plus1_valve=False,
+        )
         selected_haus.set_valve(valve_open=False)
-        logger.info(f"_minus_1_valve {selected_haus.haus.influx_tag}")
         self.actiontimer.action = LastAction.HAUS_MINUS
         return True
+
+    def _select_haus(self, haeuser_to_choose_from: HaeuserLadung, now_s: float, plus1_valve: bool) -> HausLadung:
+        if SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR:
+            hausreihe_korrektur_vorzeichen = -1.0 if plus1_valve else 1.0
+
+            hausreihen = self.ctx.config_etappe.hausreihen.calculate(now_s=now_s)
+            haeuser_to_choose_from.sort_by_ladung_individuell_und_hausreihe_korrektur(
+                hausreihen=hausreihen,
+                hausreihe_korrektur_vorzeichen=hausreihe_korrektur_vorzeichen,
+            )
+        else:
+            haeuser_to_choose_from.sort_by_ladung_indiviuell()
+
+        selected_haus = haeuser_to_choose_from[0 if plus1_valve else -1]
+
+        if SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR:
+            hausreihe_korrektur_prozent = hausreihe_korrektur_vorzeichen * hausreihen.korrektur_prozent(haus_ladung=selected_haus)
+            comment = f"{hausreihe_korrektur_prozent:+0.1f}%"
+        else:
+            comment = ""
+        label = "plus1_valve" if plus1_valve else "minus1_valve"
+        logger.info(f"{label}: {selected_haus.haus.influx_tag} hausreihe '{selected_haus.hausreihe.label}': {selected_haus.ladung_individuell_prozent:0.1f}%{comment}")
+
+        return selected_haus

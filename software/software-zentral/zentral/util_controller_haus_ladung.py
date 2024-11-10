@@ -81,8 +81,11 @@ class HaeuserLadung(list[HausLadung]):
 
         self.sort(key=f_key)
 
-    def sort_by_haeuserreihe(self, hausreihen: EnergieHausreihe_J) -> None:
-        def f_key(haus_ladung: HausLadung) -> tuple[float, float]:
-            return -hausreihen[haus_ladung.hausreihe], haus_ladung.ladung_individuell_prozent
+    def sort_by_ladung_individuell_und_hausreihe_korrektur(self, hausreihen: EnergieHausreihe_J, hausreihe_korrektur_vorzeichen: float) -> None:
+        def f_key(haus_ladung: HausLadung) -> float:
+            korrektur_prozent = hausreihe_korrektur_vorzeichen * hausreihen.korrektur_prozent(haus_ladung=haus_ladung)
+
+            # Hausreihe mit warmen Leitungen, also mit positiver Energie: korrektur_prozent ist positiv.
+            return haus_ladung.ladung_individuell_prozent + korrektur_prozent
 
         self.sort(key=f_key)

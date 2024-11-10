@@ -44,6 +44,8 @@ Es soll dann ein valve geschlossen werden, falls ein anderes Haus noch nicht ge√
 Die Ladung der ladenden H√§user sind dadurch alle in einem Band: ABSCHALTGRENZE_BAND_PROZENT
 """
 
+SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR = True
+
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent
 DIRECTORY_ZENTRAL = DIRECTORY_OF_THIS_FILE.parent
 assert (DIRECTORY_ZENTRAL / "zentral").is_dir()
