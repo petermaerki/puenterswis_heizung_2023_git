@@ -247,6 +247,7 @@ class PcbsDezentralHeizzentrale:
                     fields[prefix_temperature + "solltemperatur_Tfv_C"] = hsm_zentral.controller_master.handler_last.solltemperatur_Tfv_C
 
             for ds_pair in pcb.list_ds_pair:
+                assert pcb.modbus_iregs_all2 is not None
                 pair_ds18 = pcb.modbus_iregs_all2.get_ds18_pair(ds_pair.sp_position)
                 if pair_ds18.temperature_C is not None:
                     fields[prefix_temperature + ds_pair.label] = pair_ds18.temperature_C

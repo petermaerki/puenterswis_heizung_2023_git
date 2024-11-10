@@ -1,7 +1,7 @@
 import logging
 import typing
 
-from zentral.constants import ABSCHALTGRENZE_INDIVIDUELL, ENABLE_TFV_ADAPTIV, SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
+from zentral.constants import ABSCHALTGRENZE_BAND, ENABLE_TFV_ADAPTIV, SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR, TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
 from zentral.util_action import ActionBaseEnum, ActionTimer
 from zentral.util_controller_haus_ladung import HaeuserLadung, HausLadung
 
@@ -89,22 +89,17 @@ class HandlerLast:
         self.actiontimer.influxdb_add_fields(fields=fields)
 
     def update_valves(self, now_s: float) -> None:
-        # Haus zu warm: Ventil schliessen.
-        # Haus zu kalt: Ventil öffnen.
+        """
+        Haus zu warm: Ventil schliessen.
+        Haus zu kalt: Ventil öffnen.
+        """
         haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
 
-        def get_legionellen_kill_in_progress() -> bool:
-            for haus_ladung in haeuser_ladung:
-                if haus_ladung.valve_open:
-                    if haus_ladung.legionellen_kill_required:
-                        return True
-            return False
-
-        self.legionellen_kill_in_progress = get_legionellen_kill_in_progress()
-
-        def get_abschaltgrenze_prozent() -> float:
-            if not ABSCHALTGRENZE_INDIVIDUELL:
-                return 100.0
+        def abschaltgrenze_band() -> None:
+            """
+            Um die Rücklauftemperatur möglichst tief zu halten
+            sollen Valves der Häuser mit der höchsten Rücklauftemperatur geschlossen werden.
+            """
 
             def minimale_ladung_not_valve_open() -> float:
                 list_ladung_individuell_prozent_not_valve_open: list[float] = []
@@ -115,21 +110,30 @@ class HandlerLast:
                     return 100.0
                 return min(list_ladung_individuell_prozent_not_valve_open)
 
-            ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
-            abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
-            return min(abschaltgrenze_prozent, 100.0)
+            selected_haus = self._find_minus_1_valve(haeuser_ladung=haeuser_ladung, now_s=now_s, log_info=False)
+            if selected_haus is not None:
+                ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
 
-        abschaltgrenze_prozent = get_abschaltgrenze_prozent()
+                abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
+                if selected_haus.ladung_individuell_prozent > abschaltgrenze_prozent:
+                    changed = selected_haus.set_valve(valve_open=False)
+                    assert changed
+                    logger.info(f"{selected_haus.haus.influx_tag} valve closed, ladung_individuell {selected_haus.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
+
+        if ABSCHALTGRENZE_BAND:
+            abschaltgrenze_band()
+
+        self.legionellen_kill_in_progress = haeuser_ladung.legionellen_kill_in_progress
 
         for haus_ladung in haeuser_ladung:
-            if haus_ladung.ladung_individuell_prozent >= abschaltgrenze_prozent:
+            if haus_ladung.ladung_individuell_prozent >= 100.0:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
                         # Abschaltkriterium gilt nicht bei Legionellen kill.
                         continue
                 changed = haus_ladung.set_valve(valve_open=False)
                 if changed:
-                    logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= 100.0%")
 
             if haus_ladung.ladung_individuell_prozent <= 0.0:
                 changed = haus_ladung.set_valve(valve_open=True)
@@ -207,6 +211,7 @@ class HandlerLast:
             haeuser_to_choose_from=haeuser_to_choose_from,
             now_s=now_s,
             plus1_valve=True,
+            log_info=True,
         )
         selected_haus.set_valve(valve_open=True)
         self.actiontimer.action = LastAction.HAUS_PLUS
@@ -222,17 +227,9 @@ class HandlerLast:
                 self.target_valve_open_count -= 1
         return success
 
-    def _minus_1_valve(self, now_s: float) -> bool:
-        """
-        Versuche ein valve zu schliessen.
-        return true:
-          falls dies möglich war
-          LastAction.HAUS_MINUS
-        KEINE Veränderung von target_valve_open_count
-        """
+    def _find_minus_1_valve(self, haeuser_ladung: HaeuserLadung, now_s: float, log_info: bool) -> HausLadung | None:
         haeuser_to_choose_from: HaeuserLadung = HaeuserLadung()
 
-        haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
         for haus_ladung in haeuser_ladung:
             if not haus_ladung.valve_open:
                 continue
@@ -243,18 +240,37 @@ class HandlerLast:
             haeuser_to_choose_from.append(haus_ladung)
 
         if len(haeuser_to_choose_from) == 0:
-            return False
+            return None
 
-        selected_haus = self._select_haus(
+        return self._select_haus(
             haeuser_to_choose_from=haeuser_to_choose_from,
             now_s=now_s,
             plus1_valve=False,
+            log_info=log_info,
         )
+
+    def _minus_1_valve(self, now_s: float) -> bool:
+        """
+        Versuche ein valve zu schliessen.
+        return true:
+          falls dies möglich war
+          LastAction.HAUS_MINUS
+        KEINE Veränderung von target_valve_open_count
+        """
+        haeuser_ladung = self.ctx.hsm_zentral.get_haeuser_ladung()
+
+        selected_haus = self._find_minus_1_valve(
+            haeuser_ladung=haeuser_ladung,
+            now_s=now_s,
+            log_info=True,
+        )
+        if selected_haus is None:
+            return False
         selected_haus.set_valve(valve_open=False)
         self.actiontimer.action = LastAction.HAUS_MINUS
         return True
 
-    def _select_haus(self, haeuser_to_choose_from: HaeuserLadung, now_s: float, plus1_valve: bool) -> HausLadung:
+    def _select_haus(self, haeuser_to_choose_from: HaeuserLadung, now_s: float, plus1_valve: bool, log_info: bool = True) -> HausLadung:
         if SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR:
             hausreihe_korrektur_vorzeichen = -1.0 if plus1_valve else 1.0
 
@@ -273,7 +289,8 @@ class HandlerLast:
             comment = f"{hausreihe_korrektur_prozent:+0.1f}%"
         else:
             comment = ""
-        label = "plus1_valve" if plus1_valve else "minus1_valve"
-        logger.info(f"{label}: {selected_haus.haus.influx_tag} hausreihe '{selected_haus.hausreihe.label}': {selected_haus.ladung_individuell_prozent:0.1f}%{comment}")
+        if log_info:
+            label = "plus1_valve" if plus1_valve else "minus1_valve"
+            logger.info(f"{label}: {selected_haus.haus.influx_tag} hausreihe '{selected_haus.hausreihe.label}': {selected_haus.ladung_individuell_prozent:0.1f}%{comment}")
 
         return selected_haus

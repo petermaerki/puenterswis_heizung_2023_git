@@ -159,7 +159,7 @@ class ModulationBrenner:
         self.modulation = modulation
         self.actiontimer_error = ActionTimer()
         self.burnout = BurnOut(label=f"Brenner{idx0+1} idx0={idx0}")
-        self.other_brenner: ModulationBrenner = None
+        self.other_brenner: ModulationBrenner | None = None
 
     @property
     def label(self) -> str:
@@ -261,6 +261,7 @@ class ModulationBrenner:
                 # Dieser Brenner beginnt das Burnout
                 self.set_max()
                 # Der andere Brenner soll in nächster Zeit KEIN Burnout beginnen, da sonst beider Brenner voll heizen.
+                assert self.other_brenner is not None
                 self.other_brenner.burnout.actiontimer.cancel()
 
         self.burnout.update_end_burnout()

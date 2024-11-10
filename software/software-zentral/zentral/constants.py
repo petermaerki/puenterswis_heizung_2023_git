@@ -36,7 +36,7 @@ True: Adaptiv
 False: Vorlauf 68.0 / 75.0 C
 """
 
-ABSCHALTGRENZE_INDIVIDUELL = True
+ABSCHALTGRENZE_BAND = True
 """
 True: Abschaltgrenze reduziert damit die Häuser nicht voll geladen werden und die Tfr tiefer ist.
 False: 'abschaltgrenze_prozent' = 100.0

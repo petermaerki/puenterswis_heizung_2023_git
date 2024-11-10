@@ -89,3 +89,11 @@ class HaeuserLadung(list[HausLadung]):
             return haus_ladung.ladung_individuell_prozent + korrektur_prozent
 
         self.sort(key=f_key)
+
+    @property
+    def legionellen_kill_in_progress(self) -> bool:
+        for haus_ladung in self:
+            if haus_ladung.valve_open:
+                if haus_ladung.legionellen_kill_required:
+                    return True
+        return False
