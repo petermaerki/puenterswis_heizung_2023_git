@@ -355,6 +355,16 @@ class ScenarioOverwriteMischventil(ScenarioBase):
     stellwert_100: float = 0
 
 
+@dataclasses.dataclass
+class ScenarioControllerPlusEinHaus(ScenarioBase):
+    pass
+
+
+@dataclasses.dataclass
+class ScenarioControllerMinusEinHaus(ScenarioBase):
+    pass
+
+
 class LogLevel(enum.StrEnum):
     ERROR = "ERROR"
     WARNING = "WARNING"

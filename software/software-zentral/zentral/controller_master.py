@@ -13,6 +13,7 @@ from zentral.handler_last import HandlerLast
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
 from zentral.handler_sp_zentral import HandlerSpZentral
+from zentral.util_scenarios import SCENARIOS, ScenarioControllerMinusEinHaus, ScenarioControllerPlusEinHaus
 from zentral.util_sp_ladung_zentral import SpLadung
 
 if typing.TYPE_CHECKING:
@@ -83,6 +84,16 @@ class ControllerMaster:
         # Erster Brenner zünden
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
+
+        if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
+            if self.handler_last.plus_1_valve(now_s=now_s):
+                logger.info("SCENARIO: sp_zentral_zu_warm: plus_1_valve()")
+            return
+
+        if SCENARIOS.remove_if_present(ScenarioControllerMinusEinHaus):
+            if self.handler_last.minus_1_valve(now_s=now_s):
+                logger.info("SCENARIO: sp_zentral_zu_kalt: minus_1_valve()")
+            return
 
         if not self.handler_last.actiontimer.is_over:
             return
