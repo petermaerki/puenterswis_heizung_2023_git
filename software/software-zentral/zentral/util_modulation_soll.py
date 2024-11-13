@@ -268,7 +268,7 @@ class ModulationBrenner:
 
 
 class ZweiterBrennerSperrzeitAction(ActionBaseEnum):
-    ZUENDEN = 90
+    ZUENDEN = 5 * 60
 
 
 class BrennerAction(ActionBaseEnum):
