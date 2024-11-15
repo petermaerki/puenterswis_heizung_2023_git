@@ -120,7 +120,7 @@ def run_modulation_soll(testparam: Ttestparam) -> None:
             if tick.modulation_reduzieren:
                 modulation_soll.modulation_reduzieren(brenner_zustaende=bz)
             if tick.brenner_zuenden:
-                modulation_soll.brenner_zuenden(brenner_zustaende=bz)
+                modulation_soll.brenner_zuenden(brenner_zustaende=bz, is_winter=False)
             if tick.brenner_loeschen:
                 modulation_soll.brenner_loeschen(brenner_zustaende=bz)
             if tick.zweiter_brenner_sperrzeit_over:

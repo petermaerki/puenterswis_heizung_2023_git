@@ -140,7 +140,7 @@ class HandlerOekofen:
         if not self.modulation_soll.actiontimer.is_over:
             return False
 
-        return self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende)
+        return self.modulation_soll.brenner_zuenden(brenner_zustaende=self.brenner_zustaende, is_winter=self.ctx.is_winter)
 
     def brenner_loeschen(self) -> bool:
         return self.modulation_soll.brenner_loeschen(brenner_zustaende=self.brenner_zustaende)

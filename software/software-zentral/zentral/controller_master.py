@@ -49,6 +49,7 @@ class ControllerMaster:
 
         betrieb_notheizung = self.handler_oekofen.betrieb_notheizung
         self.handler_oekofen.handler_elektro_notheizung.update(ctx=ctx, betrieb_notheizung=betrieb_notheizung)
+        haeuser_ladung_minimum_prozent, haeuser_ladung_avg_prozent = ctx.hsm_zentral.tuple_haeuser_ladung_minimum_prozent
 
         if not ctx.hsm_zentral.is_state_drehschalterauto():
             # Manual Mode
@@ -84,6 +85,16 @@ class ControllerMaster:
         # Erster Brenner zünden
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
+
+        if haeuser_ladung_avg_prozent < 20.0 and self.ctx.is_winter:
+            """Im Winder braucht es Reserve und der erste Brenne muss rechtzeitig gezündet werden."""
+            if self.handler_oekofen.erster_brenner_zuenden():
+                logger.info("erster_brenner_zuenden() damit Reserve im Winter")
+
+        # Zweiter brenner loeschen
+        if haeuser_ladung_avg_prozent > 40.0 and sp_ladung_zentral >= SpLadung.LEVEL3:
+            if self.handler_oekofen.zweiter_brenner_loeschen():
+                logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen() damit nicht am Schluss beide geloescht werden muessen")
 
         if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
             if self.handler_last.plus_1_valve(now_s=now_s):
@@ -125,9 +136,15 @@ class ControllerMaster:
                 if self.handler_oekofen.modulation_erhoehen():
                     logger.info("sp_zentral_zu_kalt: modulation_erhoehen()")
                     return
+                if self.ctx.is_sommer:
+                    return
+                if haeuser_ladung_avg_prozent > 20.0:
+                    return
+                if haeuser_ladung_minimum_prozent > -10.0:
+                    return
                 if sp_ladung_zentral == SpLadung.LEVEL0:
                     if self.handler_oekofen.brenner_zuenden():
-                        logger.info("sp_zentral_zu_kalt: brenner_zuenden()")
+                        logger.info("zweiten Brenner zünden: sp_zentral_zu_kalt: brenner_zuenden()")
 
         if sp_ladung_zentral >= SpLadung.LEVEL3:
             if self.handler_oekofen.anzahl_brenner_on >= 1:

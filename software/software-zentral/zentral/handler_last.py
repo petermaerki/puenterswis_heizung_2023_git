@@ -79,7 +79,15 @@ class HandlerLast:
         # boost_Tfv_C = TPV_MIN_C - min_ladung_individuell_prozent / 5.0 * TFV_LEGIONELLEN_KILL_C
         # """Boost Temperature steigt bei negativer ladung schnell an"""
 
-        adaptiv_soll_Tfv_C = max(list_sp_temperatur_mitte_C) + TPV_TEMPERATURHUB_C
+        Taussen_C = self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
+        TEMPERATURHUB_KAELTE_C = max(0.0, 12.0 - Taussen_C)
+        """
+        Bei kalten Temperaturen muss der Vorlauf hoeher sein damit genügend Leistung geliefert wird.
+        Beispiel: 
+        Taussen_C 12.0  temperatur_mitte_C 30.0 -> adaptiv_soll_Tfv_C = 40.0
+        Taussen_C 0.0  temperatur_mitte_C 30.0 -> adaptiv_soll_Tfv_C = 52.0
+        """
+        adaptiv_soll_Tfv_C = max(list_sp_temperatur_mitte_C) + TPV_TEMPERATURHUB_C + TEMPERATURHUB_KAELTE_C
         # adaptiv_soll_Tfv_C = max(adaptiv_soll_Tfv_C, boost_Tfv_C)
         adaptiv_soll_Tfv_C = max(40.0, adaptiv_soll_Tfv_C)
         adaptiv_soll_Tfv_C = min(75.0, adaptiv_soll_Tfv_C)

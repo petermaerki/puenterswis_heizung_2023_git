@@ -119,7 +119,7 @@ class BrennerZustaende(tuple[BrennerZustand, BrennerZustand]):
 
 class Modulation(enum.IntEnum):
     OFF = 0
-    MIN = 40
+    MIN = 30
     # MEDIUM = 65
     MAX = 100
 
@@ -215,7 +215,11 @@ class ModulationBrenner:
     def absenken(self) -> None:
         self.modulation = self.modulation.abgesenkt
 
-    def zuenden(self) -> None:
+    def zuenden(self, is_winter: bool) -> None:
+        if (self.idx0 == 0) and is_winter:
+            # erster Brenner im winter
+            self.modulation = Modulation.MAX
+            return
         self.modulation = Modulation.MIN
 
     def loeschen(self) -> None:
@@ -412,7 +416,7 @@ class ModulationSoll:
         self._log_action(brenner=brenner, reason="Erhoehen. Brenner moduliert bereits.")
         return True
 
-    def brenner_zuenden(self, brenner_zustaende: BrennerZustaende) -> bool:
+    def brenner_zuenden(self, brenner_zustaende: BrennerZustaende, is_winter: bool) -> bool:
         if not self.actiontimer.is_over_and_cancel():
             # We have to wait for the previous action to be finished
             return False
@@ -431,7 +435,7 @@ class ModulationSoll:
             return False
 
         # Brenner einschalten
-        brenner.zuenden()
+        brenner.zuenden(is_winter=is_winter)
         self.actiontimer.action = BrennerAction.ZUENDEN
         self.actiontimer_zweiter_brenner_sperrzeit.action = ZweiterBrennerSperrzeitAction.ZUENDEN
         self._log_action(brenner=brenner, reason="Brenner einschalten.")
