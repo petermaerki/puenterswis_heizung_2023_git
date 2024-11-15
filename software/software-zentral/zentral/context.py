@@ -66,6 +66,22 @@ class Context:
     def is_mock(self) -> bool:
         return False
 
+    def sp_verbrauch_median_W(self, time_s: float) -> float:
+        """
+        Angenommen time_s ist 6 Uhr am Morgen.
+        So wird der verbrauch_W um 6 Uhr zurückgegeben.
+        Dabei wird der Median um 6 Uhr für alle Häuser angewendet.
+        """
+        list_verbrauch_W: list[float] = []
+        for haus in self.config_etappe.haeuser:
+            for verbrauch_W in haus.status_haus.hsm_dezentral.verbrauch.history.iter_verbrauch(time_s=time_s):
+                list_verbrauch_W.append(verbrauch_W)
+        list_verbrauch_W.sort()
+        if len(list_verbrauch_W) == 0:
+            return 0.0
+        median_W = list_verbrauch_W[len(list_verbrauch_W) // 2]
+        return median_W
+
     def close_and_flush_influx(self) -> None:
         self.influx.close_and_flush()
         for haus in self.config_etappe.haeuser:

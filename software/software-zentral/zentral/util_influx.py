@@ -199,24 +199,29 @@ class Influx:
 
     async def send_mbus_sum(self, ctx: "Context"):
         r = InfluxRecords(ctx=ctx)
-        fields = {}
+        fields = {
+            "sp_verbrauch_median_W": ctx.sp_verbrauch_median_W(time_s=time.time()),
+        }
+        r.add_fields(fields=fields)
 
-        energy_E1_minus_E3_Wh = 0.0
-        power_W = 0.0
-        for haus in ctx.config_etappe.haeuser:
-            mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
-            if mbus_measurement is None:
-                # Sum will not be valid if one Haus is missing.
-                return
-            energy_E1_minus_E3_Wh += mbus_measurement.energy_E1_minus_E3_Wh
-            power_W += mbus_measurement.power_W
+        def mbus_sum():
+            energy_E1_minus_E3_Wh = 0.0
+            power_W = 0.0
+            for haus in ctx.config_etappe.haeuser:
+                mbus_measurement = haus.status_haus.hsm_dezentral.mbus_measurement
+                if mbus_measurement is None:
+                    # Sum will not be valid if one Haus is missing.
+                    return
+                energy_E1_minus_E3_Wh += mbus_measurement.energy_E1_minus_E3_Wh
+                power_W += mbus_measurement.power_W
 
-        if self.mbus_energy_E1_minus_E3_Wh.changed(energy_E1_minus_E3_Wh):
-            fields["mbus_sum_energy_E1_minus_E3_Wh"] = energy_E1_minus_E3_Wh
+            if self.mbus_energy_E1_minus_E3_Wh.changed(energy_E1_minus_E3_Wh):
+                fields["mbus_sum_energy_E1_minus_E3_Wh"] = energy_E1_minus_E3_Wh
 
-        if self.mbus_power_W.changed(power_W):
-            fields["mbus_sum_power_W"] = power_W
+            if self.mbus_power_W.changed(power_W):
+                fields["mbus_sum_power_W"] = power_W
 
+        mbus_sum()
         await self.write_records(records=r)
 
     async def send_mbus_haus(self, haus: Haus, mbus_measurement: MBusMeasurement) -> None:

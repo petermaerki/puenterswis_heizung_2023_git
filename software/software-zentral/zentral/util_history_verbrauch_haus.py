@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 import time
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Iterator, Optional
 
 from zentral.util_persistence import Persistence
 
@@ -37,6 +37,9 @@ class Messung:
 
 
 class HistoryVerbrauchHaus:
+    DURATION_24h_s = 24 * 3600
+    BAND_1h_s = 3600
+
     def __init__(self, persistence: Persistence) -> None:
         self._max_length = 3 * 24
         self._messwerte: list[Messung] = []
@@ -74,6 +77,19 @@ class HistoryVerbrauchHaus:
         if messwerte_count == 0:
             return None
         return sum([m.verbrauch_W for m in self._messwerte]) / messwerte_count
+
+    def iter_verbrauch(self, time_s: float) -> Iterator[float]:
+        """
+        Loop über die Messwerte.
+        Falls ein Messwerte zur selben Tageszeit passt: Zurückgeben.
+        """
+        for messwert in self._messwerte:
+            # TODO: 2024-12-31: Nachfolgende zwei Zeilen löschen
+            if messwert.time_s < 100000:
+                continue
+            modulo_24h_s = (time_s - messwert.time_s) % self.DURATION_24h_s
+            if modulo_24h_s < self.BAND_1h_s:
+                yield messwert.verbrauch_W
 
 
 class VerbrauchHaus:
@@ -139,7 +155,8 @@ class VerbrauchHaus:
         interval_energie_J = last_energie_J - sp_energie_absolut_J
         messung = Messung(
             verbrauch_W=interval_energie_J / INTERVAL_VERBRAUCH_HAUS_S,
-            time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0,
+            # time_s=self.next_interval_time_s - INTERVAL_VERBRAUCH_HAUS_S / 2.0,
+            time_s=time.time(),
         )
         self.history.add(messung=messung)
         self.next_interval_time_s += INTERVAL_VERBRAUCH_HAUS_S
