@@ -27,7 +27,7 @@ Der alte Pellets Brenner rauchte oft. Nach vielen Jahren Qualm haben wir uns ent
 
 Aktuelle Messwerte auf Grafana
 
-http://www.maerki.com:3000
+"www.maerki.com" und ":3000" zusammengesetzt von Hand so als url eingeben.
 
 ## Neu, 2024
 

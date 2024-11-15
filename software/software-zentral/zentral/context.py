@@ -169,7 +169,7 @@ class Context:
                     if haus.status_haus.hsm_dezentral is None:
                         continue
                     haus.status_haus.hsm_dezentral.mbus_measurement = measurement
-                    await self.influx.send_mbus(haus=haus, mbus_measurement=measurement)
+                    await self.influx.send_mbus_haus(haus=haus, mbus_measurement=measurement)
                     return
 
                 logger.warning(f"Haus {haus.config_haus.nummer}: Failed to read from mbus address {haus.config_haus.mbus_address}")
@@ -197,6 +197,7 @@ class Context:
             while True:
                 for haus in self.config_etappe.haeuser:
                     await read(haus)
+                await self.influx.send_mbus_sum(ctx=self)
 
                 await scenario_sleep(sleep_s=3000.0 / 2)
 
