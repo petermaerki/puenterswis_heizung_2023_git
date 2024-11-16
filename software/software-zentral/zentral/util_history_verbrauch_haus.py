@@ -85,7 +85,7 @@ class HistoryVerbrauchHaus:
         """
         for messwert in self._messwerte:
             # TODO: 2024-12-31: Nachfolgende zwei Zeilen löschen
-            if messwert.time_s < 100000:
+            if messwert.time_s < 1000000000:
                 continue
             modulo_24h_s = (time_s - messwert.time_s) % self.DURATION_24h_s
             if modulo_24h_s < self.BAND_1h_s:
