@@ -31,6 +31,7 @@ class ControllerMaster:
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
         self.handler_last = HandlerLast(ctx=ctx, now_s=now_s)
         self.handler_sp_zentral = HandlerSpZentral()
+        self.temp_peter_next_loging_time_s = 0.0
 
     def done(self) -> bool:
         return False
@@ -112,18 +113,36 @@ class ControllerMaster:
 
         def sp_dezentral_vorausschauend_laden():
             """Aufgrund der letzten Tage und daraus der Prognose für die Zukunft werden die dezentralen Speicher vorgeladen."""
-            VERBRAUCH_W_ZU_VORLADEN_PROZENT = 5.0 / 1000.0
-            VORAUSSCHAUEN_ZEIT_S = 3 * 3600
-            sp_verbrauch_median_W = ctx.sp_verbrauch_median_W(time_s=time.time() + VORAUSSCHAUEN_ZEIT_S)
-            haeuser_ladung_avg_prozent_soll = sp_verbrauch_median_W * VERBRAUCH_W_ZU_VORLADEN_PROZENT
-            logger.info(f"In {VORAUSSCHAUEN_ZEIT_S=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_avg_prozent_soll=:0.0f}")
+            VERBRAUCH_W_ZU_VORLADEN_PROZENT = 8.0 / 1000.0
+            VORAUSSCHAUEN_ZEIT_h = 3
+            sp_verbrauch_median_W = ctx.sp_verbrauch_median_W(time_s=time.time() + VORAUSSCHAUEN_ZEIT_h * 3600)
+            if sp_verbrauch_median_W < 0.1:
+                """falls keine Werte"""
+                sp_verbrauch_median_W = 1000.0
+            haeuser_ladung_avg_prozent_soll = sp_verbrauch_median_W * VERBRAUCH_W_ZU_VORLADEN_PROZENT + 10.0
+            # logger.info(f"In {VORAUSSCHAUEN_ZEIT_h=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_avg_prozent_soll=:0.0f}")
             abweichung_prozent = max(0.0, haeuser_ladung_avg_prozent_soll - haeuser_ladung_avg_prozent)
-            ladende_haeuser_soll = round(abweichung_prozent / 5.0)
+            ladende_haeuser_soll = round(abweichung_prozent / 3.0)
             ladende_hauser = self.ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
-            if haeuser_ladung_avg_prozent < haeuser_ladung_avg_prozent_soll:
-                if ladende_hauser < ladende_haeuser_soll:
-                    if self.handler_last.plus_1_valve(now_s=now_s):
-                        logger.info(f"{ladende_hauser=}, {ladende_haeuser_soll=}. Um die dezentralen Speicher vorzuladen: plus_1_valve().")
+            if sp_ladung_zentral > SpLadung.LEVEL1:
+                if haeuser_ladung_avg_prozent < haeuser_ladung_avg_prozent_soll:
+                    if ladende_hauser < ladende_haeuser_soll:
+                        if self.handler_last.plus_1_valve(now_s=now_s):
+                            logger.info(f"Soll {haeuser_ladung_avg_prozent_soll=:0.0f} {haeuser_ladung_avg_prozent=:0.0f} weil {sp_verbrauch_median_W=:0.0f} in {VORAUSSCHAUEN_ZEIT_h=}")
+                            logger.info(f"{ladende_hauser=}, {ladende_haeuser_soll=}. Um die dezentralen Speicher vorzuladen: plus_1_valve().")
+
+            if True:
+                if time.monotonic() > self.temp_peter_next_loging_time_s:
+                    self.temp_peter_next_loging_time_s = 10 * 60 + time.monotonic()
+                    logger.info(f"!Zur Info: In {VORAUSSCHAUEN_ZEIT_h=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_avg_prozent_soll=:0.0f}")
+                    logger.info(f"!Soll {haeuser_ladung_avg_prozent_soll=:0.0f} {haeuser_ladung_avg_prozent=:0.0f} weil {sp_verbrauch_median_W=:0.0f} in {VORAUSSCHAUEN_ZEIT_h=}")
+                    logger.info(f"!{ladende_hauser=}, {ladende_haeuser_soll=}.")
+                    for zeit_vorausschauend_h in [-3, -2, -1, 0, 1, 2, 3]:
+                        sp_verbrauch_median_W = ctx.sp_verbrauch_median_W(time_s=time.time() + zeit_vorausschauend_h * 3600)
+                        logger.info(f"!Test Prognose verbrauch {zeit_vorausschauend_h=} {sp_verbrauch_median_W=:0.0f}")
+
+        if True:
+            sp_dezentral_vorausschauend_laden()
 
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:

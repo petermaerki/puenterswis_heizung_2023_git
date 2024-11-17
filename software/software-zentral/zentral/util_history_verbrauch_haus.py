@@ -82,6 +82,7 @@ class HistoryVerbrauchHaus:
         """
         Loop über die Messwerte.
         Falls ein Messwerte zur selben Tageszeit passt: Zurückgeben.
+        Passend heisst: Es ist 14:03 Uhr, alle Messwerte von 13:03 bis 14:03 Uhr sind passend.
         """
         for messwert in self._messwerte:
             # TODO: 2024-12-31: Nachfolgende zwei Zeilen löschen
