@@ -56,7 +56,7 @@ class Context:
     @property
     def is_winter(self) -> bool:
         TaussenU_C = self.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
-        return TaussenU_C < 10.0
+        return TaussenU_C < 14.0
 
     @property
     def is_sommer(self) -> bool:

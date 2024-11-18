@@ -57,12 +57,13 @@ class ControllerMaster:
             # Manual Mode
             self.handler_oekofen.set_brenner_modulation_manual_max()
 
-        # Brenner aus: Last Target auf 0
-        if self.handler_oekofen.anzahl_brenner_on == 0:
-            # Last Target auf 0
-            self.handler_last.target_valve_open_count = 0
-            # Valve schliessen falls möglich
-            self.handler_last.reduce_valve_open_count(now_s=now_s)
+        def brenner_geloescht_valves_zu():
+            # Brenner aus: Last Target auf 0
+            if self.handler_oekofen.anzahl_brenner_on == 0:
+                # Last Target auf 0
+                self.handler_last.target_valve_open_count = 0
+                # Valve schliessen falls möglich
+                self.handler_last.reduce_valve_open_count(now_s=now_s)
 
         # Falls alle valve zu sind, Modulation auf Minimum
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
@@ -83,13 +84,14 @@ class ControllerMaster:
         # Brenner loeschen
         if sp_ladung_zentral == SpLadung.LEVEL4:
             self.handler_oekofen.brenner_sofort_loeschen()
+            brenner_geloescht_valves_zu()
 
         # Erster Brenner zünden
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
 
-        if haeuser_ladung_avg_prozent < 20.0 and self.ctx.is_winter:
-            """Im Winder braucht es Reserve und der erste Brenne muss rechtzeitig gezündet werden."""
+        if sp_ladung_zentral <= SpLadung.LEVEL2 and self.ctx.is_winter:# haeuser_ladung_avg_prozent < 30.0 and self.ctx.is_winter:
+            """Im Winter braucht es Reserve und der erste Brenne muss rechtzeitig gezündet werden."""
             if self.handler_oekofen.erster_brenner_zuenden():
                 logger.info("erster_brenner_zuenden() damit Reserve im Winter")
 
@@ -131,7 +133,7 @@ class ControllerMaster:
                             logger.info(f"Soll {haeuser_ladung_minimum_prozent_soll=:0.0f} {haeuser_ladung_minimum_prozent=:0.0f} weil {sp_verbrauch_median_W=:0.0f} in {VORAUSSCHAUEN_ZEIT_h=}")
                             logger.info(f"{ladende_hauser=}, {ladende_haeuser_soll=}. Um die dezentralen Speicher vorzuladen: plus_1_valve().")
                             return
-            if True:
+            if False:
                 if time.monotonic() > self.temp_peter_next_loging_time_s:
                     self.temp_peter_next_loging_time_s = 10 * 60 + time.monotonic()
                     logger.info(f"!Zur Info: In {VORAUSSCHAUEN_ZEIT_h=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_minimum_prozent_soll=:0.0f}")
@@ -158,12 +160,17 @@ class ControllerMaster:
                     return
                 if self.handler_oekofen.zweiter_brenner_loeschen():
                     logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
+                    brenner_geloescht_valves_zu()
 
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
                 if not TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT:
                     if self.handler_last.reduce_valve_open_count(now_s=now_s):
                         logger.info("sp_zentral_zu_kalt: reduce_valve_open_count()")
+                        return
+                if self.ctx.is_winter:
+                    if self.handler_oekofen.modulation_erhoehen():
+                        logger.info("sp_zentral_zu_kalt: modulation_erhoehen()")
                         return
                 if self.handler_last.minus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_kalt: minus_1_valve()")

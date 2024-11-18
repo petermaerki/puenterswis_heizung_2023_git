@@ -222,6 +222,7 @@ class HandlerLast:
             log_info=True,
         )
         selected_haus.set_valve(valve_open=True)
+        logger.info(f"{selected_haus.haus.influx_tag} geoeffnet: valve_open=True")
         self.actiontimer.action = LastAction.HAUS_PLUS
         return True
 
@@ -275,6 +276,7 @@ class HandlerLast:
         if selected_haus is None:
             return False
         selected_haus.set_valve(valve_open=False)
+        logger.info(f"{selected_haus.haus.influx_tag} geschlossen: valve_open=False")
         self.actiontimer.action = LastAction.HAUS_MINUS
         return True
 
@@ -299,6 +301,6 @@ class HandlerLast:
             comment = ""
         if log_info:
             label = "plus1_valve" if plus1_valve else "minus1_valve"
-            logger.info(f"{label}: {selected_haus.haus.influx_tag} hausreihe '{selected_haus.hausreihe.label}': {selected_haus.ladung_individuell_prozent:0.1f}%{comment}")
+            logger.info(f"Selected: {label}: {selected_haus.haus.influx_tag} hausreihe '{selected_haus.hausreihe.label}': {selected_haus.ladung_individuell_prozent:0.1f}%{comment}")
 
         return selected_haus
