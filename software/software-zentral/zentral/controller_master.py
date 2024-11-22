@@ -68,7 +68,7 @@ class ControllerMaster:
         # Falls alle valve zu sind, Modulation auf Minimum
         all_valves_closed = ctx.hsm_zentral.haeuser_all_valves_closed
         logger.debug(f"{betrieb_notheizung=} {all_valves_closed=} {sp_ladung_zentral=}")
-        if all_valves_closed:
+        if all_valves_closed and self.ctx.is_sommer:
             logger.debug("set_modulation_min() weil alle valves closed")
             self.handler_oekofen.set_modulation_min()
 
@@ -90,7 +90,7 @@ class ControllerMaster:
         if sp_ladung_zentral <= SpLadung.LEVEL1:
             self.handler_oekofen.erster_brenner_zuenden()
 
-        if sp_ladung_zentral <= SpLadung.LEVEL2 and self.ctx.is_winter:# haeuser_ladung_avg_prozent < 30.0 and self.ctx.is_winter:
+        if sp_ladung_zentral <= SpLadung.LEVEL2 and self.ctx.is_winter:  # haeuser_ladung_avg_prozent < 30.0 and self.ctx.is_winter:
             """Im Winter braucht es Reserve und der erste Brenne muss rechtzeitig gezündet werden."""
             if self.handler_oekofen.erster_brenner_zuenden():
                 logger.info("erster_brenner_zuenden() damit Reserve im Winter")
