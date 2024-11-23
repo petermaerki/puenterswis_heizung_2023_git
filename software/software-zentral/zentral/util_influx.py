@@ -256,6 +256,7 @@ class Influx:
             if minimum is not None:
                 fields["haeuser_ladung_minimum_prozent"] = minimum
                 fields["haeuser_ladung_avg_prozent"] = avg
+                fields["haeuser_ladung_avg_soll_prozent"] = ctx.hsm_zentral.controller_master.haeuser_ladung_avg_soll_prozent
 
         def oekofen_summary():
             controller_master = ctx.hsm_zentral.controller_master

@@ -128,13 +128,13 @@ class HandlerLast:
                     assert changed
                     logger.info(f"{selected_haus.haus.influx_tag} valve closed, ladung_individuell {selected_haus.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
 
-        if ABSCHALTGRENZE_BAND:
+        if ABSCHALTGRENZE_BAND:  # and not self.ctx.is_vorladen_aktiv:
             abschaltgrenze_band()
 
         self.legionellen_kill_in_progress = haeuser_ladung.legionellen_kill_in_progress
 
         for haus_ladung in haeuser_ladung:
-            if haus_ladung.ladung_individuell_prozent >= 100.0:
+            if haus_ladung.ladung_individuell_prozent >= 100.0 and not self.ctx.is_vorladen_aktiv or haus_ladung.ladung_prozent >= 100:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
                         # Abschaltkriterium gilt nicht bei Legionellen kill.
@@ -238,7 +238,8 @@ class HandlerLast:
 
     def _find_minus_1_valve(self, haeuser_ladung: HaeuserLadung, now_s: float, log_info: bool) -> HausLadung | None:
         haeuser_to_choose_from: HaeuserLadung = HaeuserLadung()
-
+        if self.ctx.is_vorladen_aktiv:
+            return
         for haus_ladung in haeuser_ladung:
             if not haus_ladung.valve_open:
                 continue

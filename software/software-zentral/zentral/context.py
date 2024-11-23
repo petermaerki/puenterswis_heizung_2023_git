@@ -37,6 +37,7 @@ class Context:
         influx_logger = HsmZentralInfluxLogger(influx=self.influx, ctx=self)
         self.hsm_zentral.add_logger(hsm_logger=influx_logger)
         self._persistence_legionellen = PersistenceLegionellen()
+        self.vorladen_aktiv = False
 
         def sigterm_handler(_signo, _stack_frame) -> typing.NoReturn:
             logger.warning("Received SIGTERM. Cleaning up...")
@@ -63,6 +64,10 @@ class Context:
         return not self.is_winter
 
     @property
+    def is_vorladen_aktiv(self) -> bool:
+        return self.vorladen_aktiv
+
+    @property
     def is_mock(self) -> bool:
         return False
 
@@ -81,6 +86,9 @@ class Context:
         list_verbrauch_W.sort()
         median_W = list_verbrauch_W[len(list_verbrauch_W) // 2]
         return median_W
+
+    def sp_verbrauch_W(self, time_s: float) -> float:
+        return self.sp_verbrauch_median_W(time_s=time_s) * len(self.config_etappe.haeuser)
 
     def close_and_flush_influx(self) -> None:
         self.influx.close_and_flush()
