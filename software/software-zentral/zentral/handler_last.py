@@ -143,7 +143,7 @@ class HandlerLast:
                 if changed:
                     logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= 100.0%")
 
-            if haus_ladung.ladung_individuell_prozent <= 0.0:
+            if haus_ladung.ladung_individuell_prozent <= 5.0 #0.0:
                 changed = haus_ladung.set_valve(valve_open=True)
                 if changed:
                     logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% <= 0.0")

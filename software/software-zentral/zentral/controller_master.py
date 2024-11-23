@@ -145,7 +145,7 @@ class ControllerMaster:
                         logger.info(f"!Test Prognose verbrauch {zeit_vorausschauend_h=} {sp_verbrauch_median_W=:0.0f}")
 
         def sp_dezentral_vorausschauend_laden_B():
-            VORAUSSCHAUEN_ZEIT_h_list = [0, 1, 2, 3, 4]
+            VORAUSSCHAUEN_ZEIT_h_list = [1, 2, 3, 4]
             sp_verbrauch_W = 0.0
             for vorausschauen_zeit_h in VORAUSSCHAUEN_ZEIT_h_list:
                 sp_verbrauch_W = max(sp_verbrauch_W, ctx.sp_verbrauch_W(time_s=time.time() + vorausschauen_zeit_h * 3600))
@@ -158,17 +158,21 @@ class ControllerMaster:
             # if sp_verbrauch_W < brennerleistung_beide_W * SICHERHEITSFAKTOR:
             #     """Es ist nicht nötig vorausschauend zu laden weil der Bedarf ohne Vorladung gedeckt werden kann"""
             #     return
-            temp_haeuser_etappe = 15.0  # Todo spaeter sauber machen
+            haeuser_anzahl = len(self.ctx.config_etappe.haeuser)
             energie_haus_Wh = 13000.0  # Todo spaeter sauber machen
-            haeuser_ladung_avg_soll_prozent = (sp_verbrauch_W - 25000.0) / (temp_haeuser_etappe * energie_haus_Wh) * 1000.0
+            haeuser_ladung_avg_soll_prozent = (sp_verbrauch_W - 15000.0) / (haeuser_anzahl * energie_haus_Wh) * 500.0
             # haeuser_ladung_avg_soll_prozent = sp_verbrauch_W / 45000.0 * 60.0
             haeuser_ladung_avg_soll_prozent = min(70.0, haeuser_ladung_avg_soll_prozent)
-            haeuser_ladung_avg_soll_prozent = max(0.0, haeuser_ladung_avg_soll_prozent)
+            haeuser_ladung_avg_soll_prozent = max(8.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
             # self.haeuser_ladung_avg_soll_prozent = 60.0  # temporaer fix test
             self.ctx.vorladen_aktiv = self.haeuser_ladung_avg_soll_prozent > haeuser_ladung_avg_prozent
             ladende_hauser = self.ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
             if self.ctx.vorladen_aktiv:
+                if self.ctx.is_winter and pcbs._sp_ladung_zentral.ladung_prozent < 60.0:
+                    if self.handler_oekofen.modulation_erhoehen():
+                        logger.info("sp_dezentral_vorausschauend_laden_B(): modulation_erhoehen()")
+                        return
                 if ladende_hauser < 7:
                     if self.handler_last.plus_1_valve(now_s=now_s):
                         logger.info(f"{ladende_hauser=} sp_dezentral_vorausschauend_laden_B(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
