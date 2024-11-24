@@ -137,16 +137,18 @@ class HandlerLast:
             if haus_ladung.ladung_individuell_prozent >= 100.0 and not self.ctx.is_vorladen_aktiv or haus_ladung.ladung_prozent >= 100:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
-                        # Abschaltkriterium gilt nicht bei Legionellen kill.
-                        continue
+                        if self.ctx.modbus_communication._sp_ladung_zentral.ladung_prozent > 25.0:
+                            # Abschaltkriterium gilt nicht bei Legionellen kill.
+                            continue
                 changed = haus_ladung.set_valve(valve_open=False)
                 if changed:
                     logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= 100.0%")
 
-            if haus_ladung.ladung_individuell_prozent <= 5.0 #0.0:
+            EINSCHALT_GRENZE_LADUNG_INDIVIDUELL_PROZENT = 5.0
+            if haus_ladung.ladung_individuell_prozent <= EINSCHALT_GRENZE_LADUNG_INDIVIDUELL_PROZENT:
                 changed = haus_ladung.set_valve(valve_open=True)
                 if changed:
-                    logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% <= 0.0")
+                    logger.info(f"{haus_ladung.haus.influx_tag} valve opened, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% <= {EINSCHALT_GRENZE_LADUNG_INDIVIDUELL_PROZENT:0.1f}")
 
     def reduce_valve_open_count(self, now_s: float) -> bool:
         """
@@ -238,8 +240,8 @@ class HandlerLast:
 
     def _find_minus_1_valve(self, haeuser_ladung: HaeuserLadung, now_s: float, log_info: bool) -> HausLadung | None:
         haeuser_to_choose_from: HaeuserLadung = HaeuserLadung()
-        if self.ctx.is_vorladen_aktiv:
-            return
+        # if self.ctx.is_vorladen_aktiv:
+        #     return
         for haus_ladung in haeuser_ladung:
             if not haus_ladung.valve_open:
                 continue
