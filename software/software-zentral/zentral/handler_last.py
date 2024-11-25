@@ -137,7 +137,8 @@ class HandlerLast:
             if haus_ladung.ladung_individuell_prozent >= 100.0 and not self.ctx.is_vorladen_aktiv or haus_ladung.ladung_prozent >= 100:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
-                        if self.ctx.modbus_communication._sp_ladung_zentral.ladung_prozent > 25.0:
+                        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 25.0:
+                            # if self.ctx.modbus_communication._sp_ladung_zentral.ladung_prozent > 25.0:
                             # Abschaltkriterium gilt nicht bei Legionellen kill.
                             continue
                 changed = haus_ladung.set_valve(valve_open=False)
