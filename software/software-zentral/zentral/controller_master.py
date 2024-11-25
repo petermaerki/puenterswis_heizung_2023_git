@@ -195,8 +195,8 @@ class ControllerMaster:
                     if self.handler_last.increase_valve_open_count(now_s=now_s):
                         logger.info("sp_zentral_zu_warm: increase_valve_open_count()")
                         return
-                if self.handler_oekofen.modulation_reduzieren():
-                    if not self.ctx.is_vorladen_aktiv:
+                if not self.ctx.is_vorladen_aktiv:
+                    if self.handler_oekofen.modulation_reduzieren():
                         logger.info("sp_zentral_zu_warm: modulation_reduzieren()")
                         return
                 if self.handler_last.plus_1_valve(now_s=now_s):
