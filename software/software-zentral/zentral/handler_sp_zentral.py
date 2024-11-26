@@ -42,7 +42,7 @@ class HandlerSpZentral:
             self.steigt = False
             self.sinkt = False
 
-        if duration_s > 30 * 60.0:
+        if duration_s > 20 * 60.0:
             # Steigt oder Sinkt soll periodisch kommen auch wenn die Ladung auf dem gleichen Wert bleibt
             if self.last_ladung_prozent > 55.0:
                 self.steigt = True

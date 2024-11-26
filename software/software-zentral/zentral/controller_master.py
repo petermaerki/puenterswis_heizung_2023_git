@@ -176,10 +176,10 @@ class ControllerMaster:
                     if self.handler_oekofen.erster_brenner_zuenden():
                         logger.info("sp_dezentral_vorausschauend_laden_B(): erster_brenner_zuenden()")
                         return
-                if self.ctx.is_winter:  # and pcbs._sp_ladung_zentral.ladung_prozent < 60.0:
-                    if self.handler_oekofen.modulation_erhoehen():
-                        logger.info("sp_dezentral_vorausschauend_laden_B(): modulation_erhoehen()")
-                        return
+                    if self.ctx.is_winter:  # and pcbs._sp_ladung_zentral.ladung_prozent < 60.0:
+                        if self.handler_oekofen.modulation_erhoehen():
+                            logger.info("sp_dezentral_vorausschauend_laden_B(): modulation_erhoehen()")
+                            return
                 if ladende_haeuser < 2:  # vorher 7, neu Modulation starten und mindestens ein einzelnes
                     if self.handler_last.plus_1_valve(now_s=now_s):
                         logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden_B(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
