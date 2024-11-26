@@ -73,6 +73,9 @@ class HandlerLast:
             if min_ladung_individuell_prozent < -10.0:
                 self.boost_Tfv = True
 
+            if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0 and self.ctx.vorladen_aktiv:
+                """Es muss Energie in die Häuser zum Vorladen. Tfv hoch damit Energie raus geht und der Brenner nicht ausschaltet."""
+                return TFV_LEGIONELLEN_KILL_C
             if self.boost_Tfv:
                 return TFV_LEGIONELLEN_KILL_C
 

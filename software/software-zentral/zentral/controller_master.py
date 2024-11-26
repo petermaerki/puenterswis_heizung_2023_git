@@ -57,6 +57,7 @@ class ControllerMaster:
         if not ctx.hsm_zentral.is_state_drehschalterauto():
             # Manual Mode
             self.handler_oekofen.set_brenner_modulation_manual_max()
+            return
 
         def brenner_geloescht_valves_zu():
             # Brenner aus: Last Target auf 0
@@ -85,7 +86,9 @@ class ControllerMaster:
         # Brenner loeschen
         if sp_ladung_zentral == SpLadung.LEVEL4:
             self.handler_oekofen.brenner_sofort_loeschen()
-            brenner_geloescht_valves_zu()
+            if not self.ctx.vorladen_aktiv:
+                brenner_geloescht_valves_zu()
+                logger.debug("brenner_geloescht_valves_zu()")
 
         # Erster Brenner zünden
         if sp_ladung_zentral <= SpLadung.LEVEL1:

@@ -262,6 +262,9 @@ class HsmZentral(hsm.HsmMixin):
         state_ok_drehschaltermanuell / state_ok_drehschalterauto
         gewechselt werden
         """
+        PETER_MANUELL = False  # Peter kann per Software Manuell machen. ? Grundzustand, relais alle aus?  Todo Hans: sauberer implementieren
+        if PETER_MANUELL:
+            raise hsm.StateChangeException(self.state_ok_drehschaltermanuell)
         if self.ctx.modbus_communication.drehschalter.is_manuell:
             raise hsm.StateChangeException(self.state_ok_drehschaltermanuell)
         raise hsm.StateChangeException(self.state_ok_drehschalterauto)
