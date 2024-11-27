@@ -149,26 +149,29 @@ class ControllerMaster:
 
         def sp_dezentral_vorausschauend_laden_B():
             VORAUSSCHAUEN_ZEIT_h_list = [1.5, 2, 2.5, 3, 3.5, 4]
-            sp_verbrauch_W = 0.0
+            sp_verbrauch_W_list = [0.0]
             for vorausschauen_zeit_h in VORAUSSCHAUEN_ZEIT_h_list:
-                sp_verbrauch_W = max(sp_verbrauch_W, ctx.sp_verbrauch_W(time_s=time.time() + vorausschauen_zeit_h * 3600))
+                sp_verbrauch_W = ctx.sp_verbrauch_W(time_s=time.time() + vorausschauen_zeit_h * 3600)
+                if sp_verbrauch_W > 1.0:
+                    """Falls Messwert vorhanden"""
+                    sp_verbrauch_W_list.append(sp_verbrauch_W)
 
-            # print(f" richtig {sp_verbrauch_W=}")
-            # sp_verbrauch_W = 45000.0
-            # print(f" fake {sp_verbrauch_W=}")
-            SICHERHEITSFAKTOR = 0.5  # bei 1.0: keine Sicherheit, bei 0.5 viel Sicherheit
-            brennerleistung_beide_W = self.ctx.config_etappe.brenner_einzeln_leistung_W * 2.0
-            # if sp_verbrauch_W < brennerleistung_beide_W * SICHERHEITSFAKTOR:
-            #     """Es ist nicht nötig vorausschauend zu laden weil der Bedarf ohne Vorladung gedeckt werden kann"""
-            #     return
+            if len(sp_verbrauch_W_list) == 0:
+                return
+
+            sp_verbrauch_alle_W = sum(sp_verbrauch_W_list) / len(sp_verbrauch_W_list)  # Mittelwert ist ruhiger
+            # sp_verbrauch_alle_W = 3300.0 * 15.0  # Temporaer
             haeuser_anzahl = len(self.ctx.config_etappe.haeuser)
-            energie_haus_Wh = 13000.0  # Todo spaeter sauber machen
-            haeuser_ladung_avg_soll_prozent = (sp_verbrauch_W - 15000.0) / (haeuser_anzahl * energie_haus_Wh) * 500.0
+            MINIMALE_LADUNG_PROZENT = 20.0
+            VORLADUNG_STUNDEN = 3.0
+            energie_haus_Wh = 13000.0  # 500 Liter um 20C, grob
+            # Ich betrachte nur einen Brenner
+            RESERVE_FAKTOR = 1.5  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
+            haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
             # haeuser_ladung_avg_soll_prozent = sp_verbrauch_W / 45000.0 * 60.0
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
             haeuser_ladung_avg_soll_prozent = max(20.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
-            # self.haeuser_ladung_avg_soll_prozent = 60.0  # temporaer fix test
             if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 2.0:
                 self.ctx.vorladen_aktiv = False
             if haeuser_ladung_avg_prozent < self.haeuser_ladung_avg_soll_prozent - 2.0:
@@ -195,8 +198,8 @@ class ControllerMaster:
 
         if True:
             # sp_dezentral_vorausschauend_laden_A()
-            if self.ctx.is_winter:
-                sp_dezentral_vorausschauend_laden_B()
+            # if self.ctx.is_winter:
+            sp_dezentral_vorausschauend_laden_B()
 
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:
