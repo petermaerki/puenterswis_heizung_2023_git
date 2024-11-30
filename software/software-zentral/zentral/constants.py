@@ -44,6 +44,12 @@ Es soll dann ein valve geschlossen werden, falls ein anderes Haus noch nicht ge�
 Die Ladung der ladenden Häuser sind dadurch alle in einem Band: ABSCHALTGRENZE_BAND_PROZENT
 """
 
+VORAUSSCHAUEND_LADEN = True
+"""
+Im Winter gibt es starke Lastpeaks. Aufgrund vom Verbrauch in der Vergangenheit werden die dezentralen Speicher vor diesen Peaks geladen. 
+Die Peakleistung ist grösser als die installierte Brennerleistung. Ohne vorausschauendes Laden geht es nicht.
+"""
+
 SORT_BY_LADUNG_INDIVIDUELL_UND_HAUSREIHE_KORREKTUR = True
 
 DIRECTORY_OF_THIS_FILE = pathlib.Path(__file__).parent

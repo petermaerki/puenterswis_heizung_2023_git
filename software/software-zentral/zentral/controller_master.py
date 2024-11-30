@@ -9,7 +9,7 @@ import logging
 import time
 import typing
 
-from zentral.constants import TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT
+from zentral.constants import TEST_SIMPLIFY_TARGET_VALVE_OPEN_COUNT, VORAUSSCHAUEND_LADEN
 from zentral.handler_last import HandlerLast
 from zentral.handler_oekofen import HandlerOekofen
 from zentral.handler_pumpe import HandlerPumpe
@@ -31,7 +31,6 @@ class ControllerMaster:
         self.handler_pumpe = HandlerPumpe(ctx=ctx, now_s=now_s)
         self.handler_last = HandlerLast(ctx=ctx, now_s=now_s)
         self.handler_sp_zentral = HandlerSpZentral()
-        self.temp_peter_next_loging_time_s = 0.0
         self.haeuser_ladung_avg_soll_prozent = 0.0
 
     def done(self) -> bool:
@@ -117,37 +116,7 @@ class ControllerMaster:
         if not self.handler_last.actiontimer.is_over:
             return
 
-        def sp_dezentral_vorausschauend_laden_A():
-            """Aufgrund der letzten Tage und daraus der Prognose für die Zukunft werden die dezentralen Speicher vorgeladen."""
-            VERBRAUCH_W_ZU_VORLADEN_PROZENT = 7.0 / 1000.0
-            VORAUSSCHAUEN_ZEIT_h = 3
-            sp_verbrauch_median_W = ctx.sp_verbrauch_median_W(time_s=time.time() + VORAUSSCHAUEN_ZEIT_h * 3600)
-            if sp_verbrauch_median_W < 0.1:
-                """falls keine Werte"""
-                sp_verbrauch_median_W = 1000.0
-            haeuser_ladung_minimum_prozent_soll = sp_verbrauch_median_W * VERBRAUCH_W_ZU_VORLADEN_PROZENT + 5.0
-            # logger.info(f"In {VORAUSSCHAUEN_ZEIT_h=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_avg_prozent_soll=:0.0f}")
-            abweichung_prozent = max(0.0, haeuser_ladung_minimum_prozent_soll - haeuser_ladung_minimum_prozent)
-            ladende_haeuser_soll = round(abweichung_prozent / 3.0) + 1
-            ladende_hauser = self.ctx.hsm_zentral.get_haeuser_ladung().effective_valve_open_count
-            if pcbs._sp_ladung_zentral.ladung_prozent > 45.0:  # sp_ladung_zentral > SpLadung.LEVEL1:
-                if haeuser_ladung_minimum_prozent < haeuser_ladung_minimum_prozent_soll:
-                    if ladende_hauser < ladende_haeuser_soll:
-                        if self.handler_last.plus_1_valve(now_s=now_s):
-                            logger.info(f"Soll {haeuser_ladung_minimum_prozent_soll=:0.0f} {haeuser_ladung_minimum_prozent=:0.0f} weil {sp_verbrauch_median_W=:0.0f} in {VORAUSSCHAUEN_ZEIT_h=}")
-                            logger.info(f"{ladende_hauser=}, {ladende_haeuser_soll=}. Um die dezentralen Speicher vorzuladen: plus_1_valve().")
-                            return
-            if False:
-                if time.monotonic() > self.temp_peter_next_loging_time_s:
-                    self.temp_peter_next_loging_time_s = 10 * 60 + time.monotonic()
-                    logger.info(f"!Zur Info: In {VORAUSSCHAUEN_ZEIT_h=} erwarte ich {sp_verbrauch_median_W=:0.0f} und möchte daher jetzt {haeuser_ladung_minimum_prozent_soll=:0.0f}")
-                    logger.info(f"!Soll {haeuser_ladung_minimum_prozent_soll=:0.0f} {haeuser_ladung_minimum_prozent=:0.0f} weil {sp_verbrauch_median_W=:0.0f} in {VORAUSSCHAUEN_ZEIT_h=}")
-                    logger.info(f"!{ladende_hauser=}, {ladende_haeuser_soll=}.")
-                    for zeit_vorausschauend_h in [-3, -2, -1, 0, 1, 2, 3]:
-                        sp_verbrauch_median_W = ctx.sp_verbrauch_median_W(time_s=time.time() + zeit_vorausschauend_h * 3600)
-                        logger.info(f"!Test Prognose verbrauch {zeit_vorausschauend_h=} {sp_verbrauch_median_W=:0.0f}")
-
-        def sp_dezentral_vorausschauend_laden_B():
+        def sp_dezentral_vorausschauend_laden():
             VORAUSSCHAUEN_ZEIT_h_list = [1.5, 2, 2.5, 3, 3.5, 4]
             sp_verbrauch_W_list = [0.0]
             for vorausschauen_zeit_h in VORAUSSCHAUEN_ZEIT_h_list:
@@ -155,20 +124,18 @@ class ControllerMaster:
                 if sp_verbrauch_W > 1.0:
                     """Falls Messwert vorhanden"""
                     sp_verbrauch_W_list.append(sp_verbrauch_W)
-
             if len(sp_verbrauch_W_list) == 0:
                 return
+            # sp_verbrauch_alle_W = sum(sp_verbrauch_W_list) / len(sp_verbrauch_W_list)  # Mittelwert ist ruhiger aber zu tief
+            sp_verbrauch_alle_W = max(sp_verbrauch_W_list)  # Max
 
-            sp_verbrauch_alle_W = sum(sp_verbrauch_W_list) / len(sp_verbrauch_W_list)  # Mittelwert ist ruhiger
-            # sp_verbrauch_alle_W = 3300.0 * 15.0  # Temporaer
             haeuser_anzahl = len(self.ctx.config_etappe.haeuser)
             MINIMALE_LADUNG_PROZENT = 20.0
             VORLADUNG_STUNDEN = 3.0
-            energie_haus_Wh = 13000.0  # 500 Liter um 20C, grob
+            energie_haus_Wh = 13000.0  # 500 Liter um 20C wärmen, ganz grob
             # Ich betrachte nur einen Brenner
             RESERVE_FAKTOR = 1.5  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
             haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
-            # haeuser_ladung_avg_soll_prozent = sp_verbrauch_W / 45000.0 * 60.0
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
             haeuser_ladung_avg_soll_prozent = max(20.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
@@ -180,26 +147,24 @@ class ControllerMaster:
             if self.ctx.vorladen_aktiv:
                 if sp_ladung_zentral < SpLadung.LEVEL3:
                     if self.handler_oekofen.erster_brenner_zuenden():
-                        logger.info("sp_dezentral_vorausschauend_laden_B(): erster_brenner_zuenden()")
+                        logger.info("sp_dezentral_vorausschauend_laden(): erster_brenner_zuenden()")
                         return
                     if self.ctx.is_winter:  # and pcbs._sp_ladung_zentral.ladung_prozent < 60.0:
                         if self.handler_oekofen.modulation_erhoehen():
-                            logger.info("sp_dezentral_vorausschauend_laden_B(): modulation_erhoehen()")
+                            logger.info("sp_dezentral_vorausschauend_laden(): modulation_erhoehen()")
                             return
                 if ladende_haeuser < 2:  # vorher 7, neu Modulation starten und mindestens ein einzelnes
                     if self.handler_last.plus_1_valve(now_s=now_s):
-                        logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden_B(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
+                        logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
                         return
                 if sp_ladung_zentral >= SpLadung.LEVEL3:
                     if ladende_haeuser < 5:
                         if self.handler_last.plus_1_valve(now_s=now_s):
-                            logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden_B(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
+                            logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
                             return
 
-        if True:
-            # sp_dezentral_vorausschauend_laden_A()
-            # if self.ctx.is_winter:
-            sp_dezentral_vorausschauend_laden_B()
+        if VORAUSSCHAUEND_LADEN:
+            sp_dezentral_vorausschauend_laden()
 
         def sp_zentral_zu_warm():
             if self.handler_sp_zentral.steigt:
@@ -214,11 +179,6 @@ class ControllerMaster:
                 if self.handler_last.plus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_warm: plus_1_valve()")
                     return
-                # if self.handler_oekofen.modulation_reduzieren():
-                #     if not self.ctx.is_vorladen_aktiv:
-                #         logger.info("sp_zentral_zu_warm: modulation_reduzieren()")
-                #         return
-                # if not self.ctx.is_vorladen_aktiv:
                 if self.handler_oekofen.zweiter_brenner_loeschen():
                     logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
                     brenner_geloescht_valves_zu()
