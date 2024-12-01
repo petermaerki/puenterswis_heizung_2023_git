@@ -118,7 +118,7 @@ class ControllerMaster:
 
         def sp_dezentral_vorausschauend_laden():
             VORAUSSCHAUEN_ZEIT_h_list = [0.5, 1.0, 1.5, 2, 2.5, 3, 3.5, 4]
-            sp_verbrauch_W_list = [0.0]s
+            sp_verbrauch_W_list = [0.0]
             for vorausschauen_zeit_h in VORAUSSCHAUEN_ZEIT_h_list:
                 sp_verbrauch_W = ctx.sp_verbrauch_W(time_s=time.time() + vorausschauen_zeit_h * 3600)
                 if sp_verbrauch_W > 1.0:
