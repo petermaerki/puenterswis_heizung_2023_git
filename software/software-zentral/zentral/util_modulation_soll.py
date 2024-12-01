@@ -278,7 +278,7 @@ class ZweiterBrennerSperrzeitAction(ActionBaseEnum):
 class BrennerAction(ActionBaseEnum):
     ZUENDEN = 40
     LOESCHEN = 20
-    MODULIEREN = 15
+    MODULIEREN = 30  # vorher 15
 
 
 class ListBrenner(list[ModulationBrenner]):
