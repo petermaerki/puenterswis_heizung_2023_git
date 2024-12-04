@@ -135,7 +135,7 @@ class ControllerMaster:
             energie_haus_Wh = 13000.0  # 500 Liter um 20C wärmen, ganz grob
             # Ich betrachte nur einen Brenner
             RESERVE_FAKTOR = 1.5  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
-            haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
+            haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W - 7000.0) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
             haeuser_ladung_avg_soll_prozent = max(20.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
@@ -162,6 +162,13 @@ class ControllerMaster:
                         if self.handler_last.plus_1_valve(now_s=now_s):
                             logger.info(f"{ladende_haeuser=} sp_dezentral_vorausschauend_laden(): Um die dezentralen Speicher vorzuladen: plus_1_valve().")
                             return
+            if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 12.0:
+                '''Falls die Häuser zu hoch geladen sind: modulation runter'''
+                if self.handler_sp_zentral.steigt:
+                    if sp_ladung_zentral >= SpLadung.LEVEL2:
+                        if self.handler_oekofen.modulation_reduzieren():
+                                    logger.info("sp_dezentral_vorausschauend_laden(): modulation_reduzieren()")
+                                    return
 
         if VORAUSSCHAUEND_LADEN:
             sp_dezentral_vorausschauend_laden()
