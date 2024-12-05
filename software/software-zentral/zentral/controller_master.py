@@ -134,8 +134,11 @@ class ControllerMaster:
             VORLADUNG_STUNDEN = 3.0
             energie_haus_Wh = 13000.0  # 500 Liter um 20C wärmen, ganz grob
             # Ich betrachte nur einen Brenner
-            RESERVE_FAKTOR = 1.5  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
-            haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W + 7000.0) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
+            RESERVE_FAKTOR = 1.0  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
+            OFFSET_LEISTUNG_W = 7000.0  # 0.0: wenig, 7000.0 viel
+            haeuser_ladung_avg_soll_prozent = (
+                MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W + OFFSET_LEISTUNG_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
+            )
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
             haeuser_ladung_avg_soll_prozent = max(20.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
