@@ -99,7 +99,7 @@ class ControllerMaster:
                 logger.info("erster_brenner_zuenden() damit Reserve im Winter")
 
         # Zweiter brenner loeschen
-        if haeuser_ladung_avg_prozent > 40.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
+        if haeuser_ladung_avg_prozent > 50.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
             if self.handler_oekofen.zweiter_brenner_loeschen():
                 logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen() damit nicht am Schluss beide geloescht werden muessen")
 
@@ -135,12 +135,12 @@ class ControllerMaster:
             energie_haus_Wh = 13000.0  # 500 Liter um 20C wärmen, ganz grob
             # Ich betrachte nur einen Brenner
             RESERVE_FAKTOR = 1.0  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
-            OFFSET_LEISTUNG_W = 7000.0  # 0.0: wenig, 7000.0 viel
-            haeuser_ladung_avg_soll_prozent = (
-                MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - self.ctx.config_etappe.brenner_einzeln_leistung_W + OFFSET_LEISTUNG_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
-            )
+            OFFSET_LEISTUNG_W = 1000.0  # 0.0: wenig, 7000.0 viel, Reverse
+            brenner_on = max(1.0, self.handler_oekofen.anzahl_brenner_on)
+            brenner_leistung_W = brenner_on * (self.ctx.config_etappe.brenner_einzeln_leistung_W - OFFSET_LEISTUNG_W)
+            haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - brenner_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
-            haeuser_ladung_avg_soll_prozent = max(20.0, haeuser_ladung_avg_soll_prozent)
+            haeuser_ladung_avg_soll_prozent = max(16.0, haeuser_ladung_avg_soll_prozent)
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
             if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 2.0:
                 self.ctx.vorladen_aktiv = False

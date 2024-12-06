@@ -136,8 +136,9 @@ class ConfigEtappe:
     def brenner_einzeln_leistung_W(self) -> float:
         """
         Wir haben PESK41, also 41 kW. Leistung durch Verstopfen von Rohren reduziert auf 36 kW?
+        Gemessen und geschätzt: 30kW
         """
-        return 36000.0
+        return 30000.0
 
     def append_haus(self, haus: Haus):
         assert self.lowest_haus_nummer is None
