@@ -30,6 +30,7 @@ class HandlerLast:
         self.actiontimer = ActionTimer()
         self.mock_solltemperatur_Tfv_C: float | None = None
         self.boost_Tfv: bool = False
+        self.boost_zu_warm: bool = False
         self.legionellen_kill_in_progress: bool = False
         self.target_valve_open_count: int = 0
 
@@ -76,7 +77,7 @@ class HandlerLast:
             if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0 and self.ctx.vorladen_aktiv:
                 """Es muss Energie in die Häuser zum Vorladen. Tfv hoch damit Energie raus geht und der Brenner nicht ausschaltet."""
                 return TFV_LEGIONELLEN_KILL_C
-            if self.boost_Tfv:
+            if self.boost_Tfv or self.boost_zu_warm:
                 return TFV_LEGIONELLEN_KILL_C
 
         # boost_Tfv_C = TPV_MIN_C - min_ladung_individuell_prozent / 5.0 * TFV_LEGIONELLEN_KILL_C

@@ -105,13 +105,16 @@ class ControllerMaster:
 
         if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
             if self.handler_last.plus_1_valve(now_s=now_s):
-                logger.info("SCENARIO: sp_zentral_zu_warm: plus_1_valve()")
+                logger.info("SCENARIO:  plus_1_valve()")
             return
 
         if SCENARIOS.remove_if_present(ScenarioControllerMinusEinHaus):
             if self.handler_last.minus_1_valve(now_s=now_s):
-                logger.info("SCENARIO: sp_zentral_zu_kalt: minus_1_valve()")
+                logger.info("SCENARIO:  minus_1_valve()")
             return
+
+        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 60.0:
+            self.handler_last.boost_zu_warm = False
 
         if not self.handler_last.actiontimer.is_over:
             return
@@ -134,8 +137,8 @@ class ControllerMaster:
             VORLADUNG_STUNDEN = 3.0
             energie_haus_Wh = 13000.0  # 500 Liter um 20C wärmen, ganz grob
             # Ich betrachte nur einen Brenner
-            RESERVE_FAKTOR = 1.0  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
-            OFFSET_LEISTUNG_W = 1000.0  # 0.0: wenig, 7000.0 viel, Reverse
+            RESERVE_FAKTOR = 1.2  # normal 1.0, je grösser desto mehr Reserve in der Vorladung
+            OFFSET_LEISTUNG_W = 4000.0  # 0.0: wenig, 7000.0 viel, Reverse
             brenner_on = max(1.0, self.handler_oekofen.anzahl_brenner_on)
             brenner_leistung_W = brenner_on * (self.ctx.config_etappe.brenner_einzeln_leistung_W - OFFSET_LEISTUNG_W)
             haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - brenner_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
@@ -189,9 +192,11 @@ class ControllerMaster:
                 if self.handler_last.plus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_warm: plus_1_valve()")
                     return
-                if self.handler_oekofen.zweiter_brenner_loeschen():
-                    logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
-                    brenner_geloescht_valves_zu()
+                self.handler_last.boost_zu_warm = True
+                if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0:
+                    if self.handler_oekofen.zweiter_brenner_loeschen():
+                        logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")
+                        brenner_geloescht_valves_zu()
 
         def sp_zentral_zu_kalt():
             if self.handler_sp_zentral.sinkt:
