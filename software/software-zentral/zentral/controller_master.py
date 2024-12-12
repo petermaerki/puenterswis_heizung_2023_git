@@ -97,9 +97,18 @@ class ControllerMaster:
             """Im Winter braucht es Reserve und der erste Brenner muss rechtzeitig gezündet werden."""
             if self.handler_oekofen.erster_brenner_zuenden():
                 logger.info("erster_brenner_zuenden() damit Reserve im Winter")
+                return
+
+        # Zweiter Brenner zünden
+        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 40.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
+            if haeuser_ladung_avg_prozent < 12.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
+                if self.ctx.is_vorladen_aktiv:
+                    if self.handler_oekofen.brenner_zuenden():
+                        logger.info("zweiten Brenner zünden: zentral und dezentral energiemangel: brenner_zuenden()")
+                        return
 
         # Zweiter brenner loeschen
-        if haeuser_ladung_avg_prozent > 50.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
+        if haeuser_ladung_avg_prozent > 60.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
             if self.handler_oekofen.zweiter_brenner_loeschen():
                 logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen() damit nicht am Schluss beide geloescht werden muessen")
 
@@ -113,8 +122,13 @@ class ControllerMaster:
                 logger.info("SCENARIO:  minus_1_valve()")
             return
 
-        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 60.0:
-            self.handler_last.boost_zu_warm = False
+        if False:
+            if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 60.0:
+                self.handler_last.boost_zu_warm = False
+
+            if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0 and self.ctx.vorladen_aktiv:
+                """Es muss Energie in die Häuser zum Vorladen. Tfv hoch damit Energie raus geht und der Brenner nicht ausschaltet."""
+                self.handler_last.boost_zu_warm = True
 
         if not self.handler_last.actiontimer.is_over:
             return

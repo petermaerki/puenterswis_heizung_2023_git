@@ -74,9 +74,9 @@ class HandlerLast:
             if min_ladung_individuell_prozent < -10.0:
                 self.boost_Tfv = True
 
-            if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0 and self.ctx.vorladen_aktiv:
-                """Es muss Energie in die Häuser zum Vorladen. Tfv hoch damit Energie raus geht und der Brenner nicht ausschaltet."""
-                return TFV_LEGIONELLEN_KILL_C
+            # if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0 and self.ctx.vorladen_aktiv:
+            #     """Es muss Energie in die Häuser zum Vorladen. Tfv hoch damit Energie raus geht und der Brenner nicht ausschaltet."""
+            #     return TFV_LEGIONELLEN_KILL_C
             if self.boost_Tfv or self.boost_zu_warm:
                 return TFV_LEGIONELLEN_KILL_C
 
@@ -91,8 +91,14 @@ class HandlerLast:
         Taussen_C 12.0  temperatur_mitte_C 30.0 -> adaptiv_soll_Tfv_C = 40.0
         Taussen_C 0.0  temperatur_mitte_C 30.0 -> adaptiv_soll_Tfv_C = 52.0
         """
+
         adaptiv_soll_Tfv_C = max(list_sp_temperatur_mitte_C) + TPV_TEMPERATURHUB_C + TEMPERATURHUB_KAELTE_C
         # adaptiv_soll_Tfv_C = max(adaptiv_soll_Tfv_C, boost_Tfv_C)
+
+        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 70.0:
+            solltemp_C = (self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent - 70.0) / 1.0 + 65.0
+            adaptiv_soll_Tfv_C = max(adaptiv_soll_Tfv_C, solltemp_C)
+
         adaptiv_soll_Tfv_C = max(40.0, adaptiv_soll_Tfv_C)
         adaptiv_soll_Tfv_C = min(75.0, adaptiv_soll_Tfv_C)
         return adaptiv_soll_Tfv_C
