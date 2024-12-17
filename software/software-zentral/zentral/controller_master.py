@@ -100,15 +100,17 @@ class ControllerMaster:
                 return
 
         # Zweiter Brenner zünden
-        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 40.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
-            if haeuser_ladung_avg_prozent < 12.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
+        # if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 40.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
+        if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent < 30.0:
+            # if haeuser_ladung_avg_prozent < 12.0:  # 2024-12-10 gutes Einschaltverhalten bei ca. 4C Aussentemperatur Puent
+            if haeuser_ladung_avg_prozent < 20.0:  #
                 if self.ctx.is_vorladen_aktiv:
                     if self.handler_oekofen.brenner_zuenden():
                         logger.info("zweiten Brenner zünden: zentral und dezentral energiemangel: brenner_zuenden()")
                         return
 
         # Zweiter brenner loeschen
-        if haeuser_ladung_avg_prozent > 60.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
+        if haeuser_ladung_avg_prozent > 50.0 and sp_ladung_zentral >= SpLadung.LEVEL3 and not self.ctx.is_vorladen_aktiv:
             if self.handler_oekofen.zweiter_brenner_loeschen():
                 logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen() damit nicht am Schluss beide geloescht werden muessen")
 
@@ -206,7 +208,7 @@ class ControllerMaster:
                 if self.handler_last.plus_1_valve(now_s=now_s):
                     logger.info("sp_zentral_zu_warm: plus_1_valve()")
                     return
-                self.handler_last.boost_zu_warm = True
+                # self.handler_last.boost_zu_warm = True
                 if self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.sp_ladung_zentral_prozent > 85.0:
                     if self.handler_oekofen.zweiter_brenner_loeschen():
                         logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen()")

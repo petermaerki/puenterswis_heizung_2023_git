@@ -30,7 +30,7 @@ class HandlerLast:
         self.actiontimer = ActionTimer()
         self.mock_solltemperatur_Tfv_C: float | None = None
         self.boost_Tfv: bool = False
-        self.boost_zu_warm: bool = False
+        self.boost_zu_warm: bool = False  # Todo: spaeter loeschen
         self.legionellen_kill_in_progress: bool = False
         self.target_valve_open_count: int = 0
 
@@ -125,12 +125,14 @@ class HandlerLast:
                     if not haus_ladung.valve_open:
                         list_ladung_individuell_prozent_not_valve_open.append(haus_ladung.ladung_individuell_prozent)
                 if len(list_ladung_individuell_prozent_not_valve_open) == 0:
-                    return 100.0
+                    return 200.0
                 return min(list_ladung_individuell_prozent_not_valve_open)
 
             selected_haus = self._find_minus_1_valve(haeuser_ladung=haeuser_ladung, now_s=now_s, log_info=False)
             if selected_haus is not None:
                 ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
+                if self.ctx.is_winter:
+                    ABSCHALTGRENZE_BAND_PROZENT = 65.0  # gute Werte 30.0 ... 80.0 ? Im Winter weniger zimperlich.
 
                 abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
                 if selected_haus.ladung_individuell_prozent > abschaltgrenze_prozent:
@@ -151,6 +153,12 @@ class HandlerLast:
                             # if self.ctx.modbus_communication._sp_ladung_zentral.ladung_prozent > 25.0:
                             # Abschaltkriterium gilt nicht bei Legionellen kill.
                             continue
+                if self.ctx.is_winter:
+                    """Im Winter geht es nicht darum möglichst lange zu überbrücken sondern um die Energie in der Nacht los zu werden
+                    und damit die Brenner über die Nacht brennen zu lassen. 
+                    Die Energie kommt am nächten Morgen sowieso wieder weg."""
+                    if haus_ladung.haus.get_sp_temperatur().mitte_C < 65.0:
+                        continue
                 changed = haus_ladung.set_valve(valve_open=False)
                 if changed:
                     logger.info(f"{haus_ladung.haus.influx_tag} valve closed, ladung_individuell {haus_ladung.ladung_individuell_prozent:0.1f}% >= 100.0%")
