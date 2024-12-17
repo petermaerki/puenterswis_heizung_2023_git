@@ -88,4 +88,51 @@ So, das war mein Frust.
 
 Auch wenn das Versprechen im Prospekt wohl etwas zu hoch ist...ich kann ein oder zwei Brenner brennen lassen. Jeweils auf 30 oder 100%. Das ist gut, viel besser als mit nur einem Brenner. Jedoch mit einem sehr grossen Aufwand. Der durchschnittliche Anwender wird das nicht machen.
 
+# Leistung Messung
+
+Ich habe die Leistung der Brenner gemessen. Dies mache ich indem ich über eine Zeitspanne, in welcher ein Brenner mit konstanter Modulationsstufe brennt (also 30% oder 100%), die Energie messe welche durch das Mischventil geflossen ist. Die Energie von den Brennern muss durch das Mischventil in die dezentralen Speicher. Ich wähle eine Zeitspanne bei welcher der Ladestand des zentralen Speichers zu Beginn und am Ende etwa gleich gross ist. Der Speicher sollte dadurch das Resultat nicht verfälschen.
+Energiezähler: Mischventil: EV025R3+BAC von Belimo. Die Toleranz dieses Energiezählers liegt bei einigen Prozent. Die Wärmeverluste im zentralen Speicher und den Leitungen in der Heizzentrale sind verglichen mit der Brennerleistung vermutlich vernachlässigbar.
+Ich messen mehrmals, mit der einen Heizzentrale und mit der anderen, mit jeweils einem der 4 Brenner. Die Resultate sind recht konsistent.
+
+## Nennlistung
+Wir haben Brenner vom Typ PESK41 mit 4 verschlossenen Wirbulatoren.
+Aus den Datenblättern werde ich nicht ganz schlau.
+
+<img src="./images/verschlossene_turbulatoren.jpg" width="100" />
+
+Allenfalls könnte es so sein:
+36 kW bei Heizwert, weil wir Brennwert haben gibt es mehr: also 41 kW. Weil 4 Wirbulatoren verschlossen bleiben 36 kW...?
+
+Ich erwarte also 36 kW Nutzleistung bei 100% Modulation und 12 kW bei 30% Modulation.
+
+###  Messung
+
+|Modulation<br>angezeigt<br>%|gemäss<br>Datenblatt<br>kW|gemessen<br><br>kW|
+|--------|--------|---------|
+|100     |36       |31|
+|30    |12       |15|
+
+Ich messe 31 kW bei 100% Modulation. Das ist etwas zu wenig.
+Wenn ich auf 30% moduliere (Oekofen touch zeigt sauber 30%), so messe ich 15 kW. Das ist klar zu viel.
+Das entspricht 48 % der gemessenen Maximalleistung.
+
+Der Modulationsbereich ist deutlich kleiner als erwartet und weicht stark von den Angaben im Hochglanzprospekt ab.
+
+Die Modulationsbereiche überlappen nicht: Grüne Bereiche in der folgenden Darstellung.
+
+<img src="./images/saeulendiagramm.jpg" width="100" />
+
+
+In unserer Anwendung zu deutlich mehr Brennzyklen.
+Beispiel: Die Siedlung benötigt im Schnitt 29 kW, so kann ich das nur mit einem einzelnen Brenner machen, mit zwei Brennern hätte ich zu viel Leistung (2*15kW = 30 kW). Braucht die Siedlung jedoch 31 kW, so kann ich das nur mit zwei Brennern machen.
+
+Jetzt, wo ich diese Zeilen schreibe, mitte Dezember 2024, braucht die grössere der beiden Siedlungn gerade etwa 30 kW Leistung. Ich kriege das nur hin, wenn ich täglich den zweiten Brenner zünde und am Abend wieder lösche. Hätte ich einen Modulationsbereich gemäss Datenblatt, so könnte ich die ganze Zeit zwei Brenner problemlos durch laufen lassen und mit der Modulation die Leistung anpassen, von 22 bis 62 kW. Sehr schade!
+
+Mögliche Fehlerquellen meiner Messung
+- Verluste in der Heizzentrale. Diese würden jedoch nich dazu führen, dass ich eine zu kleine Modulation messe.
+- Energiezähler. Die Fehler sind vermutlich klein im Vergleich zu den gemessenen Abweichungen.
+- Russ im Brenner. Abgelagerter Russ reduziert die Brennerleistung. Nach dem Kaminfeger allenfalls wieder grössere Leistung. Die Modulation sollte das jedoch nicht beeinflussen ... ?
+- Der von Oekofen angezeigte Modulationsgrad ist nicht konstant bei 100% oder 30%. Er schwankt manchmal, also von 100% auf 94% oder von 30% auf 34%. 
+- Die Rücklauftemperatur von den dezentralen Speichern hat einen Einfluss auf den Wirkungsgrad der Brenner. Wohl aber nicht so viel.
+
 Liege ich falsch mit meinen Aussagen? Ich lerne gerne dazu, nehme Tipps gerne entgegen.
