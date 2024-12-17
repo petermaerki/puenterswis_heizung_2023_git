@@ -75,8 +75,8 @@ Was mir bleibt: ich kann zwischen 30% und 100% Modulation hin und her schalten. 
 
 In den Verkaufsunterlagen finde ich Sätze wie "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung entsprechend bis zu 30% der Nennleistung an." 
 
-<img src="./images/prospekt_modulation.png" width="100" />
-<img src="./images/prospekt_brennwert.png" width="100" />
+<img src="./images/prospekt_modulation.png" width="400" />
+<img src="./images/prospekt_brennwert.png" width="400" />
 
 
 In meinem Fall stimmt das aus meiner Sicht nicht. Kessel zu und weg schalten vermutlich ja, modulieren nein. Ein reduzieren der Brennleistung erfolgt allenfalls dann, wenn der Rücklauf zu den Brennern heiss wird. Das kann gemacht werden. Dann sind die Speicher aber bereits voll und der Wirkungsgrad ist deshalb bereits schlecht. 
@@ -98,7 +98,7 @@ Ich messen mehrmals, mit der einen Heizzentrale und mit der anderen, mit jeweils
 Wir haben Brenner vom Typ PESK41 mit 4 verschlossenen Wirbulatoren.
 Aus den Datenblättern werde ich nicht ganz schlau.
 
-<img src="./images/verschlossene_turbulatoren.jpg" width="100" />
+<img src="./images/verschlossene_turbulatoren.jpg" width="400" />
 
 Allenfalls könnte es so sein:
 36 kW bei Heizwert, weil wir Brennwert haben gibt es mehr: also 41 kW. Weil 4 Wirbulatoren verschlossen bleiben 36 kW...?
@@ -120,7 +120,7 @@ Der Modulationsbereich ist deutlich kleiner als erwartet und weicht stark von de
 
 Die Modulationsbereiche überlappen nicht: Grüne Bereiche in der folgenden Darstellung.
 
-<img src="./images/saeulendiagramm.jpg" width="100" />
+<img src="./images/saeulendiagramm.jpg" width="400" />
 
 
 In unserer Anwendung zu deutlich mehr Brennzyklen.
