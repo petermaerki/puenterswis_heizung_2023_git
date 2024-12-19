@@ -95,13 +95,13 @@ Energiezähler: Mischventil: EV025R3+BAC von Belimo. Die Toleranz dieses Energie
 Ich messen mehrmals, mit der einen Heizzentrale und mit der anderen, mit jeweils einem der 4 Brenner. Die Resultate sind recht konsistent.
 
 ## Nennlistung
-Wir haben Brenner vom Typ PESK41 mit 4 verschlossenen Wirbulatoren.
+Wir haben Brenner vom Typ PESK41 mit 6 verschlossenen Wirbulatoren.
 Aus den Datenblättern werde ich nicht ganz schlau.
 
 <img src="./images/verschlossene_turbulatoren.jpg" width="400" />
 
-Allenfalls könnte es so sein:
-36 kW bei Heizwert, weil wir Brennwert haben gibt es mehr: also 41 kW. Weil 4 Wirbulatoren verschlossen bleiben 36 kW...?
+Vermutlich:
+36 kW bei Heizwert, weil wir Brennwert haben gibt es mehr: also 41 kW. Leistungsstufe heruntergesetzt auf 36 kW (Leistungsstufe 36).
 
 Ich erwarte also 36 kW Nutzleistung bei 100% Modulation und 12 kW bei 30% Modulation.
 
@@ -120,13 +120,9 @@ Der Modulationsbereich ist deutlich kleiner als erwartet und weicht stark von de
 
 Die Modulationsbereiche überlappen nicht: Grüne Bereiche in der folgenden Darstellung.
 
-<img src="./images/saeulendiagramm.jpg" width="400" />
+<img src="./images/saeulendiagramm.jpg" width="973" />
 
 
-In unserer Anwendung zu deutlich mehr Brennzyklen.
-Beispiel: Die Siedlung benötigt im Schnitt 29 kW, so kann ich das nur mit einem einzelnen Brenner machen, mit zwei Brennern hätte ich zu viel Leistung (2*15kW = 30 kW). Braucht die Siedlung jedoch 31 kW, so kann ich das nur mit zwei Brennern machen.
-
-Jetzt, wo ich diese Zeilen schreibe, mitte Dezember 2024, braucht die grössere der beiden Siedlungn gerade etwa 30 kW Leistung. Ich kriege das nur hin, wenn ich täglich den zweiten Brenner zünde und am Abend wieder lösche. Hätte ich einen Modulationsbereich gemäss Datenblatt, so könnte ich die ganze Zeit zwei Brenner problemlos durch laufen lassen und mit der Modulation die Leistung anpassen, von 22 bis 62 kW. Sehr schade!
 
 Mögliche Fehlerquellen meiner Messung
 - Verluste in der Heizzentrale. Diese würden jedoch nich dazu führen, dass ich eine zu kleine Modulation messe.
@@ -134,5 +130,22 @@ Mögliche Fehlerquellen meiner Messung
 - Russ im Brenner. Abgelagerter Russ reduziert die Brennerleistung. Nach dem Kaminfeger allenfalls wieder grössere Leistung. Die Modulation sollte das jedoch nicht beeinflussen ... ?
 - Der von Oekofen angezeigte Modulationsgrad ist nicht konstant bei 100% oder 30%. Er schwankt manchmal, also von 100% auf 94% oder von 30% auf 34%. 
 - Die Rücklauftemperatur von den dezentralen Speichern hat einen Einfluss auf den Wirkungsgrad der Brenner. Wohl aber nicht so viel.
+
+Ich vermute: Die Einstellung einer tiefen Leistungsstufe limitiert die maximale Leistung in der Software. Die minimale Leistung bleibt, weil siedurch die Physik vom Brenner gegeben ist. Dadurch wird die Modulationsbreite kleiner.
+
+Aber warum wird dann eine Modulation von 30% und 100% angezeigt? 
+
+Korrekterweise wären es in meinem Fall:
+- maximal 100% und minimal 48%, falls sich das 100% auf die aktuelle, limitierte Leistung bezieht.
+- oder maximal 62% und minimal 30% falls sich die maximale Leistung auf die mögliche Leistung bezieht.
+
+
+In Arbeit:
+<del>
+In unserer Anwendung zu deutlich mehr Brennzyklen.
+Beispiel: Die Siedlung benötigt im Schnitt 29 kW, so kann ich das nur mit einem einzelnen Brenner machen, mit zwei Brennern hätte ich zu viel Leistung (2*15kW = 30 kW). Braucht die Siedlung jedoch 31 kW, so kann ich das nur mit zwei Brennern machen.
+
+Jetzt, wo ich diese Zeilen schreibe, mitte Dezember 2024, braucht die grössere der beiden Siedlungn gerade etwa 30 kW Leistung. Ich kriege das nur hin, wenn ich täglich den zweiten Brenner zünde und am Abend wieder lösche. Hätte ich einen Modulationsbereich gemäss Datenblatt, so könnte ich die ganze Zeit zwei Brenner problemlos durch laufen lassen und mit der Modulation die Leistung anpassen, von 22 bis 62 kW. Sehr schade!
+</del>
 
 Liege ich falsch mit meinen Aussagen? Ich lerne gerne dazu, nehme Tipps gerne entgegen.
