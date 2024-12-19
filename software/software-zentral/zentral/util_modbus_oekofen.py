@@ -8,6 +8,7 @@ from typing import List
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
+from zentral import util_oekofen_brenner_uebersicht
 from zentral.constants import DIRECTORY_LOG
 from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, RegDefI
@@ -223,13 +224,13 @@ class OekofenRegisters:
         return sum([self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_STARTS") for brenner_idx1 in (1, 2)])
 
     def verfuegbar(self, brenner_idx1: int) -> bool:
-        return (self.plant_mode() is PlantMode.AUTO) and (self.fa_mode(brenner_idx1=brenner_idx1) is FA_Mode.AUTO)
+        return util_oekofen_brenner_uebersicht.verfuegbar(registers=self, brenner_idx1=brenner_idx1)
 
     def zuendet_oder_brennt(self, brenner_idx1: int) -> bool:
         return FA_State.IGNITION <= self.fa_state(brenner_idx1=brenner_idx1) <= FA_State.RUN_ON_TIME
 
     def brennt(self, brenner_idx1: int) -> bool:
-        return self.fa_state(brenner_idx1=brenner_idx1) == FA_State.HEATING_FULL_POWER
+        return self.fa_state(brenner_idx1=brenner_idx1) in (FA_State.HEATING_FULL_POWER, FA_State.SUCTION, FA_State.IGNITION)
 
     def plant_mode(self) -> PlantMode:
         v = self._attr_value(attribute_name="PLANT_MODE")
