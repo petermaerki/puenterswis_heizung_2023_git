@@ -173,3 +173,23 @@ class HandlerOekofen:
         relais.relais_4_brenner2_sperren = self.modulation_soll.zwei_brenner[1].is_off
         relais.relais_3_brenner1_anforderung = self.modulation_soll.zwei_brenner[0].is_on
         relais.relais_5_brenner2_anforderung = self.modulation_soll.zwei_brenner[1].is_on
+
+    def update_zuenden(self) -> None:
+        """
+        Der Brenner wurde vor 'kurzem' gezündet und darum ist 'BrennerAction.ZUENDEN'.
+        Sobald der Brenner brennt und der Kessel warm ist, beginnt 'BrennerAction.ZUENDEN_KESSEL_WARM'.
+        """
+        if self.modulation_soll.actiontimer.action != BrennerAction.ZUENDEN:
+            return
+
+        brenner_idx1 = self.modulation_soll.actiontimer_brenner_idx1
+        assert brenner_idx1 is not None
+
+        r = self.ctx.hsm_zentral.modbus_oekofen_registers
+
+        if r.fa_temp_C(brenner_idx1=brenner_idx1) > 70.0:
+            from zentral.util_modbus_oekofen import FA_State
+
+            if r.fa_state(brenner_idx1=brenner_idx1) == FA_State.HEATING_FULL_POWER:
+                self.modulation_soll.actiontimer.action = BrennerAction.ZUENDEN_KESSEL_WARM
+                self.modulation_soll.actiontimer_brenner_idx1 = None

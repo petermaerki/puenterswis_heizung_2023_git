@@ -276,7 +276,8 @@ class ZweiterBrennerSperrzeitAction(ActionBaseEnum):
 
 
 class BrennerAction(ActionBaseEnum):
-    ZUENDEN = 40
+    ZUENDEN = 90
+    ZUENDEN_KESSEL_WARM = 10
     LOESCHEN = 20
     MODULIEREN = 30  # vorher 15
 
@@ -323,6 +324,11 @@ class ModulationSoll:
         self.zwei_brenner[0].other_brenner = self.zwei_brenner[1]
         self.zwei_brenner[1].other_brenner = self.zwei_brenner[0]
         self.actiontimer = ActionTimer()
+        self.actiontimer_brenner_idx1: int | None = None
+        """
+        Wird 'self.actiontimer == ZUENDEN' gesetzt, so in 'self.actiontimer_brenner_idx1' der Brenner hinterlegt,
+        der gezündet wurde.
+        """
         self.actiontimer_zweiter_brenner_sperrzeit = ActionTimer()
 
     @property
@@ -384,6 +390,7 @@ class ModulationSoll:
         brenner = self.zwei_brenner.get_brenner(brenner_num)
         brenner.set_modulation(modulation=modulation)
         self.actiontimer.action = BrennerAction.ZUENDEN
+        self.actiontimer_brenner_idx1 = brenner.idx0 + 1
         self.actiontimer_zweiter_brenner_sperrzeit.action = ZweiterBrennerSperrzeitAction.ZUENDEN
         self._log_action(brenner=brenner, reason="set_modulation(). Vermutlich Scenario.")
 
@@ -437,6 +444,7 @@ class ModulationSoll:
         # Brenner einschalten
         brenner.zuenden(is_winter=is_winter)
         self.actiontimer.action = BrennerAction.ZUENDEN
+        self.actiontimer_brenner_idx1 = brenner.idx0 + 1
         self.actiontimer_zweiter_brenner_sperrzeit.action = ZweiterBrennerSperrzeitAction.ZUENDEN
         self._log_action(brenner=brenner, reason="Brenner einschalten.")
         return True
