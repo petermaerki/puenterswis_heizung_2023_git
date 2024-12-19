@@ -40,6 +40,7 @@ class ControllerMaster:
         self.handler_last.update_valves(now_s=now_s)
         self.handler_oekofen.update_brenner_relais()
         self.handler_oekofen.modulation_soll.update_burnout()
+        self.handler_oekofen.update_zuenden()
 
         self._process(now_s=now_s)
 
