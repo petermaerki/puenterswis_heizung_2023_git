@@ -147,7 +147,7 @@ class OekofenRegisters:
     def _attr_value(self, attribute_name: str) -> int | float:
         reg_def = DICT_REG_DEFS[attribute_name]
         if isinstance(reg_def, RegDefC):
-            return self._read_16bit_float(reg_def.address, factor=0.1)
+            return self._read_16bit_signed_float(reg_def.address, factor=0.1)
         return self._read_16bit_int(reg_def.address)
 
     def attr_str(self, attribute_name: str) -> str:
@@ -161,6 +161,12 @@ class OekofenRegisters:
 
     def _read_16bit_float(self, address: int, factor: float) -> float:
         return self._registers[address] * factor
+
+    def _read_16bit_signed_float(self, address: int, factor: float) -> float:
+        v = self._registers[address]
+        if v >= 2**15:
+            v -= 2**16
+        return v * factor
 
     def _read_32bit(self, address: int, factor: float) -> float:
         assert len(self._registers) > address + 2
@@ -295,6 +301,8 @@ class Oekofen:
         reg_def = DICT_REG_DEFS[name]
         assert isinstance(reg_def, RegDefI | RegDefC)
         factor = 0.1 if isinstance(reg_def, RegDefC) else 1.0
+        # Attention: Temperatures -0C might overflow...
+        # See: _read_16bit_signed_float()
         await self._write_16bit(name=name, address=reg_def.address, value=value, factor=factor)
 
     async def _write_16bit(self, name: str, address: int, value: float, factor: float) -> None:
