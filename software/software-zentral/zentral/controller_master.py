@@ -187,11 +187,11 @@ class ControllerMaster:
                             return
             if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 12.0:
                 """Falls die Häuser zu hoch geladen sind: modulation runter"""
-                if self.handler_sp_zentral.steigt:
-                    if sp_ladung_zentral >= SpLadung.LEVEL2:
-                        if self.handler_oekofen.modulation_reduzieren():
-                            logger.info("sp_dezentral_vorausschauend_laden(): modulation_reduzieren()")
-                            return
+                #if self.handler_sp_zentral.steigt:
+                if sp_ladung_zentral >= SpLadung.LEVEL2:
+                    if self.handler_oekofen.modulation_reduzieren():
+                        logger.info("sp_dezentral_vorausschauend_laden(): modulation_reduzieren()")
+                        return
 
         if VORAUSSCHAUEND_LADEN:
             sp_dezentral_vorausschauend_laden()
