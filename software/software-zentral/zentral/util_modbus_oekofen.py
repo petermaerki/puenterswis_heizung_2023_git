@@ -14,7 +14,7 @@ from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFE
 from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, RegDefI
 from zentral.util_modbus_wrapper import ModbusWrapper
 from zentral.util_modulation_soll import BrennerZustaende, BrennerZustand
-from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerStoerung
+from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerRuntime_h, ScenarioOekofenBrennerStoerung
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +219,10 @@ class OekofenRegisters:
         return self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_TEMP_C")
 
     def fa_runtime_h(self, brenner_idx1: int) -> int:
+        scenario = SCENARIOS.find(cls_scenario=ScenarioOekofenBrennerRuntime_h)
+        if scenario is not None:
+            return scenario.brenner1_runtime_h if brenner_idx1 == 1 else scenario.brenner2_runtime_h
+
         v = self._attr_value2(brenner_idx1=brenner_idx1, attribute_template="FAx_RUNTIME_H")
         assert isinstance(v, int)
         return v

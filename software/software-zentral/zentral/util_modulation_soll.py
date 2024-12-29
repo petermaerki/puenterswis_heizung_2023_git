@@ -26,6 +26,11 @@ _OEKOFEN_MAX_REGELTEMP_C = 85.0
 beim Schreiben über Modbus laesst Oekofen nur Werte bis Abschalttemperatur minus Einschalthysterese (10) zu. Komsich.
 """
 
+_GROSSE_BRENNDAUER_DIFFERENZ_H = 250.0
+"""
+Damit das Pelletslager gleichmässig aufgebraucht wird sollen beide Brenner immer mal wieder brennen.
+"""
+
 _modbus_FAx_UW_TEMP_ON_C_max = 80.0
 _modbus_FAx_UW_TEMP_ON_C_min = 60.0
 
@@ -338,6 +343,10 @@ class ModulationSoll:
             wartezeit_text = f"{self.actiontimer.action.wartezeit_min:2d}min"
         return f"{self.zwei_brenner.short},{wartezeit_text}"
 
+    @property
+    def anzahl_brenner_on(self) -> int:
+        return len(self.zwei_brenner.on())
+
     def initialize(self, brenner_zustaende: BrennerZustaende) -> None:
         assert len(brenner_zustaende) == 2
         assert len(self.zwei_brenner) == 2
@@ -367,15 +376,35 @@ class ModulationSoll:
 
         # Annahme: 'self.zwei_brenner[x]' entspricht 'brenner_zustaende[x]'
         diff_C = brenner_zustaende[0].fa_temp_C - brenner_zustaende[1].fa_temp_C
-        if abs(diff_C) > 10.0:
-            if diff_C < 0.0:
+        diff_runtime_h = brenner_zustaende[0].fa_runtime_h - brenner_zustaende[1].fa_runtime_h
+        if abs(diff_runtime_h) > _GROSSE_BRENNDAUER_DIFFERENZ_H:
+            if diff_runtime_h > 0.0:
                 zwei_brenner_copy.reverse()
         else:
-            if brenner_zustaende[0].fa_runtime_h > brenner_zustaende[1].fa_runtime_h:
-                zwei_brenner_copy.reverse()
+            if abs(diff_C) > 10.0:
+                if diff_C < 0.0:
+                    zwei_brenner_copy.reverse()
+            else:
+                if diff_runtime_h > 0.0:
+                    zwei_brenner_copy.reverse()
 
         zwei_brenner_copy = ListBrenner([b for b in zwei_brenner_copy if b.verfuegbar(brenner_zustaende)])
         return zwei_brenner_copy
+
+    def brenner_loeschen_falls_runtime_unterschied(self, brenner_zustaende: BrennerZustaende) -> bool:
+        if self.anzahl_brenner_on != 1:
+            return False
+    
+        for idxA, idxB in ((0, 1), (1, 0)):
+            brennerA = self.zwei_brenner[idxA]
+            if brennerA.is_on:
+                diff_runtime_h = brenner_zustaende[idxA].fa_runtime_h - brenner_zustaende[idxB].fa_runtime_h
+                if diff_runtime_h > _GROSSE_BRENNDAUER_DIFFERENZ_H + 50.0:
+                    # Den Brenner mit der grösseren Betriebsdauer löschen
+                    brennerA.loeschen()
+                    return True
+
+        return False
 
     def _log_action(self, brenner: ModulationBrenner, reason: str) -> None:
         logger.info(f"{self.actiontimer.action_name_full} brenner idx0={brenner.idx0}, {brenner.short}. {reason}")

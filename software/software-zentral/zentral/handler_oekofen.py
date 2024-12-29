@@ -53,7 +53,7 @@ class HandlerOekofen:
 
     @property
     def anzahl_brenner_on(self) -> int:
-        return len(self.modulation_soll.zwei_brenner.on())
+        return self.modulation_soll.anzahl_brenner_on
 
     @property
     def brenner_uebersicht_prozent(self) -> tuple[int, int]:
@@ -61,6 +61,9 @@ class HandlerOekofen:
         return (brenner1, brenneer2)
         """
         return brenner_uebersicht_prozent(registers=self.ctx.hsm_zentral.modbus_oekofen_registers)
+
+    def brenner_loeschen_falls_runtime_unterschied(self) -> bool:
+        return self.modulation_soll.brenner_loeschen_falls_runtime_unterschied(brenner_zustaende=self.brenner_zustaende)
 
     def modulation_erhoehen(self) -> bool:
         """
