@@ -309,7 +309,7 @@ class Oekofen:
         value_raw = round(value / factor)
         assert 0 <= value_raw < 2**16
 
-        logger.info(f"Oekofen set register {name}({address}) to {value:0.1f}({value_raw})")
+        logger.info(f"Oekofen set register {name}[{address}] to {value:0.1f}({value_raw})")
 
         await self._modbus.write_registers(
             slave=self._modbus_address,
