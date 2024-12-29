@@ -477,7 +477,6 @@ class ScenarioOekofenRegister(ScenarioBase):
     # name: str = "EXTERNAL_CASCADE_CONTR"
     value: float = 0.0
 
-
 @dataclasses.dataclass
 class ScenarioOekofenBrennerModulation(ScenarioBase):
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
@@ -489,12 +488,16 @@ class ScenarioOekofenBrennerModulation(ScenarioBase):
         """
         ctx.hsm_zentral.controller_master.handler_oekofen.set_modulation(brenner_num=self.brenner_idx0, modulation=self.modulation)
 
-
 @dataclasses.dataclass
 class ScenarioOekofenBrennerStoerung(ScenarioBase):
     duration_s: float = 5 * 60.0
     brenner_idx0: BrennerNum = BrennerNum.BRENNER_1
 
+@dataclasses.dataclass
+class ScenarioOekofenBrennerRuntime_h(ScenarioBase):
+    duration_s: float = 3 * 24 * 3600.0
+    brenner1_runtime_h: int = 1000
+    brenner2_runtime_h: int = 1280
 
 @dataclasses.dataclass
 class ScenarioOekofenModbusNoResponseReceived(ScenarioBase):
