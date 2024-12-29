@@ -458,14 +458,18 @@ class ScenarioOverwriteRelais0Automatik(ScenarioBase):
 
 class OekofenRegister(enum.StrEnum):
     EXTERNAL_CASCADE_CONTR = "EXTERNAL_CASCADE_CONTR"
+    CASCADE_SET_C = "CASCADE_SET_C"
     # read only:
     #   CASCADE_ON_TEMP_C = "CASCADE_ON_TEMP_C"
     #   CASCADE_OFF_TEMP_C = "CASCADE_OFF_TEMP_C"
+    FA1_MODE = "FA1_MODE"
+    FA2_MODE = "FA2_MODE"
     FA1_TEMP_SET_C = "FA1_TEMP_SET_C"
     FA2_TEMP_SET_C = "FA2_TEMP_SET_C"
     FA1_REGEL_TEMP_C = "FA1_REGEL_TEMP_C"
     FA2_REGEL_TEMP_C = "FA2_REGEL_TEMP_C"
-
+    FA1_POWER_kW = "FA1_POWER_kW"
+    FA2_POWER_kW = "FA2_POWER_kW"
 
 @dataclasses.dataclass
 class ScenarioOekofenRegister(ScenarioBase):

@@ -68,7 +68,7 @@ for offset, prefix in (
             RegDefI(offset + 31, prefix + "RUNTIME_H"),
             RegDefI(offset + 32, prefix + "STARTS"),
             RegDefI(offset + 33, prefix + "TYPE_kW"),
-            RegDefI(offset + 34, prefix + "POWER"),
+            RegDefI(offset + 34, prefix + "POWER_kW"),
             RegDefI(offset + 35, prefix + "ENERGY_HOLD"),
             RegDefI(offset + 36, prefix + "MAINTENANCE"),
         ]

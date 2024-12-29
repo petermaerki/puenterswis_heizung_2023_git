@@ -83,7 +83,9 @@ class HandlerOekofen:
         return self.modulation_soll.modulation_reduzieren(brenner_zustaende=self.brenner_zustaende)
 
     def handle_brenner_mit_stoerung(self) -> None:
-        assert self.ctx.hsm_zentral.modbus_oekofen_registers is not None
+        if self.ctx.hsm_zentral.modbus_oekofen_registers is None:
+            return
+
         if self.ctx.hsm_zentral.modbus_oekofen_registers.is_plant_mode_kaminfeger_AUS():
             # Wenn der Kaminfeger, die Heizung ausschaltet (PlantMode==OFF), müssen
             # wir die Brenner löschen.
