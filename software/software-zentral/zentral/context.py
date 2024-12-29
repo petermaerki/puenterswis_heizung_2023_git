@@ -60,6 +60,21 @@ class Context:
         return TaussenU_C < 14.0
 
     @property
+    def haeuser_ladung_avg_soll_prozent_min(self) -> float:
+        '''Je kaelter es ist, desto eher wird gebadet und desto weniger kann ich grosse Schwankungen auffangen. Daher Reserve.'''
+        TaussenU_C = self.modbus_communication.pcbs_dezentral_heizzentrale.TaussenU_C
+        Taussen_C_kalt = -10.0
+        Taussen_C_warm = 14.0
+        Prozent_kalt = 50.0
+        Prozent_warm = 16.0
+        prozent = (TaussenU_C - Taussen_C_kalt) * (Prozent_warm - Prozent_kalt) / (
+            Taussen_C_warm - Taussen_C_kalt
+        ) + Prozent_kalt
+        prozent = min(prozent, Prozent_kalt)
+        prozent = max(prozent, Prozent_warm)
+        return prozent
+
+    @property
     def is_sommer(self) -> bool:
         return not self.is_winter
 

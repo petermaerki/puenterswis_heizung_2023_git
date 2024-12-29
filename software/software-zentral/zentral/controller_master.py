@@ -160,7 +160,9 @@ class ControllerMaster:
             brenner_leistung_W = brenner_on * (self.ctx.config_etappe.brenner_einzeln_leistung_W - OFFSET_LEISTUNG_W)
             haeuser_ladung_avg_soll_prozent = MINIMALE_LADUNG_PROZENT + RESERVE_FAKTOR * (sp_verbrauch_alle_W - brenner_leistung_W) * VORLADUNG_STUNDEN / (haeuser_anzahl * energie_haus_Wh) * 100.0
             haeuser_ladung_avg_soll_prozent = min(65.0, haeuser_ladung_avg_soll_prozent)
-            haeuser_ladung_avg_soll_prozent = max(16.0, haeuser_ladung_avg_soll_prozent)
+            # haeuser_ladung_avg_soll_prozent = max(16.0, haeuser_ladung_avg_soll_prozent)
+            haeuser_ladung_avg_soll_prozent = max(self.ctx.haeuser_ladung_avg_soll_prozent_min, haeuser_ladung_avg_soll_prozent)
+            # logger.info(f"self.ctx.haeuser_ladung_avg_soll_prozent_min() {self.ctx.haeuser_ladung_avg_soll_prozent_min}")
             self.haeuser_ladung_avg_soll_prozent = haeuser_ladung_avg_soll_prozent
             if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 2.0:
                 self.ctx.vorladen_aktiv = False
