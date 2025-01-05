@@ -116,13 +116,13 @@ class ControllerMaster:
                 logger.info("sp_zentral_zu_warm: zweiter_brenner_loeschen() damit nicht am Schluss beide geloescht werden muessen")
 
         # Brenner loeschen falls runtime Unterschied zu gross
-        if haeuser_ladung_avg_prozent > 50.0:
+        if haeuser_ladung_avg_prozent > 35.0:
             if sp_ladung_zentral >= SpLadung.LEVEL3:
                 if not self.ctx.is_vorladen_aktiv:
                     '''Es hat genug Energie im System und es steht ein Brennerwechsel an.'''
                     if self.handler_oekofen.brenner_loeschen_falls_runtime_unterschied():
                             brenner_geloescht_valves_zu()
-                            logger.debug("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
+                            logger.info("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
                             return
 
         if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
