@@ -34,3 +34,14 @@ Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwisc
 
 
 Wäre spannend zu wissen wie die Abgaswerte bei verschiedener Modulation ist. Die Frage ist: soll ich auf 100% modulieren, vermutlich sauberer verbrennen dafür mehr Brenner-Starts verursachen oder lieber 30% modulieren, schlechter verbrennen dafür weniger Brenner-Starts verursachen. 
+
+## Geruchstest
+
+Bochs, Leistungsstufe 41, 2025-01-11 16:57:30, Modulation 100%
+
+Der "Rauch" löst sich schnell in der Umgebungsluft auf. 
+
+<img src="./images/5092.jpg" width="400" />
+<img src="./images/20250111_155621911.jpg" width="400" />
+
+Wir halten ein Stück weissen Baumwollstoff für einige Minuten direkt in den Rauch. Der Stoff sieht danach noch genau gleich aus. Der Stoff ist leicht feucht. Geruchsprobe: riecht überhaupt nicht. Wow, das freut uns!

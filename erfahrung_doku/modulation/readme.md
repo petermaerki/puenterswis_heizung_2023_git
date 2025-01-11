@@ -100,9 +100,7 @@ Aus den Datenblättern werde ich nicht ganz schlau.
 
 <img src="./images/verschlossene_turbulatoren.jpg" width="400" />
 
-Vermutlich:
-36 kW bei Heizwert, weil wir Brennwert haben gibt es mehr: also 41 kW. Leistungsstufe heruntergesetzt auf 36 kW (Leistungsstufe 36).
-
+Eingestellt ist Leistungsstufe 36.
 Ich erwarte also 36 kW Nutzleistung bei 100% Modulation und 12 kW bei 30% Modulation.
 
 ###  Messung
@@ -140,12 +138,25 @@ Korrekterweise wären es in meinem Fall:
 - oder maximal 62% und minimal 30% falls sich die maximale Leistung auf die mögliche Leistung bezieht.
 
 
-In Arbeit:
-<del>
-In unserer Anwendung zu deutlich mehr Brennzyklen.
+In unserer Anwendung führt das zu deutlich mehr Brennzyklen.
 Beispiel: Die Siedlung benötigt im Schnitt 29 kW, so kann ich das nur mit einem einzelnen Brenner machen, mit zwei Brennern hätte ich zu viel Leistung (2*15kW = 30 kW). Braucht die Siedlung jedoch 31 kW, so kann ich das nur mit zwei Brennern machen.
-
 Jetzt, wo ich diese Zeilen schreibe, mitte Dezember 2024, braucht die grössere der beiden Siedlungn gerade etwa 30 kW Leistung. Ich kriege das nur hin, wenn ich täglich den zweiten Brenner zünde und am Abend wieder lösche. Hätte ich einen Modulationsbereich gemäss Datenblatt, so könnte ich die ganze Zeit zwei Brenner problemlos durch laufen lassen und mit der Modulation die Leistung anpassen, von 22 bis 62 kW. Sehr schade!
-</del>
+
+
+Nachtrag Januar 2025:
+Ich habe die Leistungsstufe auf 41 erhöht. Die Leitung per Software immer zu drosseln macht sicher keinen Sinn.
+Ich kann nicht beide Brenner gleichzeitig auf Leistungsstufe 41 stellen. Was geht: den einen auf 41, den anderen auf 40.  Wenn ich jenen mit 40 auf 41 stelle, so springt der angezeigte wert im Touch nach einer Minute wieder auf 40. Wo ich auch rein schaue: gespickt mit Softwareböcken.
+
+Ich messe: 
+
+|Modulation<br>angezeigt<br>%|gemäss<br>Datenblatt<br>kW|gemessen<br><br>kW|
+|--------|--------|---------|
+|100     |41       |40|
+|30    |12      |21|
+
+Bei minimaler Modulation, angezeigt "30%" kriege ich 21 kW statt 12 kW. Über 50% Leistung bei "30%" Modulation!
+So ein Frust. Ich gebe auf.
+
+
 
 Liege ich falsch mit meinen Aussagen? Ich lerne gerne dazu, nehme Tipps gerne entgegen.
