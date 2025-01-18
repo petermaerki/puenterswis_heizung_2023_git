@@ -70,6 +70,12 @@ Brenner Oekofen
 Fotos
 - [Einige Impressionen](./impressionen/readme.md) 
 
+Offene Fragen
+- [Offene Fragen](./moffene_fragen/readme.md) 
+
+
 Nicht alles ist perfekt aber unter dem Strich ist es eine sehr schöne Lösung. Vielen Dank an dieser Stelle an alle die dazu beigetragen haben.
+
+
 
 2024 Peter Märki
