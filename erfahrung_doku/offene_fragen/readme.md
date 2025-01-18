@@ -1,8 +1,14 @@
-# Offene Fragen
+2025-01-19 Peter Märki
 
-Stand Januar 2025. Ich werde diese Fragen in den nächsten Monaten dem Ofenhersteller weiter leiten.
+https://github.com/petermaerki/puenterswis_heizung_2023_git/blob/main/erfahrung_doku/offene_fragen/readme.md
 
-Als Kunde habe ich die mir zur Verfügung stehenden Unterlagen studiert. Wir haben Pellematic Maxi Kaskade, zwei PESK41 mit 6 verschlossenen Wirbulatoren mit Brennwert, Touch V.4.04. Unter anderem beeindruckte mich Folgendes:
+Ich werde diese Fragen in den nächsten Monaten den Brennerhersteller weiter leiten.
+# Offene Fragen im Januar 2025
+## Unsere Anlage
+Wir haben zwei Pellematic Maxi, Kaskade, zwei PESK41 mit 6 verschlossenen Wirbulatoren, mit Brennwert, Touch V.4.04, Nennleistung je Brenner: 41kW. 
+## Was sagen die technischen Unterlagen
+Als Kunde habe ich die mir zur Verfügung stehenden Unterlagen studiert. 
+Unter anderem beeindruckten mich folgende Angaben:
 
 Prospekt: OekoFEN_PF_AT_PellematicMaxi.pdf
 
@@ -17,43 +23,60 @@ Prospekt: OekoFEN_PF_AT_PellematicMaxi.pdf
 <img src="./images/prospekt_brennwert.png" width="200" />
 
 Planungsmappe: Planungsmappe_PESK_02_2023.pdf
+
 <img src="./images/technische_daten_pellematic_maxi.png" width="400" />
 
-PESK41, 11 bis 41 kW, entspricht Modulation 30% bis 100%, super, diese Brenner können modulieren!
+PESK41, 11 bis 41 kW, entspricht Modulation 30% bis 100% - super, diese Brenner können modulieren!
 
 Planungsmappe: Planungsmappe_PESK_02_2023.pdf
+
 <img src="./images/prospekt_kleiner_35C.png" width="400" />
 
-Tiefe Rücklauftemperatur, das kann ich bieten.
+Tiefe Rücklauftemperatur - das kann ich bieten.
+## Problem
+Ich kriege nicht hin was mir die Unterlagen versprechen. 
+Weder kriege ich die Oekofen Steuerung dazu, entsprechend dem Bedarf die Leistung geeignet zu variieren noch gelingt es mir mit meiner externen Steuerung über Modbus die Leistung auf 30 % zu modulieren. Bei einer "30%" angezeigten Modulation messe ich 21 kW Leistung - deutlich zu viel. Ich habe viele EMails geschrieben, diverse Telefonate geführt, viel diskutiert. Trotz hohem Zeitaufwand gelingt es mir nicht.
 
-Ich kriege nicht hin was mir die Unterlagen da versprechen. Weder kriegt das die Oekofen Steuerung hin (entsprchend dem Bedarf die Leistung geeignet zu variieren) noch gelingt es mir mit meiner externen Steuerung.
+Argumente für eine Demonstration vor Ort:
 
-## Offener Wunsch 1, Demonstration Brenner auf 30% Modulation
+- Ich lerne gerne dazu. 
+- Von den versprochenen Eigenschaften würde ich gerne profitieren.
+- Eine ideale Gelegenheit um als Brennerhersteller die angepriesenen Eigenschaften in einer realen Kundenanwendung zu demonstrieren.
+
+## Wunsch 1, Demonstration ein Brenner auf 30% Modulation
 
 Gerne möchte ich einen unserer Brenner auf 30 % Leistung brennen sehen. Vorgegeben über Modbus.
-- Befehlssequenz über Modbus um den Brenner von 100% Modulation auf 30% Modulation zu bringen. Gerne kann die Person, welche die Demo macht, ihren eigenen PC an Modbus anschliessen.
-- Der Brenner soll 24 Stunden auf 30% Modulation brennen. In dieser Zeit möchte ich die Leistung von 11 kW nachmessen. Zudem möchte ich sehen wie sauber die Verbrennung ist.
+- Beide Brenner sind auf Leistungsstufe 41 eingestellt.
+- Ich schliesse den Steuerkontakt BR eines Brenners: Anforderung: Dieser eine Brenner läuft nun auf 100%.
+- Demonstration: Eine Fachperson steuert die Anlage über Modbus so, dass der Brenner die Leistung von 100% Modulation auf 30% Modulation reduziert.
+- Der Brenner soll 24 Stunden auf 30% Modulation brennen. In dieser Zeit möchte ich die Leistung von 11 kW nachmessen. 
+- Ich möchte vom zentralen Pufferspeicher Wasser mit einer Temperatur von 70C beziehen und Wasser mit einer Temperatur von 35C zurück liefern.
+- Ich möchte sehen wie sauber die Verbrennung ist.
 
 Die Resultate dieser Demo würde ich gerne an dieser Stelle dokumentieren:
 - Befehlssequenz Modbus.
 - Leistung über die Zeit.
 - Fotos vom Brennraum, Fotos der Asche.
+- Allenfalls, falls ich das organisieren kann: Feinstaubmessung durch unseren Kaminfeger.
 
 
-## Offener Wunsch 2, Demonstration "automatische Bedarfsanpassung"
+## Wunsch 2, Demonstration "automatische Bedarfsanpassung"
 
 Gerne möchte ich die Anlage beobachten wie sie ihre Leistung automatisch an den Bedarf anpasst. 
-- Jemand soll die Anlage so einstellen, dass die Leistung automatisch an den Bedarf anpasst wird. 
+- Beide Brenner sind auf Leistungsstufe 41 eingestellt.
+- Demonstration: Die Anlage soll von eine Fachperson so eingestellt werden, dass die Leistung automatisch, durch Modulation sowie Zünden und Löschen an den Bedarf anpasst wird. 
 - Keine Einwirkung meiner Steuerung auf die Brenner, ich zeichne nur auf was passiert.
-- Die Rücklauftemperatur in den Pufferspeicher werde ich auf ca. 35C halten, so wie als Grundvoraussetzung für einen effizienten Einsatz der Brennwerttechnik in der Planungsmappe gefordert.
-- Ich werde über zwei Tage den Bedarf (Bezug am Pufferspeicher) mit meiner Steuerung variieren. Von 11 kW bis 82 kW.
+- Ich werde über zwei Tage den Bedarf mit meiner Steuerung variieren. Hierzu werde ich vom Pufferspeicher variable Mengen von Wasser mit 70C entnehmen. Bezogene Leistung von 0 kW bis 82 kW.
+- Die Rücklauftemperatur in den Pufferspeicher werde ich auf ca. 35C halten - gemäss den Anforderungen der Planungsmappe für einen effizienten Einsatz der Brennwerttechnik.
 
-Gerne diskutiere ich anschliessend das Verhalten der Anlage mit einer Fachperson.
+ 
+Gerne diskutiere ich anschliessend das Verhalten der Anlage mit einer Fachperson:
 
 - Bezüglich dem Satz: "Ist der Bedarf hoch, ruft sie ihre maximale Leistung ab. Ist er niedrig, passt sich die Leistung entsprechend bis zu 30% der Nennleistung an."
-- Bezüglich gemessene Rücklauftemperatur zu den Brennern.
+z.B. möchte ich sehen, dass bei einem Bezug von 12kW ein Brenner dauernd auf 30% Modulation brennt.
+- Zur gemessenen Rücklauftemperatur der Brenner (erwartet: ca. 35 °C).
 
 Die Resultate dieser Demo würde ich gerne an dieser Stelle dokumentieren:
-- Einstellung der Parameter.
+- Einstellparameter.
 - Zeitverlauf von Leistungsbedarf, Modulation der Brenner, alle Temperaturen.
 

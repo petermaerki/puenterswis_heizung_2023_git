@@ -37,9 +37,7 @@ Puent
 Bochs
 <img src="./images/bochs_manuell_2_tage_20241025.png" width="400" />
 
-Die Leistung eines Brenners ist nominal 36 kW (gedrosselt durch Verschliessen von Rohren im Kessel? PESK41 könnte ohne Drosselung 41 kW). Es gibt Zeiten wo der zentrale Speicher längere Zeit leer ist, die Leistung kann dann beim Mischventil abgelesen werden. Hier finde ich Werte von:
-- 31 kW
-- 33 kW
+Die Leistung eines Brenners ist bei diesem Testlauf gedrosselt auf ca. 32 kW (Leistungsstufe 32).
 
 Passt recht gut.
 

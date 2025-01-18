@@ -50,7 +50,7 @@ Der Angezeigte Wert wäre dann so etwas wie verbleibende Einschubzeit.
 
 Ich beobachte weiter. Ja, so scheint es zu sein. Nach ca. 4 Stunden Brenndauer ist der Zähler auf 0 und er saugt.
 
-Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinenfalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden.
+Vorsichtshalber verkleinere ich das Saugintervall auf 75 Minuten weil ich keinenfalls möchte, dass die Pellets ausgehen und der Brenner in Störung geht. Während dem Saugen läuft die UW Pumpe weiter. Vermutlich brennt auch das Feuer brav weiter: also kein grosser Schaden. Nachtrag Januar 2025: beim Saugen brennt das Feuer nicht einfach weiter. Bei langer Saugzeit sehe ich das deutlich in der Leistung.
 
 Neue Einstellung 
 

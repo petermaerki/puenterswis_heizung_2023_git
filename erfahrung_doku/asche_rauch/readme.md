@@ -35,6 +35,8 @@ Nach etwa einer Woche mit etwa der hälfte der Zeit auf 100% Modulation (dazwisc
 
 Wäre spannend zu wissen wie die Abgaswerte bei verschiedener Modulation ist. Die Frage ist: soll ich auf 100% modulieren, vermutlich sauberer verbrennen dafür mehr Brenner-Starts verursachen oder lieber 30% modulieren, schlechter verbrennen dafür weniger Brenner-Starts verursachen. 
 
+Nachtrag: Januar 25: bei angezeigten 30% Modulation entspricht die Leistung nicht 30%. Hier bin ich noch dran.
+
 ## Geruchstest
 
 Bochs, Leistungsstufe 41, 2025-01-11 16:57:30, Modulation 100%
