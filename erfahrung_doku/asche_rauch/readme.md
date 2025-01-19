@@ -47,3 +47,26 @@ Der "Rauch" löst sich schnell in der Umgebungsluft auf.
 <img src="./images/20250111_155621911.jpg" width="400" />
 
 Wir halten ein Stück weissen Baumwollstoff für einige Minuten direkt in den Rauch. Der Stoff sieht danach noch genau gleich aus. Der Stoff ist leicht feucht. Geruchsprobe: riecht überhaupt nicht. Wow, das freut uns!
+
+## Sicht in den Kamin
+2025-01-19. Brenner_1 und brenner_2 haben bis jetzt je ca. 5.6 tonnen Pellets verbrannt, der Kamin wurde noch nie gereinigt. 
+<br>
+<br>
+<img src="./images/20250119_sicht_in_kamin.jpg" width="400" />
+<br>
+<br>
+Sicht A: in Richtung brenner_2. Es liegen ein paar Krümel unten im Rohr. Abgesehen davon hat es nur einen ganz feinen Russbelag.
+
+<img src="./images/20250119_kamin_sicht_A.jpg" width="400" />
+<br>
+<br>
+Sicht B, vertikal durch den Kamin in den Himmel. Brenner_1 brennt auf 30%, von Auge sehe ich keine Trübung wenn ich durch den Kamin in den Himmel schaue. Es kommt kein Rauch aus der Revisionsöffnung: der Zug vom Kamin scheint gut zu sein.
+
+<img src="./images/20250119_kamin_sicht_B.jpg" width="400" />
+<br>
+<br>
+Revisionsdeckel innen: Ein paar Krümel kleben unten. Ansonsten nur ein feiner Belag russ, vielleicht 0.1 mm. Der schwarze Kunststoff ist innen etwas aufgequollen, es sieht daher auf dem Foto nach mehr aus.
+
+<img src="./images/20250119_kamin_deckel.jpg" width="400" />
+
+Wow, das sieht prima aus.
