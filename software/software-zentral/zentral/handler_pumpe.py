@@ -104,7 +104,11 @@ class HandlerPumpe:
         Falls mindestens ein Haus das Ventil offen hat, muss die Zentrale die Pumpe starten.
         return True: mindestens ein Haus hat ein Ventil offen
         return False: Ventile aller Häuser sind zu
+        spezial: haus_maerki
         """
+        if self._ctx.haus_maerki_zu_heiss:
+            return True
+        
         for haus in self._ctx.config_etappe.haeuser:
             assert haus.status_haus is not None
             hsm_dezentral = haus.status_haus.hsm_dezentral

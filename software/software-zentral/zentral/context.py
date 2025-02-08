@@ -38,6 +38,8 @@ class Context:
         self.hsm_zentral.add_logger(hsm_logger=influx_logger)
         self._persistence_legionellen = PersistenceLegionellen()
         self.vorladen_aktiv = False
+        self.haus_maerki_zu_heiss = False
+        self.haus_maerki_ladet_haus_seinet = False
 
         def sigterm_handler(_signo, _stack_frame) -> typing.NoReturn:
             logger.warning("Received SIGTERM. Cleaning up...")

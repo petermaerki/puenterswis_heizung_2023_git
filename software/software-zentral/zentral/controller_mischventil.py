@@ -266,6 +266,11 @@ class ControllerMischventil(ControllerMischventilSimple):
         ctx.hsm_zentral.relais.relais_0_mischventil_automatik = True
         ctx.hsm_zentral.relais.relais_7_automatik = True
 
+        if ctx.haus_maerki_zu_heiss:
+            if ctx.hsm_zentral.haeuser_all_valves_closed:
+                ctx.hsm_zentral.mischventil_stellwert_100 = 0.0
+                return
+
         if not self._pumpe_und_stabil(ctx=ctx, now_s=now_s):
             return
 

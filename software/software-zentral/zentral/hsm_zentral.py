@@ -118,13 +118,20 @@ class HsmZentral(hsm.HsmMixin):
     @property
     def haeuser_all_valves_closed(self) -> bool:
         """
-        Return True: If a least one Haus requires energy (valve is open)
+        Return True: If a least one Haus requires energy (valve is open).
+        Special case for haus_maerki, haus_seinet.
         """
         for haus in self.ctx.config_etappe.haeuser:
             modbus_iregs_all = haus.status_haus.hsm_dezentral.modbus_iregs_all
             if modbus_iregs_all is None:
                 continue
             if modbus_iregs_all.relais_gpio.relais_valve_open:
+                if self.ctx.haus_maerki_zu_heiss:
+                    if haus.config_haus.haus_maerki:
+                        continue
+                    if self.ctx.haus_maerki_ladet_haus_seinet:
+                        if haus.config_haus.haus_seinet:
+                            continue
                 return False
         return True
 

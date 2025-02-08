@@ -37,6 +37,11 @@ class ConfigHaus:
         return self.nummer == 13
 
     @property
+    def haus_seinet(self) -> bool:
+        "Haus Seinet kann Wärme von haus_maerki aufnehmen"
+        return self.nummer == 12
+
+    @property
     def modbus_server_id(self) -> int:
         return self.nummer + MODBUS_OFFSET_HAUS
 
@@ -46,9 +51,6 @@ class ConfigHaus:
         idx0 = self.nummer - self.etappe.lowest_haus_nummer
         assert idx0 >= 0
         return idx0
-
-    # def __hash__(self):
-    #     return self.haus.nummer
 
     @property
     def influx_offset05(self) -> float:

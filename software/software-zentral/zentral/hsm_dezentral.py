@@ -16,7 +16,7 @@ from zentral.util_logger import HsmLoggingLogger
 from zentral.util_mbus import MBusMeasurement
 from zentral.util_modbus_gpio import ModbusIregsAll2
 from zentral.util_persistence import Persistence
-from zentral.util_sp_ladung_dezentral import LadungMinimum
+from zentral.util_sp_ladung_dezentral import LadungMinimum, SpTemperatur
 
 if TYPE_CHECKING:
     from zentral.config_base import Haus
@@ -68,13 +68,18 @@ class HsmDezentral(hsm.HsmMixin):
         return time.monotonic() - self._time_begin_s
 
     @property
-    def haus_ladung(self) -> HausLadung | None:
+    def sp_temperatur(self) -> SpTemperatur | None:
         modbus_iregs_all = self.modbus_iregs_all
         if modbus_iregs_all is None:
             return None
-        sp_temperatur = modbus_iregs_all.sp_temperatur
+        return modbus_iregs_all.sp_temperatur
+
+    @property
+    def haus_ladung(self) -> HausLadung | None:
+        sp_temperatur = self.sp_temperatur
         if sp_temperatur is None:
             return None
+
         max_verbrauch_avg_W = self.context.hsm_zentral.max_verbrauch_avg_W
         if max_verbrauch_avg_W is None:
             return None

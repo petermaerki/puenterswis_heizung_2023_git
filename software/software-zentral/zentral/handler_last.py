@@ -129,16 +129,24 @@ class HandlerLast:
                 return min(list_ladung_individuell_prozent_not_valve_open)
 
             selected_haus = self._find_minus_1_valve(haeuser_ladung=haeuser_ladung, now_s=now_s, log_info=False)
-            if selected_haus is not None:
-                ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
-                if self.ctx.is_winter:
-                    ABSCHALTGRENZE_BAND_PROZENT = 65.0  # gute Werte 30.0 ... 80.0 ? Im Winter weniger zimperlich.
+            if selected_haus is None:
+                return
+            if self.ctx.haus_maerki_zu_heiss:
+                if selected_haus.haus.config_haus.haus_maerki:
+                    return
+                if self.ctx.haus_maerki_ladet_haus_seinet:
+                    if selected_haus.haus.config_haus.haus_seinet:
+                        return
 
-                abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
-                if selected_haus.ladung_individuell_prozent > abschaltgrenze_prozent:
-                    changed = selected_haus.set_valve(valve_open=False)
-                    assert changed
-                    logger.info(f"{selected_haus.haus.influx_tag} valve closed, ladung_individuell {selected_haus.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
+            ABSCHALTGRENZE_BAND_PROZENT = 45.0  # gute Werte 30.0 ... 80.0 ?
+            if self.ctx.is_winter:
+                ABSCHALTGRENZE_BAND_PROZENT = 65.0  # gute Werte 30.0 ... 80.0 ? Im Winter weniger zimperlich.
+
+            abschaltgrenze_prozent = minimale_ladung_not_valve_open() + ABSCHALTGRENZE_BAND_PROZENT
+            if selected_haus.ladung_individuell_prozent > abschaltgrenze_prozent:
+                changed = selected_haus.set_valve(valve_open=False)
+                assert changed
+                logger.info(f"{selected_haus.haus.influx_tag} valve closed, ladung_individuell {selected_haus.ladung_individuell_prozent:0.1f}% >= ABSCHALTGRENZE_PROZENT {abschaltgrenze_prozent:0.1f}%")
 
         if ABSCHALTGRENZE_BAND:  # and not self.ctx.is_vorladen_aktiv:
             abschaltgrenze_band()
@@ -146,6 +154,15 @@ class HandlerLast:
         self.legionellen_kill_in_progress = haeuser_ladung.legionellen_kill_in_progress
 
         for haus_ladung in haeuser_ladung:
+            if self.ctx.haus_maerki_zu_heiss:
+                if haus_ladung.haus.config_haus.haus_maerki:
+                    haus_ladung.set_valve(valve_open=True)
+                    continue
+                if self.ctx.haus_maerki_ladet_haus_seinet:
+                    if haus_ladung.haus.config_haus.haus_seinet:
+                        haus_ladung.set_valve(valve_open=True)
+                        continue
+
             if haus_ladung.ladung_individuell_prozent >= 100.0 and not self.ctx.is_vorladen_aktiv or haus_ladung.ladung_prozent >= 100:
                 if self.legionellen_kill_in_progress:
                     if haus_ladung.legionellen_kill_required:
@@ -268,6 +285,12 @@ class HandlerLast:
                 continue
             if haus_ladung.legionellen_kill_required:
                 continue
+            if self.ctx.haus_maerki_zu_heiss:
+                if haus_ladung.haus.config_haus.haus_maerki:
+                    continue
+                if self.ctx.haus_maerki_ladet_haus_seinet:
+                    if haus_ladung.haus.config_haus.haus_seinet:
+                        continue
             haeuser_to_choose_from.append(haus_ladung)
 
         if len(haeuser_to_choose_from) == 0:
@@ -297,6 +320,7 @@ class HandlerLast:
         )
         if selected_haus is None:
             return False
+
         selected_haus.set_valve(valve_open=False)
         logger.info(f"{selected_haus.haus.influx_tag} geschlossen: valve_open=False")
         self.actiontimer.action = LastAction.HAUS_MINUS

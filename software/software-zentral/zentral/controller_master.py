@@ -37,12 +37,38 @@ class ControllerMaster:
         return False
 
     def process(self, now_s: float) -> None:
+        self.process_haus_maerki()
         self.handler_last.update_valves(now_s=now_s)
         self.handler_oekofen.update_brenner_relais()
         self.handler_oekofen.modulation_soll.update_burnout()
         self.handler_oekofen.update_zuenden()
 
         self._process(now_s=now_s)
+
+    def process_haus_maerki(self) -> None:
+        def inner():
+            for haus in self.ctx.config_etappe.haeuser:
+                if haus.config_haus.haus_maerki:
+                    if haus.status_haus.hsm_dezentral.sp_temperatur.unten_C > 80.0:
+                        self.ctx.haus_maerki_zu_heiss = True
+                    if haus.status_haus.hsm_dezentral.sp_temperatur.unten_C < 70.0:
+                        self.ctx.haus_maerki_zu_heiss = False
+
+            if not self.ctx.haus_maerki_zu_heiss:
+                self.ctx.haus_maerki_ladet_haus_seinet = False
+                return
+
+            Tfv_C = self.ctx.modbus_communication.pcbs_dezentral_heizzentrale.Tfv_C
+            if Tfv_C > 70.0:
+                self.ctx.haus_maerki_ladet_haus_seinet = True
+            if Tfv_C < 60.0:
+                self.ctx.haus_maerki_ladet_haus_seinet = False
+
+        haus_maerki_zu_heiss = self.ctx.haus_maerki_zu_heiss
+        haus_maerki_ladet_haus_seinet = self.ctx.haus_maerki_ladet_haus_seinet
+        inner()
+        if (haus_maerki_zu_heiss != self.ctx.haus_maerki_zu_heiss) or (haus_maerki_ladet_haus_seinet != self.ctx.haus_maerki_ladet_haus_seinet):
+            logger.info(f"{self.ctx.haus_maerki_zu_heiss=} {self.ctx.haus_maerki_ladet_haus_seinet=}")
 
     def _process(self, now_s: float) -> None:
         ctx = self.ctx
@@ -119,11 +145,11 @@ class ControllerMaster:
         if haeuser_ladung_avg_prozent > 35.0:
             if sp_ladung_zentral >= SpLadung.LEVEL3:
                 if not self.ctx.is_vorladen_aktiv:
-                    '''Es hat genug Energie im System und es steht ein Brennerwechsel an.'''
+                    """Es hat genug Energie im System und es steht ein Brennerwechsel an."""
                     if self.handler_oekofen.brenner_loeschen_falls_runtime_unterschied():
-                            brenner_geloescht_valves_zu()
-                            logger.info("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
-                            return
+                        brenner_geloescht_valves_zu()
+                        logger.info("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
+                        return
 
         if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
             if self.handler_last.plus_1_valve(now_s=now_s):
@@ -199,7 +225,7 @@ class ControllerMaster:
                             return
             if haeuser_ladung_avg_prozent > self.haeuser_ladung_avg_soll_prozent + 12.0:
                 """Falls die Häuser zu hoch geladen sind: modulation runter"""
-                #if self.handler_sp_zentral.steigt:
+                # if self.handler_sp_zentral.steigt:
                 if sp_ladung_zentral >= SpLadung.LEVEL2:
                     if self.handler_oekofen.modulation_reduzieren():
                         logger.info("sp_dezentral_vorausschauend_laden(): modulation_reduzieren()")
