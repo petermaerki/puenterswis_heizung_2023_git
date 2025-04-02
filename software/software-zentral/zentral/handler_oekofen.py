@@ -9,7 +9,8 @@ import logging
 import typing
 
 from zentral.handler_elektro_notheizung import HandlerElektroNotheizung
-from zentral.util_modulation_soll import BrennerAction, BrennerNum, BrennerZustaende, BrennerZustand, Modulation, ModulationSoll
+from zentral.util_modulation_soll_base import BrennerNum, BrennerZustaende, BrennerZustand, Modulation
+from zentral.util_modulation_soll import BrennerAction, ModulationSoll
 from zentral.util_oekofen_brenner_uebersicht import EnumBrennerUebersicht, brenner_uebersicht_prozent
 
 if typing.TYPE_CHECKING:

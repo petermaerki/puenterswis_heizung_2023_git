@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import dataclasses
-import enum
 import logging
 
 from zentral.util_action import ActionBaseEnum, ActionTimer
+from zentral.util_modulation_soll_base import BrennerError, BrennerNum, BrennerZustaende, Modulation
+from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerModulationFreeze
 
 logger = logging.getLogger(__name__)
 
@@ -96,72 +96,10 @@ class BurnOut:
                 self.actiontimer.cancel()
 
 
-class BrennerError(ActionBaseEnum):
-    ERROR = 25
-
-
-class BrennerNum(enum.IntEnum):
-    BRENNER_1 = 0
-    BRENNER_2 = 1
-
-    @property
-    def idx0(self) -> int:
-        return self.value
-
-
-@dataclasses.dataclass(frozen=True)
-class BrennerZustand:
-    fa_temp_C: float
-    fa_runtime_h: float
-    verfuegbar: bool = True
-    zuendet_oder_brennt: bool = False
-    brennt: bool = False
-
-
-class BrennerZustaende(tuple[BrennerZustand, BrennerZustand]):
-    pass
-
-
-class Modulation(enum.IntEnum):
-    OFF = 0
-    MIN = 30
-    # MEDIUM = 65
-    MAX = 100
-
-    @property
-    def prozent(self) -> int:
-        return self.value
-
-    @property
-    def erhoeht(self) -> Modulation:
-        return _MHC.erhoeht(self)
-
-    @property
-    def abgesenkt(self) -> Modulation:
-        return _MHC.abgesenkt(self)
-
-
-class _ModulationHelperCache:
-    def __init__(self) -> None:
-        self.list_m = list(Modulation)
-        self.max_idx0 = len(self.list_m) - 1
-
-    def erhoeht(self, m: Modulation) -> Modulation:
-        idx = self.list_m.index(m)
-        return self.list_m[min(idx + 1, self.max_idx0)]
-
-    def abgesenkt(self, m: Modulation) -> Modulation:
-        idx = self.list_m.index(m)
-        return self.list_m[max(idx - 1, 0)]
-
-
-_MHC = _ModulationHelperCache()
-
-
 class ModulationBrenner:
     def __init__(self, idx0: int, modulation: Modulation) -> None:
         self.idx0 = idx0
-        self.modulation = modulation
+        self._modulation = modulation
         self.actiontimer_error = ActionTimer()
         self.burnout = BurnOut(label=f"Brenner{idx0+1} idx0={idx0}")
         self.other_brenner: ModulationBrenner | None = None
@@ -169,6 +107,17 @@ class ModulationBrenner:
     @property
     def label(self) -> str:
         return f"Brenner {self.idx0+1}"
+
+    @property
+    def modulation(self) -> Modulation:
+        return self._modulation
+
+    @modulation.setter
+    def modulation(self, value: Modulation) -> None:
+        if SCENARIOS.is_present(ScenarioOekofenBrennerModulationFreeze):
+            return
+
+        self._modulation = value
 
     def set_modulation(self, modulation: Modulation) -> None:
         self.modulation = modulation
@@ -394,7 +343,7 @@ class ModulationSoll:
     def brenner_loeschen_falls_runtime_unterschied(self, brenner_zustaende: BrennerZustaende) -> bool:
         if self.anzahl_brenner_on != 1:
             return False
-    
+
         for idxA, idxB in ((0, 1), (1, 0)):
             brennerA = self.zwei_brenner[idxA]
             if brennerA.is_on:

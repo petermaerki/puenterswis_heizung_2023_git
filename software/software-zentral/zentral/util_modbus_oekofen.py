@@ -13,7 +13,7 @@ from zentral.constants import DIRECTORY_LOG
 from zentral.util_modbus import MODBUS_OEKOFEN_MAX_REGISTER_COUNT, MODBUS_OEKOFEN_MAX_REGISTER_START_ADDRESS
 from zentral.util_modbus_oekofen_regs import DICT_REG_DEFS, REG_DEFS, RegDefC, RegDefI
 from zentral.util_modbus_wrapper import ModbusWrapper
-from zentral.util_modulation_soll import BrennerZustaende, BrennerZustand
+from zentral.util_modulation_soll_base import BrennerZustaende, BrennerZustand
 from zentral.util_scenarios import SCENARIOS, ScenarioOekofenBrennerRuntime_h, ScenarioOekofenBrennerStoerung
 
 logger = logging.getLogger(__name__)
