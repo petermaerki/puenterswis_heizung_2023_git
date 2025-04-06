@@ -39,4 +39,6 @@ Jetzt hat der Sensor ausgelöst, korrekt.
 
 <img src="./images/ohne_pellets.jpg" width="400" />
 
-
+</br>
+So sieht es im Pelletsbunkter aus. Die noch vorhandenen Pellets reichen noch gut für eine Woche und wir haben keine Eile bei der Beschaffung.
+<img src="./images/bunker.jpg" width="400" />

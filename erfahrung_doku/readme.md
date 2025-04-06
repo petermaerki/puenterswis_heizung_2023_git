@@ -68,6 +68,7 @@ Brenner Oekofen
 - [Interface zu den Brennern](./modbus_relaiskontakte/readme.md) 
 - [Pellets zu den Tagesbehältern saugen](./saugen/readme.md) 
 - [Pelletssensor im Pelletsbunker](./pelletssensor/readme.md) 
+- [Backup der Einstellungen](./backup_einstellungen/readme.md) 
 
 Fotos
 - [Einige Impressionen](./impressionen/readme.md) 
