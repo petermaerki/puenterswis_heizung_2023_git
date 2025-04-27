@@ -54,3 +54,28 @@ Temperatur oben im zentralen Pufferspeicher
 <img src="./images/2025_januar_puent_Tsz4_C.png" />
 
 - Die Temperatur oben im zentralen Pufferspeicher ist bei ca. 75C. Tip top.
+
+## Zwischenstand April 2025
+
+Hier ein Beispiel puent, Zeitbereich from=1745013600000&to=1745618400000.
+
+Brenner
+
+<img src="./images/2025_april_puent_uebersicht.png" />
+
+- grüne Linie: brenner_1, blaue Linie: brenner_2
+- Die Brenner modulieren entweder auf 100% oder 30%
+- Etwa ein Brennerstart pro Tag
+- Nach einem Tag wird von brenner_1 auf brenner_2 gewechselt. Dies weil die totale Laufzeit von brenner_2 rund 250h kleiner war als jene von brenner_1. Durch den Wechel verhindern wir eine grosse Asymmetrie in den Pelletbunkern.
+- Mindestens alle 8h auf 30% wird die Modulation auf 100% angehoben um Ablagerungen auf dem Brennteller zu reduzieren.
+- schwarze Linie: Ladestand zentraler Speicher.
+- rote Linie: mittlere Ladung der Speicher in der Siedlung.
+
+
+<img src="./images/2025_april_puent_Tfr_C.png" />
+
+- violette Linie: Trf (Rücklauftemperatur von der Siedlung)
+- hellblaue Linie: Tbr (Rücklauftemperatur in den Brenner)
+- Die beiden Temperaturen sind ziemlich identisch, soll so sein.
+- Die mittlere Rücklauftemperatur ist im Bereich 45 C.
+- Je höher die dezentralen Speicher geladen werden desto höher die Rücklauftemperatur. Könnte ich tiefer modulieren, so könnte ich die Energie in den dezentralen Speichern minimal lassen. Die Rücklauftemperatur wäre vermutlich etwas 38 C und es gäbe keine Brennzyklen beim aktuellen Bedarf.

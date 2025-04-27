@@ -1,8 +1,8 @@
-2025-01-19 Peter Märki
+2025-01-19 Peter Märki<br>
+2025-04-27 Peter Märki
 
 https://github.com/petermaerki/puenterswis_heizung_2023_git/blob/main/erfahrung_doku/offene_fragen/readme.md
 
-Ich werde diese Fragen in den nächsten Monaten den Brennerhersteller weiter leiten.
 # Offene Fragen im Januar 2025
 ## Unsere Anlage
 Wir haben zwei Pellematic Maxi, Kaskade, zwei PESK41 mit 6 verschlossenen Wirbulatoren, mit Brennwert, Touch V.4.04, Nennleistung je Brenner: 41kW. 
@@ -60,6 +60,12 @@ Die Resultate dieser Demo würde ich gerne an dieser Stelle dokumentieren:
 - Allenfalls, falls ich das organisieren kann: Feinstaubmessung durch unseren Kaminfeger.
 
 
+### Notizen Besprechnung vom 2025-04-22
+- Per Modbus könne die Modulation weder direkt noch indirekt vorgegeben werden. 
+- Eine Verbrennung bei tiefer Modulation würde zu einer schlechteren Sekundärverbrennung und damit zu einer erhöhten CO Emission führen. Es sei besser den Brenner zu löschen und später wieder zu zünden als ihn lange Zeit bei tiefer Modulation zu betreiben. 
+- Meine Messung, dass bei einer angezeigten Modulation von 30% eine Leistung von 21 kW erzeugt wird, scheint korrekt zu sein. (erwartet würde 30% von 41 kW = 12 kW)
+- Eine Demonstration wie von mir gewünscht kann aus diesen Gründen momentan nicht erfolgen.
+
 ## Wunsch 2, Demonstration "automatische Bedarfsanpassung"
 
 Gerne möchte ich die Anlage beobachten wie sie ihre Leistung automatisch an den Bedarf anpasst. 
@@ -80,3 +86,25 @@ Die Resultate dieser Demo würde ich gerne an dieser Stelle dokumentieren:
 - Einstellparameter.
 - Zeitverlauf von Leistungsbedarf, Modulation der Brenner, alle Temperaturen.
 
+### Notizen Besprechnung vom 2025-04-22
+- Die Modulation der Brennerleistung wird durch die Rücklauftemperatur beeinflusst. Steigt die Rücklauftemperatur, kann die Modulation abgesenkt werden. Ein heißer Rücklauf bedeutet, dass der Pufferspeicher bereits geladen ist – in diesem Zustand sinkt der Wirkungsgrad des Systems.
+- Das Zünden und Löschen der Brenner erfolgt anhand der Speicherladung, basierend auf den Temperaturen TPO (oben) und TPM (Mitte).
+
+Konsequenz: 
+- Die Leistung (Modulation) wird nicht dynamisch an den Bedarf angepasst.
+- Pufferspeicher: Wird viel Energie entnommen, werden Brenner gezündet; bei geringem Bedarf werden sie wieder abgeschaltet.
+- Reicht der Bedarf nicht aus, kann die Modulation des letzten aktiven Brenners reduziert werden, bis auch dieser abgeschaltet wird. In diesem Zustand ist der Wirkungsgrad nicht optimal weil die Rücklauftemperatur hoch ist.<br>
+Das ist Ungünstig für uns: bei unserer Anlage ist ein mittlerer Verbrauch kleiner 41 kW der Normalfall, über etwa 98% der Zeit.
+
+Fazit:
+- Eine Demonstration des Systems im Sinne meiner Anforderungen wird momentan nicht angeboten.
+- Die in den offiziellen Produktunterlagen (Website, Flyer, Planungsmappe, Datenblatt usw.) gemachten Angaben bezüglich automatischer Leistungsanpassung entsprechen nicht der tatsächlichen Funktionalität.
+
+#### Weiteres Vorgehen
+
+Der Hersteller wird weitere Abklärungen treffen. Wir sind gespannt.
+
+</br>
+</br>
+</br>
+Fehler gefunden? Liege ich falsch mit meinen Aussagen? Ich lerne gerne dazu, nehme Tipps gerne entgegen.
