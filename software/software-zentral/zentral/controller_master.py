@@ -49,7 +49,7 @@ class ControllerMaster:
         def inner():
             for haus in self.ctx.config_etappe.haeuser:
                 if haus.config_haus.haus_maerki:
-                    if haus.status_haus.hsm_dezentral.sp_temperatur.unten_C > 80.0:
+                    if haus.status_haus.hsm_dezentral.sp_temperatur.unten_C > 76.0:
                         self.ctx.haus_maerki_zu_heiss = True
                     if haus.status_haus.hsm_dezentral.sp_temperatur.unten_C < 70.0:
                         self.ctx.haus_maerki_zu_heiss = False
