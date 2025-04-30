@@ -63,6 +63,8 @@ class ControllerMaster:
                 self.ctx.haus_maerki_ladet_haus_seinet = True
             if Tfv_C < 60.0:
                 self.ctx.haus_maerki_ladet_haus_seinet = False
+            if not self.ctx.hsm_zentral.haeuser_all_valves_closed:
+                self.ctx.haus_maerki_ladet_haus_seinet = False
 
         haus_maerki_zu_heiss = self.ctx.haus_maerki_zu_heiss
         haus_maerki_ladet_haus_seinet = self.ctx.haus_maerki_ladet_haus_seinet

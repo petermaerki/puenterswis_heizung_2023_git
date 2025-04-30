@@ -12,7 +12,7 @@ Dezentral, in den Häusern, ist in jedem Haus ein Wärmespeicher. Von diesem wir
 |Speicher dezentral total|10.3|7.6|m<sup>3</sup>|
 |Speicher zentral total|1.25|2.5|m<sup>3</sup>|
 |Heizleistung vor 2024 nominal|70|55|kW|
-|Heizleistung nach 2024 nominal|72|72|kW|
+|Heizleistung nach 2024 nominal|82|82|kW|
 |Fernleitung Fluss, alle Ventile offen|2.3|1.7|m<sup>3</sup>/h|
 |Fernleitungspumpe  Druck |0.5|0.5|bar|
 
