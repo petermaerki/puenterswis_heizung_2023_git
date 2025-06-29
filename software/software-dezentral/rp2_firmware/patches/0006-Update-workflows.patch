@@ -1,0 +1,1184 @@
+From 4125bced4f8926915aab892c4ac864931f46f42f Mon Sep 17 00:00:00 2001
+From: Hans Maerki <buhtig.hans.maerki@ergoinfo.ch>
+Date: Thu, 29 Feb 2024 19:43:25 +0100
+Subject: [PATCH 6/6] Update workflows
+
+---
+ .github/FUNDING.yml                     |   1 -
+ .github/workflows/code_formatting.yml   |  30 ---
+ .github/workflows/code_size.yml         |  45 -----
+ .github/workflows/code_size_comment.yml | 105 -----------
+ .github/workflows/commit_formatting.yml |  18 --
+ .github/workflows/docs.yml              |  23 ---
+ .github/workflows/examples.yml          |  25 ---
+ .github/workflows/mpremote.yml          |  29 ---
+ .github/workflows/mpy_format.yml        |  24 ---
+ .github/workflows/ports_cc3200.yml      |  28 ---
+ .github/workflows/ports_esp32.yml       |  57 ------
+ .github/workflows/ports_esp8266.yml     |  28 ---
+ .github/workflows/ports_mimxrt.yml      |  28 ---
+ .github/workflows/ports_nrf.yml         |  28 ---
+ .github/workflows/ports_powerpc.yml     |  28 ---
+ .github/workflows/ports_qemu-arm.yml    |  32 ----
+ .github/workflows/ports_renesas-ra.yml  |  29 ---
+ .github/workflows/ports_samd.yml        |  28 ---
+ .github/workflows/ports_stm32.yml       |  35 ----
+ .github/workflows/ports_unix.yml        | 236 ------------------------
+ .github/workflows/ports_webassembly.yml |  32 ----
+ .github/workflows/ports_windows.yml     |  28 ---
+ .github/workflows/ports_zephyr.yml      |  29 ---
+ .github/workflows/ruff.yml              |  11 --
+ README_hans.md                          |  15 ++
+ 25 files changed, 15 insertions(+), 957 deletions(-)
+ delete mode 100644 .github/FUNDING.yml
+ delete mode 100644 .github/workflows/code_formatting.yml
+ delete mode 100644 .github/workflows/code_size.yml
+ delete mode 100644 .github/workflows/code_size_comment.yml
+ delete mode 100644 .github/workflows/commit_formatting.yml
+ delete mode 100644 .github/workflows/docs.yml
+ delete mode 100644 .github/workflows/examples.yml
+ delete mode 100644 .github/workflows/mpremote.yml
+ delete mode 100644 .github/workflows/mpy_format.yml
+ delete mode 100644 .github/workflows/ports_cc3200.yml
+ delete mode 100644 .github/workflows/ports_esp32.yml
+ delete mode 100644 .github/workflows/ports_esp8266.yml
+ delete mode 100644 .github/workflows/ports_mimxrt.yml
+ delete mode 100644 .github/workflows/ports_nrf.yml
+ delete mode 100644 .github/workflows/ports_powerpc.yml
+ delete mode 100644 .github/workflows/ports_qemu-arm.yml
+ delete mode 100644 .github/workflows/ports_renesas-ra.yml
+ delete mode 100644 .github/workflows/ports_samd.yml
+ delete mode 100644 .github/workflows/ports_stm32.yml
+ delete mode 100644 .github/workflows/ports_unix.yml
+ delete mode 100644 .github/workflows/ports_webassembly.yml
+ delete mode 100644 .github/workflows/ports_windows.yml
+ delete mode 100644 .github/workflows/ports_zephyr.yml
+ delete mode 100644 .github/workflows/ruff.yml
+
+diff --git a/.github/FUNDING.yml b/.github/FUNDING.yml
+deleted file mode 100644
+index 15186fd5c..000000000
+--- a/.github/FUNDING.yml
++++ /dev/null
+@@ -1 +0,0 @@
+-github: micropython
+diff --git a/.github/workflows/code_formatting.yml b/.github/workflows/code_formatting.yml
+deleted file mode 100644
+index 5cd7984f7..000000000
+--- a/.github/workflows/code_formatting.yml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-name: Check code formatting
+-
+-on: [push, pull_request]
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  code-formatting:
+-    runs-on: ubuntu-22.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - uses: actions/setup-python@v5
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_c_code_formatting_setup
+-    - name: Run code formatting
+-      run: source tools/ci.sh && ci_c_code_formatting_run
+-    - name: Check code formatting
+-      run: git diff --exit-code
+-
+-  code-spelling:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - uses: actions/setup-python@v5
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_code_spell_setup
+-    - name: Run spell checker
+-      run: source tools/ci.sh && ci_code_spell_run
+diff --git a/.github/workflows/code_size.yml b/.github/workflows/code_size.yml
+deleted file mode 100644
+index a65a00201..000000000
+--- a/.github/workflows/code_size.yml
++++ /dev/null
+@@ -1,45 +0,0 @@
+-name: Check code size
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'lib/**'
+-      - 'ports/bare-arm/**'
+-      - 'ports/minimal/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-      with:
+-        fetch-depth: 100
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_code_size_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_code_size_build
+-    - name: Compute code size difference
+-      run: tools/metrics.py diff ~/size0 ~/size1 | tee diff
+-    - name: Save PR number
+-      if: github.event_name == 'pull_request'
+-      env:
+-        PR_NUMBER: ${{ github.event.number }}
+-      run: echo $PR_NUMBER > pr_number
+-    - name: Upload diff
+-      if: github.event_name == 'pull_request'
+-      uses: actions/upload-artifact@v4
+-      with:
+-        name: code-size-report
+-        path: |
+-          diff
+-          pr_number
+-        retention-days: 1
+diff --git a/.github/workflows/code_size_comment.yml b/.github/workflows/code_size_comment.yml
+deleted file mode 100644
+index a394f7a14..000000000
+--- a/.github/workflows/code_size_comment.yml
++++ /dev/null
+@@ -1,105 +0,0 @@
+-name: Code size comment
+-
+-on:
+-  workflow_run:
+-    workflows: [Check code size]
+-    types: [completed]
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  comment:
+-    runs-on: ubuntu-20.04
+-    steps:
+-      - name: 'Download artifact'
+-        id: download-artifact
+-        uses: actions/github-script@v7
+-        with:
+-          result-encoding: string
+-          script: |
+-            const fs = require('fs');
+-
+-            const allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+-               owner: context.repo.owner,
+-               repo: context.repo.repo,
+-               run_id: context.payload.workflow_run.id,
+-            });
+-
+-            const matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+-              return artifact.name == "code-size-report"
+-            });
+-
+-            if (matchArtifact.length === 0) {
+-              console.log('no matching artifact found');
+-              console.log('result: "skip"');
+-
+-              return 'skip';
+-            }
+-
+-            const download = await github.rest.actions.downloadArtifact({
+-               owner: context.repo.owner,
+-               repo: context.repo.repo,
+-               artifact_id: matchArtifact[0].id,
+-               archive_format: 'zip',
+-            });
+-
+-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/code-size-report.zip`, Buffer.from(download.data));
+-
+-            console.log('artifact downloaded to `code-size-report.zip`');
+-            console.log('result: "ok"');
+-
+-            return 'ok';
+-      - name: 'Unzip artifact'
+-        if: steps.download-artifact.outputs.result == 'ok'
+-        run: unzip code-size-report.zip
+-      - name: Post comment to pull request
+-        if: steps.download-artifact.outputs.result == 'ok'
+-        uses: actions/github-script@v7
+-        with:
+-          github-token: ${{secrets.GITHUB_TOKEN}}
+-          script: |
+-            const fs = require('fs');
+-
+-            const prNumber = Number(fs.readFileSync('pr_number'));
+-            const codeSizeReport = `Code size report:
+-
+-            \`\`\`
+-            ${fs.readFileSync('diff')}
+-            \`\`\`
+-            `;
+-
+-            const comments = await github.paginate(
+-              github.rest.issues.listComments,
+-              {
+-                owner: context.repo.owner,
+-                repo: context.repo.repo,
+-                issue_number: prNumber,
+-              }
+-            );
+-
+-            comments.reverse();
+-
+-            const previousComment = comments.find(comment =>
+-              comment.user.login === 'github-actions[bot]'
+-            )
+-
+-            // if github-actions[bot] already made a comment, update it,
+-            // otherwise create a new comment.
+-
+-            if (previousComment) {
+-              await github.rest.issues.updateComment({
+-                owner: context.repo.owner,
+-                repo: context.repo.repo,
+-                comment_id: previousComment.id,
+-                body: codeSizeReport,
+-              });
+-            } else {
+-              await github.rest.issues.createComment({
+-                owner: context.repo.owner,
+-                repo: context.repo.repo,
+-                issue_number: prNumber,
+-                body: codeSizeReport,
+-              });
+-            }
+diff --git a/.github/workflows/commit_formatting.yml b/.github/workflows/commit_formatting.yml
+deleted file mode 100644
+index 3fdcabc4c..000000000
+--- a/.github/workflows/commit_formatting.yml
++++ /dev/null
+@@ -1,18 +0,0 @@
+-name: Check commit message formatting
+-
+-on: [push, pull_request]
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-      with:
+-        fetch-depth: '100'
+-    - uses: actions/setup-python@v5
+-    - name: Check commit message formatting
+-      run: source tools/ci.sh && ci_commit_formatting_run
+diff --git a/.github/workflows/docs.yml b/.github/workflows/docs.yml
+deleted file mode 100644
+index d01a4b50c..000000000
+--- a/.github/workflows/docs.yml
++++ /dev/null
+@@ -1,23 +0,0 @@
+-name: Build docs
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - docs/**
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-
+-    steps:
+-    - uses: actions/checkout@v4
+-    - uses: actions/setup-python@v5
+-    - name: Install Python packages
+-      run: pip install -r docs/requirements.txt
+-    - name: Build docs
+-      run: make -C docs/ html
+diff --git a/.github/workflows/examples.yml b/.github/workflows/examples.yml
+deleted file mode 100644
+index 6613f1066..000000000
+--- a/.github/workflows/examples.yml
++++ /dev/null
+@@ -1,25 +0,0 @@
+-name: Check examples
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'examples/**'
+-      - 'ports/unix/**'
+-      - 'py/**'
+-      - 'shared/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  embedding:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: make -C examples/embedding -f micropython_embed.mk && make -C examples/embedding
+-    - name: Run
+-      run: ./examples/embedding/embed | grep "hello world"
+diff --git a/.github/workflows/mpremote.yml b/.github/workflows/mpremote.yml
+deleted file mode 100644
+index ee91b6360..000000000
+--- a/.github/workflows/mpremote.yml
++++ /dev/null
+@@ -1,29 +0,0 @@
+-name: Package mpremote
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-      with:
+-        # Setting this to zero means fetch all history and tags,
+-        # which hatch-vcs can use to discover the version tag.
+-        fetch-depth: 0
+-    - uses: actions/setup-python@v5
+-    - name: Install build tools
+-      run: pip install build
+-    - name: Build mpremote wheel
+-      run: cd tools/mpremote && python -m build --wheel
+-    - name: Archive mpremote wheel
+-      uses: actions/upload-artifact@v4
+-      with:
+-        name: mpremote
+-        path: |
+-          tools/mpremote/dist/mpremote*.whl
+diff --git a/.github/workflows/mpy_format.yml b/.github/workflows/mpy_format.yml
+deleted file mode 100644
+index baa02ce08..000000000
+--- a/.github/workflows/mpy_format.yml
++++ /dev/null
+@@ -1,24 +0,0 @@
+-name: .mpy file format and tools
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'examples/**'
+-      - 'tests/**'
+-      - 'tools/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  test:
+-    runs-on: ubuntu-20.04 # use 20.04 to get python2
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_mpy_format_setup
+-    - name: Test mpy-tool.py
+-      run: source tools/ci.sh && ci_mpy_format_test
+diff --git a/.github/workflows/ports_cc3200.yml b/.github/workflows/ports_cc3200.yml
+deleted file mode 100644
+index f178a1405..000000000
+--- a/.github/workflows/ports_cc3200.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: cc3200 port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/cc3200/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_cc3200_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_cc3200_build
+diff --git a/.github/workflows/ports_esp32.yml b/.github/workflows/ports_esp32.yml
+deleted file mode 100644
+index 6872b9d12..000000000
+--- a/.github/workflows/ports_esp32.yml
++++ /dev/null
+@@ -1,57 +0,0 @@
+-name: esp32 port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/esp32/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build_idf:
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        ci_func:  # names are functions in ci.sh
+-          - esp32_build_cmod_spiram_s2
+-          - esp32_build_s3_c3
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-
+-    - id: idf_ver
+-      name: Read the ESP-IDF version
+-      run: source tools/ci.sh && echo "IDF_VER=$IDF_VER" | tee "$GITHUB_OUTPUT"
+-
+-    - name: Cached ESP-IDF install
+-      id: cache_esp_idf
+-      uses: actions/cache@v3
+-      with:
+-        path: |
+-          ./esp-idf/
+-          ~/.espressif/
+-          !~/.espressif/dist/
+-          ~/.cache/pip/
+-        key: esp-idf-${{ steps.idf_ver.outputs.IDF_VER }}
+-
+-    - name: Install ESP-IDF packages
+-      if: steps.cache_esp_idf.outputs.cache-hit != 'true'
+-      run: source tools/ci.sh && ci_esp32_idf_setup
+-
+-    - name: ccache
+-      uses: hendrikmuhs/ccache-action@v1.2
+-      with:
+-        key: esp32-${{ matrix.ci_func }}
+-
+-    - name: Build ci_${{matrix.ci_func }}
+-      run: source tools/ci.sh && ci_${{ matrix.ci_func }}
+diff --git a/.github/workflows/ports_esp8266.yml b/.github/workflows/ports_esp8266.yml
+deleted file mode 100644
+index 5236edf40..000000000
+--- a/.github/workflows/ports_esp8266.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: esp8266 port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/esp8266/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_esp8266_setup && ci_esp8266_path >> $GITHUB_PATH
+-    - name: Build
+-      run: source tools/ci.sh && ci_esp8266_build
+diff --git a/.github/workflows/ports_mimxrt.yml b/.github/workflows/ports_mimxrt.yml
+deleted file mode 100644
+index 614d74580..000000000
+--- a/.github/workflows/ports_mimxrt.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: mimxrt port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/mimxrt/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_mimxrt_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_mimxrt_build
+diff --git a/.github/workflows/ports_nrf.yml b/.github/workflows/ports_nrf.yml
+deleted file mode 100644
+index d9cffb977..000000000
+--- a/.github/workflows/ports_nrf.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: nrf port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/nrf/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_nrf_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_nrf_build
+diff --git a/.github/workflows/ports_powerpc.yml b/.github/workflows/ports_powerpc.yml
+deleted file mode 100644
+index c41b13e5d..000000000
+--- a/.github/workflows/ports_powerpc.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: powerpc port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/powerpc/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_powerpc_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_powerpc_build
+diff --git a/.github/workflows/ports_qemu-arm.yml b/.github/workflows/ports_qemu-arm.yml
+deleted file mode 100644
+index db3cd7871..000000000
+--- a/.github/workflows/ports_qemu-arm.yml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-name: qemu-arm port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/qemu-arm/**'
+-      - 'tests/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build_and_test:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_qemu_arm_setup
+-    - name: Build and run test suite
+-      run: source tools/ci.sh && ci_qemu_arm_build
+-    - name: Print failures
+-      if: failure()
+-      run: grep --before-context=100 --text "FAIL" ports/qemu-arm/build/console.out
+diff --git a/.github/workflows/ports_renesas-ra.yml b/.github/workflows/ports_renesas-ra.yml
+deleted file mode 100644
+index b1a30c2f1..000000000
+--- a/.github/workflows/ports_renesas-ra.yml
++++ /dev/null
+@@ -1,29 +0,0 @@
+-name: renesas-ra port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/renesas-ra/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build_renesas_ra_board:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_renesas_ra_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_renesas_ra_board_build
+-
+diff --git a/.github/workflows/ports_samd.yml b/.github/workflows/ports_samd.yml
+deleted file mode 100644
+index 5bf1826cd..000000000
+--- a/.github/workflows/ports_samd.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: samd port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/samd/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_samd_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_samd_build
+diff --git a/.github/workflows/ports_stm32.yml b/.github/workflows/ports_stm32.yml
+deleted file mode 100644
+index 84d30b27f..000000000
+--- a/.github/workflows/ports_stm32.yml
++++ /dev/null
+@@ -1,35 +0,0 @@
+-name: stm32 port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'drivers/**'
+-      - 'ports/stm32/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build_stm32:
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        ci_func:  # names are functions in ci.sh
+-          - stm32_pyb_build
+-          - stm32_nucleo_build
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_stm32_setup
+-    - name: Build ci_${{matrix.ci_func }}
+-      run: source tools/ci.sh && ci_${{ matrix.ci_func }}
+-
+diff --git a/.github/workflows/ports_unix.yml b/.github/workflows/ports_unix.yml
+deleted file mode 100644
+index 2367eddbe..000000000
+--- a/.github/workflows/ports_unix.yml
++++ /dev/null
+@@ -1,236 +0,0 @@
+-name: unix port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'examples/**'
+-      - 'mpy-cross/**'
+-      - 'ports/unix/**'
+-      - 'tests/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  minimal:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_minimal_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_minimal_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  reproducible:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build with reproducible date
+-      run: source tools/ci.sh && ci_unix_minimal_build
+-      env:
+-        SOURCE_DATE_EPOCH: 1234567890
+-    - name: Check reproducible build date
+-      run: echo | ports/unix/build-minimal/micropython -i | grep 'on 2009-02-13;'
+-
+-  standard:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_standard_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_standard_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  standard_v2:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_standard_v2_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_standard_v2_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  coverage:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_coverage_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_coverage_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_coverage_run_tests
+-    - name: Test merging .mpy files
+-      run: source tools/ci.sh && ci_unix_coverage_run_mpy_merge_tests
+-    - name: Build native mpy modules
+-      run: source tools/ci.sh && ci_native_mpy_modules_build
+-    - name: Test importing .mpy generated by mpy_ld.py
+-      run: source tools/ci.sh && ci_unix_coverage_run_native_mpy_tests
+-    - name: Run gcov coverage analysis
+-      run: |
+-        (cd ports/unix && gcov -o build-coverage/py ../../py/*.c || true)
+-        (cd ports/unix && gcov -o build-coverage/extmod ../../extmod/*.c || true)
+-    - name: Upload coverage to Codecov
+-      uses: codecov/codecov-action@v3
+-      with:
+-        fail_ci_if_error: true
+-        verbose: true
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  coverage_32bit:
+-    runs-on: ubuntu-20.04 # use 20.04 to get libffi-dev:i386
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_32bit_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_coverage_32bit_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_coverage_32bit_run_tests
+-    - name: Build native mpy modules
+-      run: source tools/ci.sh && ci_native_mpy_modules_32bit_build
+-    - name: Test importing .mpy generated by mpy_ld.py
+-      run: source tools/ci.sh && ci_unix_coverage_32bit_run_native_mpy_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  nanbox:
+-    runs-on: ubuntu-20.04 # use 20.04 to get python2, and libffi-dev:i386
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_32bit_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_nanbox_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_nanbox_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  float:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_float_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_float_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  stackless_clang:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_clang_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_stackless_clang_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_stackless_clang_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  float_clang:
+-    runs-on: ubuntu-20.04
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_clang_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_float_clang_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_float_clang_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  settrace:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_settrace_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_settrace_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  settrace_stackless:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_settrace_stackless_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_settrace_stackless_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  macos:
+-    runs-on: macos-11.0
+-    steps:
+-    - uses: actions/checkout@v4
+-    - uses: actions/setup-python@v5
+-      with:
+-        python-version: '3.8'
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_macos_build
+-    - name: Run tests
+-      run: source tools/ci.sh && ci_unix_macos_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  qemu_mips:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_qemu_mips_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_qemu_mips_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_qemu_mips_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+-
+-  qemu_arm:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_unix_qemu_arm_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_unix_qemu_arm_build
+-    - name: Run main test suite
+-      run: source tools/ci.sh && ci_unix_qemu_arm_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+diff --git a/.github/workflows/ports_webassembly.yml b/.github/workflows/ports_webassembly.yml
+deleted file mode 100644
+index 880f15ab3..000000000
+--- a/.github/workflows/ports_webassembly.yml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-name: webassembly port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'ports/webassembly/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_webassembly_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_webassembly_build
+-    - name: Run tests
+-      run: source tools/ci.sh && ci_webassembly_run_tests
+-    - name: Print failures
+-      if: failure()
+-      run: tests/run-tests.py --print-failures
+diff --git a/.github/workflows/ports_windows.yml b/.github/workflows/ports_windows.yml
+deleted file mode 100644
+index 4b1f4ea79..000000000
+--- a/.github/workflows/ports_windows.yml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-name: windows port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/*.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'ports/unix/**'
+-      - 'ports/windows/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_windows_setup
+-    - name: Build
+-      run: source tools/ci.sh && ci_windows_build
+diff --git a/.github/workflows/ports_zephyr.yml b/.github/workflows/ports_zephyr.yml
+deleted file mode 100644
+index f6f328c92..000000000
+--- a/.github/workflows/ports_zephyr.yml
++++ /dev/null
+@@ -1,29 +0,0 @@
+-name: zephyr port
+-
+-on:
+-  push:
+-  pull_request:
+-    paths:
+-      - '.github/workflows/ports_zephyr.yml'
+-      - 'tools/**'
+-      - 'py/**'
+-      - 'extmod/**'
+-      - 'shared/**'
+-      - 'lib/**'
+-      - 'ports/zephyr/**'
+-
+-concurrency:
+-  group: ${{ github.workflow }}-${{ github.ref }}
+-  cancel-in-progress: true
+-
+-jobs:
+-  build:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - name: Install packages
+-      run: source tools/ci.sh && ci_zephyr_setup
+-    - name: Install Zephyr
+-      run: source tools/ci.sh && ci_zephyr_install
+-    - name: Build
+-      run: source tools/ci.sh && ci_zephyr_build
+diff --git a/.github/workflows/ruff.yml b/.github/workflows/ruff.yml
+deleted file mode 100644
+index 1159a1882..000000000
+--- a/.github/workflows/ruff.yml
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+-name: Python code lint and formatting with ruff
+-on: [push, pull_request]
+-jobs:
+-  ruff:
+-    runs-on: ubuntu-latest
+-    steps:
+-    - uses: actions/checkout@v4
+-    - run: pip install --user ruff==0.1.3
+-    - run: ruff check --output-format=github .
+-    - run: ruff format --diff .
+diff --git a/README_hans.md b/README_hans.md
+index 542b6cf3f..11c7d6432 100644
+--- a/README_hans.md
++++ b/README_hans.md
+@@ -43,3 +43,18 @@ ls -la ./ports/rp2/build-RPI_PICO/firmware.uf2
+ ```bash
+ git add -f ./ports/rp2/build-RPI_PICO/firmware.uf2
+ ```
++
++# Is there another micropython port which would fit our board?
++
++```bash
++grep -r '#define PICO_FLASH_SIZE_BYTES (16 ' ports/rp2/
++ports/rp2/boards/WEACTSTUDIO/weactstudio_16MiB.h:#define PICO_FLASH_SIZE_BYTES (16 * 1024 * 1024)
++ports/rp2/boards/POLOLU_ZUMO_2040_ROBOT/pololu_zumo_2040_robot.h:#define PICO_FLASH_SIZE_BYTES (16 * 1024 * 1024)
++```
++
++```bash
++grep -r '#define PICO_XOSC_STARTUP_DELAY_MULTIPLIER 64' ports/rp2/
++ports/rp2/boards/NULLBITS_BIT_C_PRO/nullbits_bit_c_pro.h
++```
++
++==> There no reasonalbe port for us...
+-- 
+2.48.1
+

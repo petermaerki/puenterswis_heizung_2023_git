@@ -1,0 +1,50 @@
+From b18ff701a6b8dee7b2870293053510fd61314032 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Hans=20M=C3=A4rki?= <buhtig.hans.maerki@ergoinfo.ch>
+Date: Sun, 25 Feb 2024 09:20:47 +0000
+Subject: [PATCH 5/6] 16 GByte Flash
+
+---
+ README_hans.md                        |  10 +++++-----
+ ports/rp2/build-RPI_PICO/firmware.uf2 | Bin 654336 -> 654336 bytes
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/README_hans.md b/README_hans.md
+index 57ef5fbc7..542b6cf3f 100644
+--- a/README_hans.md
++++ b/README_hans.md
+@@ -19,12 +19,12 @@ sudo apt update && \
+ 
+ ```bash
+ # Banner
+-sed -i 's/Raspberry Pi Pico/Raspberry Pi Pico (slow XTAL)/g' ports/rp2/boards/RPI_PICO/mpconfigboard.h
+-# Generic FLASH
+-# sed -i 's/PICO_BOOT_STAGE2_CHOOSE_W25Q080/PICO_BOOT_STAGE2_CHOOSE_GENERIC_03H/g' lib/pico-sdk/src/boards/include/boards/pico.h
+-sed -i 's/#define PICO_XOSC_STARTUP_DELAY_MULTIPLIER 1/#define PICO_XOSC_STARTUP_DELAY_MULTIPLIER 64/g' lib/pico-sdk/src/rp2_common/hardware_xosc/include/hardware/xosc.h
++sed -i 's/Raspberry Pi Pico/Raspberry Pi Pico (slow XTAL, 16MBytes Flash)/g' ports/rp2/boards/RPI_PICO/mpconfigboard.h
++sed -i 's/(1408 \* 1024)/(15 \* 1024 \* 1024)/g' ports/rp2/boards/RPI_PICO/mpconfigboard.h
+ # 16 MBytes Flash
+-sed -i 's/(2 \* 1024 \* 1024)/(16 * 1024 * 1024)/g' lib/pico-sdk/src/boards/include/boards/pico.h
++sed -i 's/PICO_FLASH_SIZE_BYTES (2 /PICO_FLASH_SIZE_BYTES (16 /g' lib/pico-sdk/src/boards/include/boards/pico.h
++# Slow Xtal
++sed -i 's/#define PICO_XOSC_STARTUP_DELAY_MULTIPLIER 1/#define PICO_XOSC_STARTUP_DELAY_MULTIPLIER 64/g' lib/pico-sdk/src/rp2_common/hardware_xosc/include/hardware/xosc.h
+ ```
+ 
+ ## Compile
+diff --git a/ports/rp2/build-RPI_PICO/firmware.uf2 b/ports/rp2/build-RPI_PICO/firmware.uf2
+index a107def3997db5c9757c728339741d0fa5ea1133..9b193543e54a71fe182e121a8d8ba53c776b4d46 100644
+GIT binary patch
+delta 221
+zcmZqpq22&QEsQNpEzB(}TUh;qR6ZyPu}pSiyd=fSe1SpX?RS<x49XuAlQKA2LS)!4
+zo|0-%^ki-?3S!+}6vVdn8KcQ$MaJ8ce=`ah&1Du~U}RvJ%gn&=kA;CD?0@$Yz4SE0
+z6eGh_bJIk<l+2=%N`?G91tS9^6I}x%T_e-&_Ezj)|0<XeQWj#t@y4D9S=n@-3Xb)x
+i0s;&SAGTF;=>B9h-L6-}d8UOGD8lez`~Pp8jI01`^G4$U
+
+delta 221
+zcmZqpq22&QEsQNpEzB(}TUh;qR5mCDF;8}4yd=fSe1SpX?RS<x49Xi6lQKM+LuA-5
+zo|1Z{$jQ=P6vVo{D2Q$CGe+adij21>|7H|2n#(M}z{tQbmzja#9}5FR*#GV)dg)1t
+zmKJ6vhUNx(DVaqjl?wTJ3PuJ-Cb|Yjx<)43?XB3q{#7t0q%6dO<BdHJva;zu6&&kX
+iUkNZUh;6In(EZ71vR$u;^GpltD+Zv@_W$2F8Cd~414Z}%
+
+-- 
+2.48.1
+
