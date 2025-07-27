@@ -1,5 +1,6 @@
 2025-01-19 Peter Märki<br>
-2025-04-27 Peter Märki
+2025-04-27 Peter Märki<br>
+2025-07-27 Peter Märki
 
 https://github.com/petermaerki/puenterswis_heizung_2023_git/blob/main/erfahrung_doku/offene_fragen/readme.md
 
@@ -106,7 +107,7 @@ April 2025: Der Hersteller wird weitere Abklärungen treffen. Wir sind gespannt.
 
 #### Schlusspunkt
 
-Juli 2025: Uns wird mitgeteilt: die in den technischen Unterlagen angegebenen Daten seien im Prüfistitut gemessen worden und seien im Feld nicht anwendbar. Es sei effizienter den Brenner zwischendurch ausszuschalten anstelle ihn auf Teillast zu betreiben.
+Juli 2025: Uns wird mitgeteilt: die in den technischen Unterlagen angegebenen Daten seien im Prüfinstitut gemessen worden und seien im Feld nicht anwendbar. Es sei effizienter den Brenner zwischendurch auszuschalten anstelle ihn auf Teillast zu betreiben.
 
 Ich meine: Was im Feld nicht anwendbar ist oder nicht funktioniert gehört nicht nicht in Produktunterlagen. Punkt.
 
