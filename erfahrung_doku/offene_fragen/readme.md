@@ -102,7 +102,13 @@ Fazit:
 
 #### Weiteres Vorgehen
 
-Der Hersteller wird weitere Abklärungen treffen. Wir sind gespannt.
+April 2025: Der Hersteller wird weitere Abklärungen treffen. Wir sind gespannt.
+
+#### Schlusspunkt
+
+Juli 2025: Uns wird mitgeteilt: die in den technischen Unterlagen angegebenen Daten seien im Prüfistitut gemessen worden und seien im Feld nicht anwendbar. Es sei effizienter den Brenner zwischendurch ausszuschalten anstelle ihn auf Teillast zu betreiben.
+
+Ich meine: Was im Feld nicht anwendbar ist oder nicht funktioniert gehört nicht nicht in Produktunterlagen. Punkt.
 
 </br>
 </br>
