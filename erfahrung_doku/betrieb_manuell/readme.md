@@ -1,4 +1,4 @@
-# Mode Manuell für zwei Tage
+# Mode Manuell für zwei Tage im 2024
 
 Puent und Bochs laufen für zwei Tage auf Manuell.
 Sensor TPO ist ganz oben im Speicher, TPM ganz unten.
@@ -65,6 +65,6 @@ Vergleich, Automatik (5 Tage zuvor) und Manuell
 Es ist schwierig die Leistung zu vergleichen. Ich kann die Energie beim Mischventil messen. Ich sehe jedoch die Verluste der Brenner nicht, hiezu müsste ich die verbrauchten Pellets bestimmen. Dies kann ich leider nicht messen. Hier wären die Anzahl Drehungen der Pellet-Förderschnecke im Brenner sehr hilfreich.
 
 Ich vermute der Energieverbrauch sei bei Automatik geringer weil:
-- Automatik hat deutlich weniger Brennerstarts
-- Tiefere Temperaturen im Vor- und Rücklauf der Fernleitung und damit weniger Verluste in der Fernleitung
+- Automatik hat deutlich weniger Brennerstarts.
+- Tiefere Temperaturen im Vor- und Rücklauf der Fernleitung und damit weniger Verluste in der Fernleitung.
 - Besserer Wirkungsgrad im Brenner wegen tieferer Rücklauftempatur.
