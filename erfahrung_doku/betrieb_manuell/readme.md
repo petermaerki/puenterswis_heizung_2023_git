@@ -35,9 +35,36 @@ Puent
 <img src="./images/puent_manuell_2_tage_20241025.png" width="400" />
 
 Bochs
+
 <img src="./images/bochs_manuell_2_tage_20241025.png" width="400" />
 
 Die Leistung eines Brenners ist bei diesem Testlauf gedrosselt auf ca. 32 kW (Leistungsstufe 32).
 
 Passt recht gut.
 
+# 2025 September, Heizung fertig, 5 Tage Manuell
+Die Heizung ist fertig, alles final eingestellt.
+Wir wiederholen den Test Manuell für 5 Tage bei bochs.
+- start Manuell: 2025-09-15 07:42:01
+- stop Automatik: 2025-09-20 14:32:04
+
+Es ist wird in diesen Tagen nicht geheizt.
+
+<img src="./images/bocha_manuell_5_tage_20250915.png" width="400" />
+
+Link auf Grafana
+http://maerki.com:3000/d/da82d5b6-3fd8-4534-80e5-da1155c11310/uebersicht?orgId=1&from=1757887200000&to=1758405600000&var-etappe=bochs&var-haus=All&var-reihe=All&var-unten_mitte_oben=All&var-LadungDezentral=individuell&var-verbrauch=sp_verbrauch_avg_W
+
+Vergleich, Automatik (5 Tage zuvor) und Manuell
+||Automatik|Manuell| |
+|---|---|---|---|
+|Brennerstarts pro Tag|0.7|1.7|Starts|
+|Tfv, Vorlauf in die Fernleitung|63|76|°C, grob geschätzt aus der Grafik|
+|Tfr, Rücklauf von der Fernleitung|45|62|°C, grob geschätzt aus der Grafik|
+
+Es ist schwierig die Leistung zu vergleichen. Ich kann die Energie beim Mischventil messen. Ich sehe jedoch die Verluste der Brenner nicht, hiezu müsste ich die verbrauchten Pellets bestimmen. Dies kann ich leider nicht messen. Hier wären die Anzahl Drehungen der Pellet-Förderschnecke im Brenner sehr hilfreich.
+
+Ich vermute der Energieverbrauch sei bei Automatik geringer weil:
+- Automatik hat deutlich weniger Brennerstarts
+- Tiefere Temperaturen im Vor- und Rücklauf der Fernleitung und damit weniger Verluste in der Fernleitung
+- Besserer Wirkungsgrad im Brenner wegen tieferer Rücklauftempatur.
