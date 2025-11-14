@@ -57,6 +57,9 @@ class HandlerLast:
             for haus_ladung in haeuser_ladung:
                 if not haus_ladung.valve_open:
                     continue
+                if self.ctx.haus_maerki_zu_heiss:
+                    if haus_ladung.haus.config_haus.haus_maerki: # Haus maerki soll nicht die Tfv temperatur erhoehen weil es nicht geladen werden muss
+                        continue
                 sp_temperatur_mitte_C = haus_ladung.haus.status_haus.hsm_dezentral.modbus_iregs_all.sp_temperatur.mitte_C
                 list_sp_temperatur_mitte_C.append(sp_temperatur_mitte_C)
                 list_ladung_individuell_prozent.append(haus_ladung.ladung_individuell_prozent)
