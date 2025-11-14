@@ -146,12 +146,14 @@ class ControllerMaster:
         # Brenner loeschen falls runtime Unterschied zu gross
         if haeuser_ladung_avg_prozent > 35.0:
             if sp_ladung_zentral >= SpLadung.LEVEL3:
-                if not self.ctx.is_vorladen_aktiv:
-                    """Es hat genug Energie im System und es steht ein Brennerwechsel an."""
-                    if self.handler_oekofen.brenner_loeschen_falls_runtime_unterschied():
-                        brenner_geloescht_valves_zu()
-                        logger.info("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
-                        return
+                if all(b.verfuegbar for b in self.handler_oekofen.brenner_zustaende):
+                    # Es sind zwei Brenner verfügbar und ein Wechsel waere moeglich
+                    if not self.ctx.is_vorladen_aktiv:
+                        # Es hat genug Energie im System und es steht ein Brennerwechsel an.
+                        if self.handler_oekofen.brenner_loeschen_falls_runtime_unterschied():
+                            brenner_geloescht_valves_zu()
+                            logger.info("Brenner geloescht damit der andere Brenner Betriebsstunden aufholen kann.")
+                            return
 
         if SCENARIOS.remove_if_present(ScenarioControllerPlusEinHaus):
             if self.handler_last.plus_1_valve(now_s=now_s):
